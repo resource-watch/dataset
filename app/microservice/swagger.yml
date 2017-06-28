@@ -1,0 +1,232 @@
+swagger: '2.0'
+info:
+  description: Dataset microservice specs for RW & GFW APIs
+  version: 1.0.0
+  title: Dataset
+  contact:
+    email: enrique.cornejo@vizzuality.com
+host: api.resourcewatch.org
+basePath: /v1
+tags:
+  - name: dataset
+    description: Dataset endpoint
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+
+paths:
+
+  /dataset:
+
+    post:
+      tags:
+        - dataset
+      summary: Registers a new dataset
+      parameters:
+        - in: body
+          name: dataset
+          description: Dataset object to register
+          schema:
+            $ref: '#/definitions/RequestBody'
+      responses:
+        200:
+          description: succesfully returns the just registered dataset
+          schema:
+            $ref: '#/definitions/Dataset'
+        400:
+          $ref: '#/responses/400Error'
+
+    get:
+      tags:
+        - dataset
+      summary: Gets a list of dataset objects
+      produces:
+        - application/json
+      responses:
+        400:
+          $ref: '#/responses/400Error'
+        200:
+          $ref: '#/responses/200DatasetArray'
+
+  /dataset/{id}:
+
+    get:
+      tags:
+        - dataset
+      summary: Gets a single dataset object
+      description: get a single dataset object
+      parameters:
+        - name: id
+          in: path
+          type: string
+          required: true
+      responses:
+        200:
+          description: succesfully returns a dataset object
+          schema:
+            $ref: '#/definitions/Dataset'
+        400:
+          $ref: '#/responses/400Error'
+        404:
+          $ref: '#/responses/404ErrorNotFound'
+
+    delete:
+      tags:
+        - dataset
+      summary: Deletes a dataset object
+      description: deletes a dataset object
+      parameters:
+        - name: id
+          in: path
+          type: string
+          required: true
+      responses:
+        200:
+          description: succesfully removes a metadata object
+          schema:
+            $ref: '#/definitions/Dataset'
+        400:
+          $ref: '#/responses/400Error'
+        404:
+          $ref: '#/responses/404ErrorNotFound'
+
+    patch:
+      tags:
+        - dataset
+      summary: Partially updates a dataset
+      description: updates the information of a dataset
+      parameters:
+        - name: id
+          in: path
+          type: string
+          required: true
+        - in: body
+          name: body
+          description: Dataset object to register
+          schema:
+            $ref: '#/definitions/PartialUpdateBody'
+      responses:
+        200:
+          description: succesfully removes a dataset object
+          schema:
+            $ref: '#/definitions/Dataset'
+        400:
+          $ref: '#/responses/400Error'
+        404:
+          $ref: '#/responses/404ErrorNotFound'
+
+definitions:
+  
+  Dataset:
+    type: object
+    properties:
+      attributes:
+        $ref: '#/definitions/DatasetAttributes'
+      id:
+        type: string
+      type:
+        type: string
+        enum:
+          - dataset
+
+  DatasetAttributes:
+    type: object
+    properties:
+      name:
+        type: string
+      slug:
+        type: string
+      subtitle:
+        type: string
+
+  RequestBody:
+    type: object
+    properties:
+      name:
+        type: string
+      subtitle:
+        type: string
+      application:
+        type: array
+        items:
+          type: string
+          enum:
+            - rw
+            - gfw
+      connectorType:
+        type: string
+        enum:
+          - rest
+          - document
+          - wms
+      provider:
+        type: string
+        enum:
+          - cartodb
+          - featureservice
+          - gee
+          - csv
+          - tsv
+          - xml
+          - json
+      connectorUrl:
+        type: string
+      tableName:
+        type: string
+      data:
+        type: object
+      dataPath:
+        type: string
+      legend:
+        type: object
+      overwrite:
+        type: boolean
+      vocabularies:
+        type: object
+  PartialUpdateBody:
+    type: object
+    properties:
+      name:
+        type: string
+      subtitle:
+        type: string
+      application:
+        type: array
+        items:
+          properties:
+            application:
+              type: string
+      connectorType:
+        type: string
+
+responses:
+
+  400Error:
+    description: invalid request
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+
+  404ErrorNotFound:
+    description: dataset not found
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+
+  200DatasetArray:
+    description: An array of datasets
+    schema:
+      type: array
+      items:
+        $ref: '#/definitions/Dataset'
+
+externalDocs:
+  description: Human-readable documentation for the API.
+  url: https://resource-watch.github.io/doc-api/
