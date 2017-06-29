@@ -20,12 +20,26 @@ produces:
 paths:
   /dataset:
     get:
+      parameters:
+        - in: query
+          name: page[size]
+          type: integer
+          description: Number of records to show
+        - in: query
+          name: page[number]
+          type: integer
+          description: Record pages to skip
       responses:
         200:
           description: OK
           schema:
             $ref: '#/definitions/DatasetListResponse'
     post:
+      parameters:
+        - in: body
+          name: dataset
+          schema:
+            $ref: '#/definitions/DatasetPost'
       responses:
         200:
           description: OK
@@ -44,7 +58,30 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/DatasetResponse'
+        400:
+          description: Not valid
+          schema:
+            $ref: '#/definitions/400Error'
+        404:
+          description: Dataset not found
+          schema:
+            $ref: '#/definitions/404ErrorNotFound'
+    post:
+      description: Completly replaces a dataset object with new data.
+      parameters:
+        - in: path
+          name: id
+          type: string
+          required: true
+          description: Uuid for the dataset
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/DatasetResponse'
+
 definitions:
+
   Dataset:
     type: object
     properties:
@@ -95,6 +132,45 @@ definitions:
           updatedAt:
             type: string
 
+  DatasetPost:
+    type: object
+    properties:
+      name:
+        type: string
+      subtitle:
+        type: string
+      application:
+        type: array
+      items:
+        type: string
+        enum:
+          - rw
+          - gfw
+      dataPath:
+        type: string
+      attributesPath:
+        type: string
+      connectorType:
+        type: string
+      provider:
+        type: string
+      userId:
+        type: string
+      connectorUrl:
+        type: string
+      tableName:
+        type: string
+      legend:
+        type: object
+      clonedHost:
+        type: object
+      errorMessage:
+        type: string
+      createdAt:
+        type: string
+      updatedAt:
+        type: string
+          
   DatasetResponse:
     type: object
     properties:
@@ -107,25 +183,19 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Dataset'
-
-        
-responses:
-
   400Error:
     description: invalid request
-    schema:
-      type: object
-      properties:
-        message:
-          type: string
-
+    type: object
+    properties:
+      errors:
+        type: string
   404ErrorNotFound:
     description: dataset not found
-    schema:
-      type: object
-      properties:
-        message:
-          type: string
+    type: object
+    properties:
+      errors:
+        type: string
+
 
 externalDocs:
   description: Human-readable documentation for the API.
