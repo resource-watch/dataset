@@ -73,6 +73,10 @@ class DatasetRouter {
         const method = ctx.request.method === 'DELETE' ? 'DELETE' : 'POST';
 
         try {
+            if (!dataset.tableName && connectorType === 'document') {
+                return await Promise.resolve();
+            }
+
             return await ctRegisterMicroservice.requestToMicroservice({
                 uri,
                 method,
