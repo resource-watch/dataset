@@ -15,12 +15,14 @@ class RelationshipsService {
             query.application = query.app;
         }
         delete query.includes;
+        delete query['user.role'];
         return query;
     }
 
     static async getResources(ids, includes, query = '', users = [], isAdmin = false) {
         logger.info(`Getting resources of ids: ${ids}`);
         delete query.ids;
+        delete query.usersRole;
         let resources = includes.map(async (include) => {
             const obj = {};
             if (INCLUDES.indexOf(include) >= 0) {
@@ -46,14 +48,18 @@ class RelationshipsService {
                     uri = '/auth';
                 }
 
-                const uriQuery = serializeObjToQuery(RelationshipsService.treatQuery(query));
+                let uriQuery = serializeObjToQuery(RelationshipsService.treatQuery(query));
+
+                if (uriQuery.length > 0) {
+                    uriQuery = `?${uriQuery}`;
+                }
 
                 try {
                     logger.debug('test uriQuery => ', `${uri}/${include}/find-by-ids?${uriQuery}`);
                     logger.debug('test payload length => ', ((payload || {}).ids || []).length);
 
                     obj[include] = await ctRegisterMicroservice.requestToMicroservice({
-                        uri: `${uri}/${include}/find-by-ids?${uriQuery}`,
+                        uri: `${uri}/${include}/find-by-ids${uriQuery}`,
                         method: 'POST',
                         json: true,
                         body: payload,
