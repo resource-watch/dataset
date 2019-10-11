@@ -19,8 +19,7 @@ describe('Dataset update tests', () => {
         }
     });
 
-    /* Update */
-    it('Update a dataset (happy case)', async () => {
+    it('Update a dataset as an ADMIN should be sucessful (happy case)', async () => {
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         const response = await requester
@@ -47,6 +46,32 @@ describe('Dataset update tests', () => {
         dataset.clonedHost.should.be.an.instanceOf(Object);
     });
 
+    it('Update a dataset as a MICROSERVICE should be sucessful (happy case)', async () => {
+        const fakeDataset = await new Dataset(createDataset('cartodb')).save();
+
+        const response = await requester
+            .patch(`/api/v1/dataset/${fakeDataset._id}`)
+            .send({
+                name: 'other name',
+                application: ['gfw', 'rw'],
+                loggedUser: USERS.MICROSERVICE
+            });
+        const dataset = deserializeDataset(response);
+
+        response.status.should.equal(200);
+        response.body.should.have.property('data').and.be.an('object');
+        dataset.should.have.property('name').and.equal('other name');
+        dataset.should.have.property('connectorType').and.equal('rest');
+        dataset.should.have.property('provider').and.equal('cartodb');
+        dataset.should.have.property('connectorUrl').and.equal(fakeDataset.connectorUrl);
+        dataset.should.have.property('tableName').and.equal(fakeDataset.tableName);
+        dataset.should.have.property('userId').and.equal(USERS.ADMIN.id);
+        dataset.should.have.property('applicationConfig').and.deep.equal(fakeDataset.applicationConfig);
+        dataset.should.have.property('status').and.equal('saved');
+        dataset.should.have.property('overwrite').and.equal(true);
+        dataset.legend.should.be.an.instanceOf(Object);
+        dataset.clonedHost.should.be.an.instanceOf(Object);
+    });
 
     it('Update a dataset with a valid dataLastUpdated value should work correctly', async () => {
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
@@ -198,6 +223,29 @@ describe('Dataset update tests', () => {
         response.status.should.equal(200);
         response.body.should.have.property('data').and.be.an('object');
         dataset.should.have.property('status').and.equal('failed');
+        dataset.legend.should.be.an.instanceOf(Object);
+        dataset.clonedHost.should.be.an.instanceOf(Object);
+        dataset.should.have.property('createdAt').and.equal(fakeDataset.createdAt.toISOString());
+    });
+
+    it('Update a dataset as ADMIN with empty connectorUrl and list of sources should succeed', async () => {
+        const fakeDataset = await new Dataset(createDataset('cartodb')).save();
+
+        const response = await requester
+            .patch(`/api/v1/dataset/${fakeDataset._id}`)
+            .send({
+                connectorUrl: null,
+                sources: ['http://url.com/file1.json', 'http://url.com/file2.json'],
+                loggedUser: USERS.ADMIN
+            });
+
+        response.status.should.equal(200);
+        response.body.should.have.property('data').and.be.an('object');
+
+        const dataset = deserializeDataset(response);
+        dataset.should.have.property('status').and.equal('saved');
+        dataset.should.have.property('sources').and.eql(['http://url.com/file1.json', 'http://url.com/file2.json']);
+        dataset.should.have.property('connectorUrl').and.equal(null);
         dataset.legend.should.be.an.instanceOf(Object);
         dataset.clonedHost.should.be.an.instanceOf(Object);
         dataset.should.have.property('createdAt').and.equal(fakeDataset.createdAt.toISOString());

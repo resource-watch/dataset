@@ -109,8 +109,9 @@ class DatasetValidator {
                 validation = false;
             }
             // in other cases just validate url
-        } else if (connectorUrl && (DatasetValidator.validUrl(connectorUrl) || connectorUrl.indexOf('rw.dataset.raw') >= 0)) {
-            validation = connectorUrl || (!connectorUrl && sources);
+        } else {
+            validation = (connectorUrl && (DatasetValidator.validUrl(connectorUrl) || connectorUrl.indexOf('rw.dataset.raw') >= 0))
+                || (!connectorUrl && sources && sources.length > 0);
         }
         return validation;
     }
@@ -259,7 +260,10 @@ class DatasetValidator {
             .check(applicationConfig => DatasetValidator.isObject(applicationConfig), 'must be an object');
         koaObj.checkBody('connectorType').optional().check(connectorType => DatasetValidator.isString(connectorType), 'must be a string');
         koaObj.checkBody('provider').optional().check(provider => DatasetValidator.isString(provider), 'must be a string');
-        koaObj.checkBody('connectorUrl').optional().check(connectorUrl => DatasetValidator.notEmptyString(connectorUrl), 'can not be empty');
+
+        koaObj.checkBody('connectorUrl').optional().check(connectorUrl => DatasetValidator.checkConnectorUrl(connectorUrl, koaObj), DatasetValidator.errorMessage('connectorUrl'));
+        koaObj.checkBody('sources').optional().check(sources => DatasetValidator.checkSources(sources, koaObj), DatasetValidator.errorMessage('sources'));
+
         koaObj.checkBody('tableName').optional().check(tableName => DatasetValidator.isString(tableName), 'must be a string');
         koaObj.checkBody('published').optional().toBoolean();
         koaObj.checkBody('overwrite').optional().toBoolean();

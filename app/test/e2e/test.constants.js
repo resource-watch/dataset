@@ -50,6 +50,9 @@ const USERS = {
                 'data4sdgs'
             ]
         }
+    },
+    MICROSERVICE: {
+        id: 'microservice'
     }
 };
 

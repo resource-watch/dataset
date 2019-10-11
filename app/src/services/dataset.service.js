@@ -15,6 +15,7 @@ const SyncError = require('errors/sync.error');
 const GraphService = require('services/graph.service');
 const slug = require('slug');
 const { STATUS } = require('app.constants');
+const isUndefined = require('lodash/isUndefined');
 
 const stage = process.env.NODE_ENV;
 
@@ -367,7 +368,8 @@ class DatasetService {
         currentDataset.attributesPath = dataset.attributesPath || currentDataset.attributesPath;
         currentDataset.connectorType = dataset.connectorType || currentDataset.connectorType;
         currentDataset.provider = dataset.provider || currentDataset.provider;
-        currentDataset.connectorUrl = dataset.connectorUrl || currentDataset.connectorUrl;
+        currentDataset.connectorUrl = isUndefined(dataset.connectorUrl) ? currentDataset.connectorUrl : dataset.connectorUrl;
+        currentDataset.sources = isUndefined(dataset.sources) ? currentDataset.sources : dataset.sources;
         currentDataset.applicationConfig = dataset.applicationConfig || currentDataset.applicationConfig;
         currentDataset.tableName = tableName || currentDataset.tableName;
         currentDataset.mainDateField = dataset.mainDateField || currentDataset.mainDateField;
