@@ -1,8 +1,8 @@
-FROM node:12.6-alpine
+FROM node:12.11-alpine
 MAINTAINER info@vizzuality.com
 
 ENV NAME dataset
-ENV USER microservice
+ENV USER dataset
 
 RUN apk update && apk upgrade && \
     apk add --no-cache --update bash git openssh python alpine-sdk

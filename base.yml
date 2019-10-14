@@ -1,8 +1,0 @@
-base:
-  build: .
-  ports:
-    - "3000:3000"
-  container_name: dataset
-  environment:
-    PORT: 3000
-    NODE_PATH: app/src

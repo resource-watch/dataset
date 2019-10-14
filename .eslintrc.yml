@@ -3,6 +3,9 @@ extends: airbnb
 env:
   node: true
   es6: true
+parserOptions:
+  sourceType: module
+  ecmaVersion: 2018
 globals:
   describe: true
   it: true
@@ -21,6 +24,7 @@ rules:
   no-param-reassign: [2, { "props": false }]
   indent: [2, 4, { "SwitchCase": 1 }]
   padded-blocks: [2, { "switches": "always", "classes": "always" }]
+  import/no-extraneous-dependencies: ["error", { devDependencies: ['app/test/**']}]
   quotes:
     - 2
     - single
