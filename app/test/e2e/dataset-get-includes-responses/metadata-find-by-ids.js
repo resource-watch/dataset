@@ -1,11 +1,11 @@
-const metadataFindById = cartoFakeDataset => ({
+const metadataFindById = dataset => ({
     data: [{
         id: '59d538fd66b9630011465ecd',
         type: 'metadata',
         attributes: {
-            dataset: cartoFakeDataset.id,
+            dataset: dataset.id,
             application: 'rw',
-            resource: { id: cartoFakeDataset.id, type: 'dataset' },
+            resource: { id: dataset.id, type: 'dataset' },
             language: 'en',
             name: 'Tiger Conservation Landscapes',
             description: 'These 3 data sets, produced by WWF and RESOLVE, show the location of current tiger habitat and priority areas for habitat conservation. (1) Tiger Conservation Landscapes: Tiger conservation landscapes (TCLs) are large blocks of contiguous or connected area of suitable tiger habitat that that can support at least 5 adult tigers and where tiger presence has been confirmed in the past 10 years. The data set was created by mapping tiger distribution, determined by land cover type, forest extent, and prey base, against a human influence index. Areas of high human influence that overlapped with suitable habitat were not considered tiger habitat. (2) Tx2 Tiger Conservation Landscapes: This data set displays 29 Tx2 tiger conservation landscapes (Tx2 TCLs), defined areas that could double the wild tiger population through proper conservation and management by 2020. (3) Terai Arc Landscape corridors: This data set displays 9 forest corridors on the Nepalese side of the Terai Arc Landscape (TAL). The TAL is an area that encompasses lowlands and the foothills of the Himalayas and contains 14 protected areas in total. Wildlife corridors enable animals to travel between these areas, increasing their long-term survival. Corridors are defined as existing forests connecting current Royal Bengal tiger metapopulations in Nepal and India. Resource Watch shows only a subset of the data set. For access to the full data set and additional information, see the Learn More link.',

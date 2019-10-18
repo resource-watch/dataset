@@ -38,7 +38,7 @@ describe('Dataset update tests', () => {
         dataset.should.have.property('provider').and.equal('cartodb');
         dataset.should.have.property('connectorUrl').and.equal(fakeDataset.connectorUrl);
         dataset.should.have.property('tableName').and.equal(fakeDataset.tableName);
-        dataset.should.have.property('userId').and.equal(USERS.ADMIN.id);
+        dataset.should.have.property('userId').and.equal(fakeDataset.userId);
         dataset.should.have.property('applicationConfig').and.deep.equal(fakeDataset.applicationConfig);
         dataset.should.have.property('status').and.equal('saved');
         dataset.should.have.property('overwrite').and.equal(true);
@@ -65,7 +65,7 @@ describe('Dataset update tests', () => {
         dataset.should.have.property('provider').and.equal('cartodb');
         dataset.should.have.property('connectorUrl').and.equal(fakeDataset.connectorUrl);
         dataset.should.have.property('tableName').and.equal(fakeDataset.tableName);
-        dataset.should.have.property('userId').and.equal(USERS.ADMIN.id);
+        dataset.should.have.property('userId').and.equal(fakeDataset.userId);
         dataset.should.have.property('applicationConfig').and.deep.equal(fakeDataset.applicationConfig);
         dataset.should.have.property('status').and.equal('saved');
         dataset.should.have.property('overwrite').and.equal(true);

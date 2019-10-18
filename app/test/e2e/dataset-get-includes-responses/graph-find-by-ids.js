@@ -1,8 +1,8 @@
-const graphFindById = (cartoFakeDataset) => ({
+const graphFindById = (dataset) => ({
     data: [{
         type: 'concept',
         attributes: {
-            dataset: cartoFakeDataset.id,
+            dataset: dataset.id,
             id: 'endangered',
             label: 'Endangered',
             synonyms: '',
@@ -11,7 +11,7 @@ const graphFindById = (cartoFakeDataset) => ({
     }, {
         type: 'concept',
         attributes: {
-            dataset: cartoFakeDataset.id,
+            dataset: dataset.id,
             id: 'conservation',
             label: 'Conservation',
             synonyms: '',
@@ -20,7 +20,7 @@ const graphFindById = (cartoFakeDataset) => ({
     }, {
         type: 'concept',
         attributes: {
-            dataset: cartoFakeDataset.id,
+            dataset: dataset.id,
             id: 'animal',
             label: 'Animals',
             synonyms: ['animal'],
@@ -29,7 +29,7 @@ const graphFindById = (cartoFakeDataset) => ({
     }, {
         type: 'concept',
         attributes: {
-            dataset: cartoFakeDataset.id,
+            dataset: dataset.id,
             id: 'global',
             label: 'Global',
             synonyms: '',
@@ -38,7 +38,7 @@ const graphFindById = (cartoFakeDataset) => ({
     }, {
         type: 'concept',
         attributes: {
-            dataset: cartoFakeDataset.id,
+            dataset: dataset.id,
             id: 'table',
             label: 'Table',
             synonyms: '',
@@ -47,7 +47,7 @@ const graphFindById = (cartoFakeDataset) => ({
     }, {
         type: 'concept',
         attributes: {
-            dataset: cartoFakeDataset.id,
+            dataset: dataset.id,
             id: 'geospatial',
             label: 'Geospatial',
             synonyms: '',
@@ -56,7 +56,7 @@ const graphFindById = (cartoFakeDataset) => ({
     }, {
         type: 'concept',
         attributes: {
-            dataset: cartoFakeDataset.id,
+            dataset: dataset.id,
             id: 'vector',
             label: 'Vector',
             synonyms: '',

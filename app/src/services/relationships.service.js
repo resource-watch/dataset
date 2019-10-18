@@ -1,6 +1,7 @@
 const logger = require('logger');
 const ctRegisterMicroservice = require('ct-register-microservice-node');
 const { INCLUDES } = require('app.constants');
+const { compact, uniq } = require('lodash');
 const InvalidRequest = require('errors/invalidRequest.error');
 
 const serializeObjToQuery = obj => Object.keys(obj).reduce((a, k) => {
@@ -42,7 +43,7 @@ class RelationshipsService {
                 }
                 if (include === 'user') {
                     payload = {
-                        ids: users.filter(element => element !== undefined)
+                        ids: compact(uniq(users))
                     };
                     version = false;
                     uri = '/auth';

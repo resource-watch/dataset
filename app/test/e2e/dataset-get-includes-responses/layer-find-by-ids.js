@@ -1,11 +1,11 @@
-const layersFindById = cartoFakeDataset => ({
+const layersFindById = dataset => ({
     data: [{
         id: '84698937-429c-4141-8752-8d8f36a7e98c',
         type: 'layer',
         attributes: {
             name: 'Tiger Conservation Landscapes and Corridors',
             slug: 'tiger-conservation-landscapes',
-            dataset: cartoFakeDataset.id,
+            dataset: dataset.id,
             description: 'Locations of tiger conservation landscapes, Tx2 tiger conservation landscapes, and Terai Arc Landscape corridors.',
             application: ['rw'],
             iso: [''],

@@ -1,11 +1,11 @@
-const metadataGetWithSearchForHuman = cartoFakeDataset => ({
+const metadataGetWithSearchForHuman = dataset => ({
     data: [{
         id: '59de3f9f4886ed001151a1d6',
         type: 'metadata',
         attributes: {
-            dataset: cartoFakeDataset.id,
+            dataset: dataset.id,
             application: 'rw',
-            resource: { id: cartoFakeDataset.id, type: 'dataset' },
+            resource: { id: dataset.id, type: 'dataset' },
             language: 'en',
             name: 'Terrestrial Human Footprint',
             description: 'The global human footprint map, created by Venter et al. (2016), used the human footprint framework to compile remotely sensed and bottom-up survey information on 8 variables measuring the direct and indirect human pressures on the environment in 1993 and 2009. The study included data on (1) extent of built environments, (2) crop land, (3) pasture land, (4) human population density, (5) nighttime lights, (6) railways, (7) roads, and (8) navigable waterways. These pressures were weighted according to estimates of their relative levels of human pressure and then summed together to create the standardized human footprint for all non-Antarctic land areas at 1 km resolution. Resource Watch shows only a subset of the data set. For access to the full data set and additional information, see the Learn More link.',
@@ -65,9 +65,9 @@ const metadataGetWithSearchForHuman = cartoFakeDataset => ({
         id: '5a4d85a88a5a2f0011ef49f2',
         type: 'metadata',
         attributes: {
-            dataset: cartoFakeDataset.id,
+            dataset: dataset.id,
             application: 'prep',
-            resource: { id: cartoFakeDataset.id, type: 'dataset' },
+            resource: { id: dataset.id, type: 'dataset' },
             language: 'en',
             name: 'Terrestrial Human Footprint',
             description: 'The global human footprint map, created by Venter et al. (2016), used the human footprint framework to compile remotely sensed and bottom-up survey information on 8 variables measuring the direct and indirect human pressures on the environment in 1993 and 2009. The study included data on (1) extent of built environments, (2) crop land, (3) pasture land, (4) human population density, (5) nighttime lights, (6) railways, (7) roads, and (8) navigable waterways. These pressures were weighted according to estimates of their relative levels of human pressure and then summed together to create the standardized human footprint for all non-Antarctic land areas at 1 km resolution.\n\nPREPdata shows only a subset of this data set. For access to the full data set and additional information, see the Download from Original Source link.',

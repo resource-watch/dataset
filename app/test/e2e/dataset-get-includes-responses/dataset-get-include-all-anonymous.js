@@ -1,23 +1,23 @@
-const datasetGetIncludeAllAnonymous = cartoFakeDataset => ({
-    id: cartoFakeDataset.id,
+const datasetGetIncludeAllAnonymous = dataset => ({
+    id: dataset.id,
     type: 'dataset',
     attributes: {
-        name: cartoFakeDataset.name,
-        slug: cartoFakeDataset.slug,
+        name: dataset.name,
+        slug: dataset.slug,
         type: null,
-        subtitle: cartoFakeDataset.subtitle,
+        subtitle: dataset.subtitle,
         application: [
             'rw'
         ],
-        applicationConfig: cartoFakeDataset.applicationConfig,
-        dataPath: cartoFakeDataset.dataPath,
-        attributesPath: cartoFakeDataset.attributesPath,
+        applicationConfig: dataset.applicationConfig,
+        dataPath: dataset.dataPath,
+        attributesPath: dataset.attributesPath,
         connectorType: 'rest',
         provider: 'cartodb',
-        userId: '1a10d7c6e0a37126611fd7a7',
-        connectorUrl: cartoFakeDataset.connectorUrl,
+        userId: dataset.userId,
+        connectorUrl: dataset.connectorUrl,
         sources: [],
-        tableName: cartoFakeDataset.tableName,
+        tableName: dataset.tableName,
         status: 'saved',
         published: true,
         overwrite: true,
@@ -47,18 +47,18 @@ const datasetGetIncludeAllAnonymous = cartoFakeDataset => ({
         clonedHost: {},
         errorMessage: null,
         taskId: null,
-        createdAt: cartoFakeDataset.createdAt.toISOString(),
-        updatedAt: cartoFakeDataset.updatedAt.toISOString(),
-        dataLastUpdated: cartoFakeDataset.dataLastUpdated.toISOString(),
+        createdAt: dataset.createdAt.toISOString(),
+        updatedAt: dataset.updatedAt.toISOString(),
+        dataLastUpdated: dataset.dataLastUpdated.toISOString(),
         metadata: [
             {
                 id: '59d538fd66b9630011465ecd',
                 type: 'metadata',
                 attributes: {
-                    dataset: cartoFakeDataset.id,
+                    dataset: dataset.id,
                     application: 'rw',
                     resource: {
-                        id: cartoFakeDataset.id,
+                        id: dataset.id,
                         type: 'dataset'
                     },
                     language: 'en',
@@ -128,7 +128,7 @@ const datasetGetIncludeAllAnonymous = cartoFakeDataset => ({
                 type: 'widget',
                 attributes: {
                     name: 'Tiger Conservation Landscapes and Corridors',
-                    dataset: cartoFakeDataset.id,
+                    dataset: dataset.id,
                     slug: 'Tiger-Conservation-Landscapes-2007-2011-and-Corridors-2014',
                     userId: '5980838ae24e6a1dae3dd446',
                     description: '',
@@ -161,13 +161,13 @@ const datasetGetIncludeAllAnonymous = cartoFakeDataset => ({
                             color: null,
                             category: {
                                 tableName: 'conservationMapServer3',
-                                datasetID: cartoFakeDataset.id,
+                                datasetID: dataset.id,
                                 type: 'esriFieldTypeString',
                                 name: 'tcl_name'
                             },
                             value: {
                                 tableName: 'conservationMapServer3',
-                                datasetID: cartoFakeDataset.id,
+                                datasetID: dataset.id,
                                 type: 'esriFieldTypeDouble',
                                 name: 'shape_Area'
                             },
@@ -458,7 +458,7 @@ const datasetGetIncludeAllAnonymous = cartoFakeDataset => ({
                 attributes: {
                     name: 'Tiger Conservation Landscapes and Corridors',
                     slug: 'tiger-conservation-landscapes',
-                    dataset: cartoFakeDataset.id,
+                    dataset: dataset.id,
                     description: 'Locations of tiger conservation landscapes, Tx2 tiger conservation landscapes, and Terai Arc Landscape corridors.',
                     application: [
                         'rw'
@@ -548,7 +548,7 @@ const datasetGetIncludeAllAnonymous = cartoFakeDataset => ({
             {
                 type: 'concept',
                 attributes: {
-                    dataset: cartoFakeDataset.id,
+                    dataset: dataset.id,
                     id: 'endangered',
                     label: 'Endangered',
                     synonyms: '',
@@ -558,7 +558,7 @@ const datasetGetIncludeAllAnonymous = cartoFakeDataset => ({
             {
                 type: 'concept',
                 attributes: {
-                    dataset: cartoFakeDataset.id,
+                    dataset: dataset.id,
                     id: 'conservation',
                     label: 'Conservation',
                     synonyms: '',
@@ -568,7 +568,7 @@ const datasetGetIncludeAllAnonymous = cartoFakeDataset => ({
             {
                 type: 'concept',
                 attributes: {
-                    dataset: cartoFakeDataset.id,
+                    dataset: dataset.id,
                     id: 'animal',
                     label: 'Animals',
                     synonyms: [
@@ -580,7 +580,7 @@ const datasetGetIncludeAllAnonymous = cartoFakeDataset => ({
             {
                 type: 'concept',
                 attributes: {
-                    dataset: cartoFakeDataset.id,
+                    dataset: dataset.id,
                     id: 'global',
                     label: 'Global',
                     synonyms: '',
@@ -590,7 +590,7 @@ const datasetGetIncludeAllAnonymous = cartoFakeDataset => ({
             {
                 type: 'concept',
                 attributes: {
-                    dataset: cartoFakeDataset.id,
+                    dataset: dataset.id,
                     id: 'table',
                     label: 'Table',
                     synonyms: '',
@@ -600,7 +600,7 @@ const datasetGetIncludeAllAnonymous = cartoFakeDataset => ({
             {
                 type: 'concept',
                 attributes: {
-                    dataset: cartoFakeDataset.id,
+                    dataset: dataset.id,
                     id: 'geospatial',
                     label: 'Geospatial',
                     synonyms: '',
@@ -610,7 +610,7 @@ const datasetGetIncludeAllAnonymous = cartoFakeDataset => ({
             {
                 type: 'concept',
                 attributes: {
-                    dataset: cartoFakeDataset.id,
+                    dataset: dataset.id,
                     id: 'vector',
                     label: 'Vector',
                     synonyms: '',

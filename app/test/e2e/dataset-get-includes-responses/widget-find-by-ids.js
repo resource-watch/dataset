@@ -1,10 +1,10 @@
-const widgetsFindById = cartoFakeDataset => ({
+const widgetsFindById = dataset => ({
     data: [{
         id: 'a783b2ec-fda3-4706-bf34-e34f50225f8d',
         type: 'widget',
         attributes: {
             name: 'Tiger Conservation Landscapes and Corridors',
-            dataset: cartoFakeDataset.id,
+            dataset: dataset.id,
             slug: 'Tiger-Conservation-Landscapes-2007-2011-and-Corridors-2014',
             userId: '5980838ae24e6a1dae3dd446',
             description: '',
@@ -33,13 +33,13 @@ const widgetsFindById = cartoFakeDataset => ({
                     color: null,
                     category: {
                         tableName: 'conservationMapServer3',
-                        datasetID: cartoFakeDataset.id,
+                        datasetID: dataset.id,
                         type: 'esriFieldTypeString',
                         name: 'tcl_name'
                     },
                     value: {
                         tableName: 'conservationMapServer3',
-                        datasetID: cartoFakeDataset.id,
+                        datasetID: dataset.id,
                         type: 'esriFieldTypeDouble',
                         name: 'shape_Area'
                     },
