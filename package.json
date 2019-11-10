@@ -12,7 +12,7 @@
   },
   "lint-staged": {
     "*.js": [
-      "eslint 'app/**/*.js' --fix",
+      "eslint --fix",
       "git add"
     ]
   },
