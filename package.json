@@ -28,6 +28,9 @@
     "email": "hello@vizzuality.com",
     "url": "http://vizzuality.com/"
   },
+  "engines": {
+    "node": "~12"
+  },
   "license": "MIT",
   "devDependencies": {
     "chai": "^4.2.0",
@@ -37,6 +40,7 @@
     "eslint-config-airbnb": "^17.1.0",
     "eslint-plugin-import": "^2.18.0",
     "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-mocha": "^6.1.1",
     "eslint-plugin-react": "^7.14.2",
     "grunt": "^1.0.4",
     "grunt-cli": "^1.3.2",

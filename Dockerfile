@@ -1,4 +1,4 @@
-FROM node:12.11-alpine
+FROM node:12-alpine
 MAINTAINER info@vizzuality.com
 
 ENV NAME dataset
@@ -9,11 +9,12 @@ RUN apk update && apk upgrade && \
 
 RUN addgroup $USER && adduser -s /bin/bash -D -G $USER $USER
 
-RUN npm install -g grunt-cli bunyan
+RUN yarn global add grunt-cli bunyan
 
 RUN mkdir -p /opt/$NAME
 COPY package.json /opt/$NAME/package.json
-RUN cd /opt/$NAME && npm install
+COPY yarn.lock /opt/$NAME/yarn.lock
+RUN cd /opt/$NAME && yarn
 
 COPY entrypoint.sh /opt/$NAME/entrypoint.sh
 COPY config /opt/$NAME/config
