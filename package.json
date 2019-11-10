@@ -8,14 +8,18 @@
     "test": "NODE_PATH=app/src node $NODE_DEBUG_OPTION ./node_modules/.bin/grunt --gruntfile app/Gruntfile.js e2eTest",
     "start": "NODE_PATH=app/src node $NODE_DEBUG_OPTION app/index.js",
     "coverage": "NODE_PATH=app/src node $NODE_DEBUG_OPTION ./node_modules/.bin/grunt --gruntfile app/Gruntfile.js nyc",
-    "eslint": "eslint 'app/**/*.js' --fix",
-    "precommit": "lint-staged"
+    "eslint": "eslint 'app/**/*.js' --fix"
   },
   "lint-staged": {
     "*.js": [
       "eslint 'app/**/*.js' --fix",
       "git add"
     ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   },
   "keywords": [
     "dataset",
@@ -51,7 +55,8 @@
     "grunt-mocha-test": "^0.13.3",
     "grunt-notify": "^0.4.5",
     "grunt-simple-nyc": "^3.0.0",
-    "lint-staged": "^8.2.1",
+    "husky": "^3.0.9",
+    "lint-staged": "^9.4.2",
     "load-grunt-tasks": "^5.1.0",
     "mocha": "^6.1.4",
     "nock": "^11.3.4",

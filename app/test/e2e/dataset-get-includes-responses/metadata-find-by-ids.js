@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 const metadataFindById = dataset => ({
     data: [{
         id: '59d538fd66b9630011465ecd',

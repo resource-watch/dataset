@@ -1,4 +1,4 @@
-const graphFindById = (dataset) => ({
+const graphFindById = dataset => ({
     data: [{
         type: 'concept',
         attributes: {

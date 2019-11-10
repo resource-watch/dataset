@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 const layersFindById = dataset => ({
     data: [{
         id: '84698937-429c-4141-8752-8d8f36a7e98c',

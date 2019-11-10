@@ -1,6 +1,4 @@
 const { CONNECTOR_TYPES } = require('app.constants');
-const { USERS } = require('./test.constants');
-
 
 function isArray(element) {
     if (element instanceof Array) {

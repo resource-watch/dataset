@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars,no-undef */
+/* eslint-disable no-unused-vars,no-undef,max-len */
 const nock = require('nock');
 const chai = require('chai');
 const Dataset = require('models/dataset.model');
@@ -22,9 +22,6 @@ const { USERS } = require('./test.constants');
 const should = chai.should();
 
 const requester = getTestServer();
-
-let fakeDatasetOne;
-
 
 describe('Get datasets with includes tests', () => {
 

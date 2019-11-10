@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 const metadataGetWithSearchForHuman = dataset => ({
     data: [{
         id: '59de3f9f4886ed001151a1d6',

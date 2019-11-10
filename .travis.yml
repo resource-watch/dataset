@@ -3,7 +3,6 @@ services:
   - mongodb
 node_js:
   - "12"
-  - "node"
 cache:
   directories:
   - "node_modules"

@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 const USERS = {
     USER: {
         id: '1a10d7c6e0a37126611fd7a5',
