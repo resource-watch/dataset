@@ -20,7 +20,7 @@ describe('Upload raw data', () => {
 
         nock.cleanAll();
 
-        await Dataset.remove({}).exec();
+        await Dataset.deleteMany({}).exec();
 
         jsonFakeDataset = await new Dataset(createDataset('json')).save();
     });
@@ -75,7 +75,7 @@ describe('Upload raw data', () => {
     });
 
     after(async () => {
-        await Dataset.remove({}).exec();
+        await Dataset.deleteMany({}).exec();
     });
 
 });

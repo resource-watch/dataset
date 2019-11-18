@@ -187,6 +187,6 @@ describe('Get datasets tests', () => {
             throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);
         }
 
-        await Dataset.remove({}).exec();
+        await Dataset.deleteMany({}).exec();
     });
 });

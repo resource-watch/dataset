@@ -8,23 +8,18 @@ const koaSimpleHealthCheck = require('koa-simple-healthcheck');
 const ctRegisterMicroservice = require('ct-register-microservice-node');
 const ErrorSerializer = require('serializers/error.serializer');
 const sleep = require('sleep');
+const koaValidate = require('koa-validate');
+const koaBody = require('koa-body');
+let mongooseOptions = require('../../config/mongoose');
 
 const mongoUri = process.env.MONGO_URI || `mongodb://${config.get('mongodb.host')}:${config.get('mongodb.port')}/${config.get('mongodb.database')}`;
-const koaValidate = require('koa-validate');
-
-const koaBody = require('koa-body')({
-    multipart: true,
-    jsonLimit: '50mb',
-    formLimit: '50mb',
-    textLimit: '50mb'
-});
 
 let retries = 10;
 
-let dbOptions = {};
 // KUBE CLUSTER
 if (mongoUri.indexOf('replicaSet') > -1) {
-    dbOptions = {
+    mongooseOptions = {
+        ...mongooseOptions,
         db: { native_parser: true },
         replset: {
             auto_reconnect: false,
@@ -50,7 +45,7 @@ const onDbReady = (err) => {
             retries--;
             logger.error(`Failed to connect to MongoDB uri ${mongoUri} with error message "${err.message}", retrying...`);
             sleep.sleep(5);
-            mongoose.connect(mongoUri, onDbReady);
+            mongoose.connect(mongoUri, mongooseOptions, onDbReady);
         } else {
             logger.error('MongoURI', mongoUri);
             logger.error(err);
@@ -59,11 +54,16 @@ const onDbReady = (err) => {
     }
 };
 
-mongoose.connect(mongoUri, dbOptions, onDbReady);
+mongoose.connect(mongoUri, mongooseOptions, onDbReady);
 
 const app = new Koa();
 
-app.use(koaBody);
+app.use(koaBody({
+    multipart: true,
+    jsonLimit: '50mb',
+    formLimit: '50mb',
+    textLimit: '50mb'
+}));
 app.use(koaSimpleHealthCheck());
 
 app.use(async (ctx, next) => {

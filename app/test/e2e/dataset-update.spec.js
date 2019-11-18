@@ -268,7 +268,7 @@ describe('Dataset update tests', () => {
     });
 
     afterEach(async () => {
-        await Dataset.remove({}).exec();
+        await Dataset.deleteMany({}).exec();
 
         if (!nock.isDone()) {
             throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);

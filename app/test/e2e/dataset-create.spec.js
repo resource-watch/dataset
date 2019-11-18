@@ -20,7 +20,7 @@ describe('Dataset create tests', () => {
             throw Error(`Running the test suite with NODE_ENV ${process.env.NODE_ENV} may result in permanent data loss. Please use NODE_ENV=test.`);
         }
 
-        await Dataset.remove({}).exec();
+        await Dataset.deleteMany({}).exec();
 
         nock.cleanAll();
     });
@@ -615,6 +615,6 @@ describe('Dataset create tests', () => {
     });
 
     after(async () => {
-        await Dataset.remove({}).exec();
+        await Dataset.deleteMany({}).exec();
     });
 });

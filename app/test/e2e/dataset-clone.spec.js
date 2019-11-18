@@ -23,7 +23,7 @@ describe('Dataset clone tests', () => {
     });
 
     beforeEach(async () => {
-        await Dataset.remove({}).exec();
+        await Dataset.deleteMany({}).exec();
     });
 
     it('Clone a dataset as an ADMIN should be successful', async () => {
@@ -130,7 +130,7 @@ describe('Dataset clone tests', () => {
     });
 
     afterEach(async () => {
-        await Dataset.remove({}).exec();
+        await Dataset.deleteMany({}).exec();
 
         if (!nock.isDone()) {
             throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);

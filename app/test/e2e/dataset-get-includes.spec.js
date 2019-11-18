@@ -32,7 +32,7 @@ describe('Get datasets with includes tests', () => {
 
         nock.cleanAll();
 
-        await Dataset.remove({}).exec();
+        await Dataset.deleteMany({}).exec();
     });
 
 
@@ -345,7 +345,7 @@ describe('Get datasets with includes tests', () => {
     });
 
     afterEach(async () => {
-        await Dataset.remove({}).exec();
+        await Dataset.deleteMany({}).exec();
 
         if (!nock.isDone()) {
             throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);
