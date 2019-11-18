@@ -20,7 +20,7 @@ describe('Upload raw data', () => {
 
         nock.cleanAll();
 
-        Dataset.remove({}).exec();
+        await Dataset.remove({}).exec();
     });
 
     it('Return error if no user provided', async () => {
@@ -105,8 +105,8 @@ describe('Upload raw data', () => {
         }
     });
 
-    after(() => {
-        Dataset.remove({}).exec();
+    after(async () => {
+        await Dataset.remove({}).exec();
     });
 
 });

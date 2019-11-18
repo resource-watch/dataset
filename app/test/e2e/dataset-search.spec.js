@@ -23,7 +23,7 @@ describe('Search datasets tests', () => {
 
         nock.cleanAll();
 
-        Dataset.remove({}).exec();
+        await Dataset.remove({}).exec();
 
         cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
         jsonFakeDataset = await new Dataset(createDataset('json')).save();
@@ -391,7 +391,7 @@ describe('Search datasets tests', () => {
         }
     });
 
-    after(() => {
-        Dataset.remove({}).exec();
+    after(async () => {
+        await Dataset.remove({}).exec();
     });
 });

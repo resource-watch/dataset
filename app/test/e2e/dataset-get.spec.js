@@ -182,11 +182,11 @@ describe('Get datasets tests', () => {
         dataset.should.have.property('connectorUrl').and.equal(csvFakeDataset.connectorUrl);
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         if (!nock.isDone()) {
             throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);
         }
 
-        Dataset.remove({}).exec();
+        await Dataset.remove({}).exec();
     });
 });

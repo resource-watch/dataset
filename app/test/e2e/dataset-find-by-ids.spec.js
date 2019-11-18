@@ -22,7 +22,7 @@ describe('Find by ids datasets', () => {
 
         nock.cleanAll();
 
-        Dataset.remove({}).exec();
+        await Dataset.remove({}).exec();
 
         cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
         jsonFakeDataset = await new Dataset(createDataset('json')).save();
@@ -81,8 +81,8 @@ describe('Find by ids datasets', () => {
         }
     });
 
-    after(() => {
-        Dataset.remove({}).exec();
+    after(async () => {
+        await Dataset.remove({}).exec();
     });
 
 });

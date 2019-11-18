@@ -15,12 +15,12 @@ nock.enableNetConnect(process.env.HOST_IP);
 
 describe('Dataset create tests', () => {
 
-    before(() => {
+    before(async () => {
         if (process.env.NODE_ENV !== 'test') {
             throw Error(`Running the test suite with NODE_ENV ${process.env.NODE_ENV} may result in permanent data loss. Please use NODE_ENV=test.`);
         }
 
-        Dataset.remove({}).exec();
+        await Dataset.remove({}).exec();
 
         nock.cleanAll();
     });
@@ -614,7 +614,7 @@ describe('Dataset create tests', () => {
         }
     });
 
-    after(() => {
-        Dataset.remove({}).exec();
+    after(async () => {
+        await Dataset.remove({}).exec();
     });
 });

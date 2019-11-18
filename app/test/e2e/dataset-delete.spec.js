@@ -608,7 +608,7 @@ describe('Dataset delete tests', () => {
         }
     });
 
-    after(() => {
-        Dataset.remove({}).exec();
+    after(async () => {
+        await Dataset.remove({}).exec();
     });
 });
