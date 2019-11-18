@@ -251,6 +251,22 @@ describe('Dataset update tests', () => {
         dataset.should.have.property('createdAt').and.equal(fakeDataset.createdAt.toISOString());
     });
 
+    it('Update the applications of a dataset as an app ADMIN with associated app should succeed', async () => {
+        const fakeDataset = await new Dataset(createDataset('cartodb', {
+            application: ['rw', 'gfw']
+        })).save();
+
+        const response = await requester
+            .patch(`/api/v1/dataset/${fakeDataset._id}`)
+            .send({ application: ['gfw'], loggedUser: USERS.ADMIN });
+
+        response.status.should.equal(200);
+        response.body.should.have.property('data').and.be.an('object');
+        const dataset = deserializeDataset(response);
+        dataset.should.have.property('status').and.equal('saved');
+        dataset.should.have.property('application').and.eql(['gfw']);
+    });
+
     afterEach(async () => {
         await Dataset.remove({}).exec();
 
