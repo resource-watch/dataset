@@ -151,7 +151,11 @@ class DatasetService {
                 query.userId = Object.assign({}, query.userId || {}, query[param]);
             } else if (param === 'subscribable') {
                 logger.debug('Applying subscribable filter', query[param]);
-                query.subscribable = query[param] ? { $exists: true, $nin: [false, {}] } : {};
+                if (query[param] === 'true') {
+                    query.subscribable = { $exists: true, $nin: [null, false, {}] };
+                } else if (query[param] === 'false') {
+                    query.subscribable = { $in: [null, false, {}] };
+                }
             }
         });
         if (ids.length > 0 || collection || favourite) {
