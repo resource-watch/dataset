@@ -182,6 +182,24 @@ describe('Get datasets tests', () => {
         dataset.should.have.property('connectorUrl').and.equal(csvFakeDataset.connectorUrl);
     });
 
+    it('Getting the datasets with the subscribable filter set to true returns 200 OK response including only subscribable datasets', async () => {
+        const unsubDataset1 = await new Dataset(createDataset('cartodb')).save();
+        const unsubDataset2 = await new Dataset(createDataset('cartodb', { subscribable: false })).save();
+        const unsubDataset3 = await new Dataset(createDataset('cartodb', { subscribable: {} })).save();
+        const subDataset = await new Dataset(createDataset('cartodb', { subscribable: { hello: 1 } })).save();
+
+        const response = await requester.get(`/api/v1/dataset?subscribable=true`);
+        response.status.should.equal(200);
+        response.body.should.have.property('data').with.lengthOf(1);
+
+        const datasets = deserializeDataset(response);
+        const datasetIds = datasets.map(dataset => dataset.id);
+        datasetIds.should.contain(subDataset._id);
+        datasetIds.should.not.contain(unsubDataset1._id);
+        datasetIds.should.not.contain(unsubDataset2._id);
+        datasetIds.should.not.contain(unsubDataset3._id);
+    });
+
     afterEach(async () => {
         if (!nock.isDone()) {
             throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);
