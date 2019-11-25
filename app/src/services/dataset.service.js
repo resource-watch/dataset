@@ -108,7 +108,7 @@ class DatasetService {
         Object.keys(query).forEach((param) => {
             if (datasetAttributes.indexOf(param) < 0 && param !== 'usersRole') {
                 delete query[param];
-            } else if (param !== 'env' && param !== 'userId' && param !== 'usersRole') {
+            } else if (param !== 'env' && param !== 'userId' && param !== 'usersRole' && param !== 'subscribable') {
                 switch (Dataset.schema.paths[param].instance) {
 
                     case 'String':
@@ -149,6 +149,9 @@ class DatasetService {
             } else if (param === 'userId') {
                 logger.debug('params userid', query[param]);
                 query.userId = Object.assign({}, query.userId || {}, query[param]);
+            } else if (param === 'subscribable') {
+                logger.debug('Applying subscribable filter', query[param]);
+                query.subscribable = query[param] ? { $exists: true, $nin: [false, {}] } : {};
             }
         });
         if (ids.length > 0 || collection || favourite) {
