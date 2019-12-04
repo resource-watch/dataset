@@ -267,6 +267,69 @@ describe('Dataset update tests', () => {
         dataset.should.have.property('application').and.eql(['gfw']);
     });
 
+    it('Update the error message of a dataset as an ADMIN should succeed but not change the message', async () => {
+        const fakeDataset = await new Dataset(createDataset('cartodb', {
+            errorMessage: 'Old error message'
+        })).save();
+
+        const response = await requester
+            .patch(`/api/v1/dataset/${fakeDataset._id}`)
+            .send({
+                name: 'Updated dataset name',
+                errorMessage: 'Updated error message',
+                loggedUser: USERS.ADMIN
+            });
+
+        response.status.should.equal(200);
+        response.body.should.have.property('data').and.be.an('object');
+        const dataset = deserializeDataset(response);
+
+        dataset.should.have.property('name').and.equal('Updated dataset name');
+        dataset.should.have.property('errorMessage').and.eql(fakeDataset.errorMessage);
+    });
+
+    it('Update the error message of a dataset as a MICROSERVICE should succeed and change the message', async () => {
+        const fakeDataset = await new Dataset(createDataset('cartodb', {
+            errorMessage: 'Old error message'
+        })).save();
+
+        const response = await requester
+            .patch(`/api/v1/dataset/${fakeDataset._id}`)
+            .send({
+                name: 'Updated dataset name',
+                errorMessage: 'Updated error message',
+                loggedUser: USERS.MICROSERVICE
+            });
+
+        response.status.should.equal(200);
+        response.body.should.have.property('data').and.be.an('object');
+        const dataset = deserializeDataset(response);
+
+        dataset.should.have.property('name').and.equal('Updated dataset name');
+        dataset.should.have.property('errorMessage').and.eql('Updated error message');
+    });
+
+    it('Clear the error message of a dataset as a MICROSERVICE should succeed and clear the message', async () => {
+        const fakeDataset = await new Dataset(createDataset('cartodb', {
+            errorMessage: 'Old error message'
+        })).save();
+
+        const response = await requester
+            .patch(`/api/v1/dataset/${fakeDataset._id}`)
+            .send({
+                name: 'Updated dataset name',
+                errorMessage: '',
+                loggedUser: USERS.MICROSERVICE
+            });
+
+        response.status.should.equal(200);
+        response.body.should.have.property('data').and.be.an('object');
+        const dataset = deserializeDataset(response);
+
+        dataset.should.have.property('name').and.equal('Updated dataset name');
+        dataset.should.have.property('errorMessage').and.eql('');
+    });
+
     afterEach(async () => {
         await Dataset.deleteMany({}).exec();
 

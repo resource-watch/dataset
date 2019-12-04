@@ -338,6 +338,7 @@ class DatasetService {
     static async update(id, dataset, user) {
         logger.debug(`[DatasetService]: Getting dataset with id:  ${id}`);
         logger.info(`[DBACCESS-FIND]: dataset.id: ${id}`);
+
         const currentDataset = await Dataset.findById(id).exec() || await Dataset.findOne({
             slug: id
         }).exec();
@@ -345,6 +346,7 @@ class DatasetService {
             logger.error(`[DatasetService]: Dataset with id ${id} doesn't exist`);
             throw new DatasetNotFound(`Dataset with id '${id}' doesn't exist`);
         }
+
         if (typeof dataset.status !== 'undefined') {
             if (user.role !== 'ADMIN' && user.id !== 'microservice') {
                 logger.info(`[DatasetService]: User ${user.id} does not have permission to update status on dataset with id ${id}`);
@@ -424,6 +426,9 @@ class DatasetService {
         }
         if (user.id === 'microservice' && dataset.taskId) {
             currentDataset.taskId = dataset.taskId;
+        }
+        if (user.id === 'microservice' && !isUndefined(dataset.errorMessage)) {
+            currentDataset.errorMessage = dataset.errorMessage;
         }
         logger.info(`[DBACCESS-SAVE]: dataset`);
         let newDataset = await currentDataset.save();
