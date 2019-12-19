@@ -19,7 +19,7 @@ describe('Dataset update tests', () => {
         }
     });
 
-    it('Update a dataset as an ADMIN should be sucessful (happy case)', async () => {
+    it('Update a dataset as an ADMIN should be successful (happy case)', async () => {
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         const response = await requester
@@ -46,7 +46,7 @@ describe('Dataset update tests', () => {
         dataset.clonedHost.should.be.an.instanceOf(Object);
     });
 
-    it('Update a dataset as a MICROSERVICE should be sucessful (happy case)', async () => {
+    it('Update a dataset as a MICROSERVICE should be successful (happy case)', async () => {
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         const response = await requester
@@ -328,6 +328,25 @@ describe('Dataset update tests', () => {
 
         dataset.should.have.property('name').and.equal('Updated dataset name');
         dataset.should.have.property('errorMessage').and.eql('');
+    });
+
+    it('As the admin of a single application, removing the app he/she admins from the array of apps of the dataset should return 200 OK with the updated dataset', async () => {
+        const fakeDataset = await new Dataset(createDataset('cartodb', {
+            application: ['rw', 'prep', 'sdg4data', 'ng', 'aqueduct', 'gfw']
+        })).save();
+
+        const response = await requester
+            .patch(`/api/v1/dataset/${fakeDataset._id}`)
+            .send({
+                application: ['prep', 'sdg4data', 'ng', 'aqueduct', 'gfw'],
+                loggedUser: USERS.RW_ADMIN,
+            });
+
+        response.status.should.equal(200);
+        response.body.should.have.property('data').and.be.an('object');
+        const dataset = deserializeDataset(response);
+        dataset.should.have.property('status').and.equal('saved');
+        dataset.should.have.property('application').and.eql(['gfw']);
     });
 
     afterEach(async () => {

@@ -52,6 +52,14 @@ const USERS = {
             ]
         }
     },
+    RW_ADMIN: {
+        id: '1a10d7c6e0a37123311fd7a7',
+        role: 'ADMIN',
+        provider: 'local',
+        email: 'admin@control-tower.org',
+        name: 'RW Admin',
+        extraUserData: { apps: ['rw'] }
+    },
     MICROSERVICE: {
         id: 'microservice'
     }
