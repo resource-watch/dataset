@@ -349,6 +349,23 @@ describe('Dataset update tests', () => {
         dataset.should.have.property('application').and.eql(['prep', 'sdg4data', 'ng', 'aqueduct', 'gfw']);
     });
 
+    it('As the admin of a single application, removing apps not managed by the admin from the array of apps of the dataset should return 403 Forbidden', async () => {
+        const fakeDataset = await new Dataset(createDataset('cartodb', {
+            application: ['rw', 'prep', 'sdg4data', 'ng', 'aqueduct', 'gfw']
+        })).save();
+
+        const response = await requester
+            .patch(`/api/v1/dataset/${fakeDataset._id}`)
+            .send({
+                application: ['rw', 'sdg4data', 'ng', 'aqueduct', 'gfw'],
+                loggedUser: USERS.RW_ADMIN,
+            });
+
+        response.status.should.equal(403);
+        response.body.should.have.property('errors').and.be.an('array');
+        response.body.errors[0].should.have.property('detail').and.equal('Forbidden - User does not have access to this dataset\'s application');
+    });
+
     afterEach(async () => {
         await Dataset.deleteMany({}).exec();
 
