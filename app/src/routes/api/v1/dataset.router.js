@@ -456,6 +456,22 @@ const validationMiddleware = async (ctx, next) => {
     await next();
 };
 
+const getApplicationFromRequest = async (ctx) => {
+    const requestApps = ctx.request.query.application ? ctx.request.query.application : ctx.request.body.application;
+
+    // Detect PATCH /dataset/:id requests
+    if (requestApps && ctx.request.method === 'PATCH' && ctx.request.path.indexOf('dataset') >= 0) {
+        const dataset = await DatasetService.get(ctx.params.dataset);
+        const removedApps = dataset.application.filter(app => !requestApps.includes(app));
+        const addedApps = requestApps.filter(app => !dataset.application.includes(app));
+
+        // Manipulated apps are the union between removed and added apps
+        return removedApps.concat(addedApps);
+    }
+
+    return requestApps;
+};
+
 const authorizationMiddleware = async (ctx, next) => {
     logger.info(`[DatasetRouter] Checking authorization`);
     // Get user from query (delete) or body (post-patch)
@@ -480,7 +496,7 @@ const authorizationMiddleware = async (ctx, next) => {
             return;
         }
     }
-    const application = ctx.request.query.application ? ctx.request.query.application : ctx.request.body.application;
+    const application = await getApplicationFromRequest(ctx);
     if (application) {
         const appPermission = application.find(app => user.extraUserData.apps.find(userApp => userApp === app));
         if (!appPermission) {

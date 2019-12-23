@@ -346,7 +346,7 @@ describe('Dataset update tests', () => {
         response.body.should.have.property('data').and.be.an('object');
         const dataset = deserializeDataset(response);
         dataset.should.have.property('status').and.equal('saved');
-        dataset.should.have.property('application').and.eql(['gfw']);
+        dataset.should.have.property('application').and.eql(['prep', 'sdg4data', 'ng', 'aqueduct', 'gfw']);
     });
 
     afterEach(async () => {
