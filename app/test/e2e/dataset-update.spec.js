@@ -330,7 +330,7 @@ describe('Dataset update tests', () => {
         dataset.should.have.property('errorMessage').and.eql('');
     });
 
-    it('As the admin of a single application, removing the app he/she admins from the array of apps of the dataset should return 200 OK with the updated dataset', async () => {
+    it('As the admin of a single application, removing my app from the array of apps of the dataset should return 200 OK with the updated dataset', async () => {
         const fakeDataset = await new Dataset(createDataset('cartodb', {
             application: ['rw', 'prep', 'sdg4data', 'ng', 'aqueduct', 'gfw']
         })).save();
@@ -349,7 +349,7 @@ describe('Dataset update tests', () => {
         dataset.should.have.property('application').and.eql(['prep', 'sdg4data', 'ng', 'aqueduct', 'gfw']);
     });
 
-    it('As the admin of a single application, removing apps not managed by the admin from the array of apps of the dataset should return 403 Forbidden', async () => {
+    it('As the admin of a single application, removing apps not managed by me from the array of apps of the dataset should return 403 Forbidden', async () => {
         const fakeDataset = await new Dataset(createDataset('cartodb', {
             application: ['rw', 'prep', 'sdg4data', 'ng', 'aqueduct', 'gfw']
         })).save();
@@ -364,6 +364,19 @@ describe('Dataset update tests', () => {
         response.status.should.equal(403);
         response.body.should.have.property('errors').and.be.an('array');
         response.body.errors[0].should.have.property('detail').and.equal('Forbidden - User does not have access to this dataset\'s application');
+    });
+
+    it('As the admin of a single application, adding my app to the array of apps of the dataset should return 200 OK with the updated dataset', async () => {
+        const fakeDataset = await new Dataset(createDataset('cartodb', { application: null })).save();
+        const response = await requester
+            .patch(`/api/v1/dataset/${fakeDataset._id}`)
+            .send({ application: ['rw'], loggedUser: USERS.RW_ADMIN });
+
+        response.status.should.equal(200);
+        response.body.should.have.property('data').and.be.an('object');
+        const dataset = deserializeDataset(response);
+        dataset.should.have.property('status').and.equal('saved');
+        dataset.should.have.property('application').and.eql(['rw']);
     });
 
     afterEach(async () => {

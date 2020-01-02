@@ -678,16 +678,21 @@ class DatasetService {
         return createdDataset;
     }
 
-    static async hasPermission(id, user) {
+    static validateAppPermission(user, datasetApps) {
+        return datasetApps.find(datasetApp => user.extraUserData.apps.find(app => app === datasetApp));
+    }
+
+    static async hasPermission(id, user, datasetApps) {
         let permission = true;
-        const dataset = await DatasetService.get(id);
-        const appPermission = dataset.application.find(datasetApp => user.extraUserData.apps.find(app => app === datasetApp));
-        if (!appPermission) {
+        if (datasetApps && !DatasetService.validateAppPermission(user, datasetApps)) {
             permission = false;
         }
+
+        const dataset = await DatasetService.get(id);
         if ((user.role === 'MANAGER') && (!dataset.userId || dataset.userId !== user.id)) {
             permission = false;
         }
+
         return permission;
     }
 
