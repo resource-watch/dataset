@@ -10,6 +10,7 @@ services:
       CT_URL: http://mymachine:9000
       API_VERSION: v1
       STAMPERY_TOKEN: token
+      CT_REGISTER_MODE: auto
       MONGO_PORT_27017_TCP_ADDR: mongo
       S3_ACCESS_KEY_ID: foo
       S3_SECRET_ACCESS_KEY: bar

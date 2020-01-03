@@ -12,6 +12,7 @@ env:
     - NODE_ENV=test
     - PORT=5037
     - API_VERSION=v1
+    - CT_REGISTER_MODE=auto
     - LOCAL_URL=http://127.0.0.1:3001
     - CT_URL=http://127.0.0.1:9000
     - MONGO_PORT_27017_TCP_ADDR=127.0.0.1
