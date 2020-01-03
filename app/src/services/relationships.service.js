@@ -320,7 +320,7 @@ class RelationshipsService {
             method: 'POST',
             json: true,
             version: false,
-            body: { ids: ids.sort() }
+            body: { ids }
         });
 
         return body.data;

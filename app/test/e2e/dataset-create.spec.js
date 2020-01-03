@@ -21,8 +21,6 @@ describe('Dataset create tests', () => {
         }
 
         await Dataset.deleteMany({}).exec();
-
-        nock.cleanAll();
     });
 
     /* Create a Carto Dataset */

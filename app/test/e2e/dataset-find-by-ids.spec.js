@@ -20,8 +20,6 @@ describe('Find by ids datasets', () => {
             throw Error(`Running the test suite with NODE_ENV ${process.env.NODE_ENV} may result in permanent data loss. Please use NODE_ENV=test.`);
         }
 
-        nock.cleanAll();
-
         await Dataset.deleteMany({}).exec();
 
         cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();

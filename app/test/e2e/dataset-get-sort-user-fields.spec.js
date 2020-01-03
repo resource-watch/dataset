@@ -22,10 +22,8 @@ const mockUsersForSort = (users) => {
     const allUsers = users.map(u => ({ ...u, _id: u.id }));
 
     // Mock all users request (for sorting by user role)
-    createMockUser(allUsers, true);
-
-    // Mock each user request (for includes=user)
-    allUsers.map(user => createMockUser([user]));
+    createMockUser(allUsers);
+    createMockUser(allUsers);
 };
 
 const mockFourDatasetsForSorting = async () => {
@@ -79,7 +77,6 @@ describe('GET datasets sorted by user fields', () => {
         response.status.should.equal(200);
         response.body.should.have.property('data').and.be.an('array').and.length(4);
         response.body.data.map(dataset => dataset.attributes.user.role).should.be.deep.equal(['ADMIN', 'MANAGER', 'SUPERADMIN', 'USER']);
-        nock.cleanAll();
     });
 
     it('Getting datasets sorted by user.role DESC should return a list of datasets ordered by the role of the user who created the dataset (happy case)', async () => {
@@ -92,7 +89,6 @@ describe('GET datasets sorted by user fields', () => {
         response.status.should.equal(200);
         response.body.should.have.property('data').and.be.an('array').and.length(4);
         response.body.data.map(dataset => dataset.attributes.user.role).should.be.deep.equal(['USER', 'SUPERADMIN', 'MANAGER', 'ADMIN']);
-        nock.cleanAll();
     });
 
     it('Getting datasets sorted by user.name ASC should return a list of datasets ordered by the name of the user who created the dataset (happy case)', async () => {
@@ -105,7 +101,6 @@ describe('GET datasets sorted by user fields', () => {
         response.status.should.equal(200);
         response.body.should.have.property('data').and.be.an('array').and.length(4);
         response.body.data.map(dataset => dataset.attributes.user.name).should.be.deep.equal(['test admin', 'test manager', 'test super admin', 'test user']);
-        nock.cleanAll();
     });
 
     it('Getting datasets sorted by user.name DESC should return a list of datasets ordered by the name of the user who created the dataset (happy case)', async () => {
@@ -118,7 +113,6 @@ describe('GET datasets sorted by user fields', () => {
         response.status.should.equal(200);
         response.body.should.have.property('data').and.be.an('array').and.length(4);
         response.body.data.map(dataset => dataset.attributes.user.name).should.be.deep.equal(['test user', 'test super admin', 'test manager', 'test admin']);
-        nock.cleanAll();
     });
 
     it('Sorting datasets by user role ASC puts datasets without valid users in the beginning of the list', async () => {
@@ -142,7 +136,6 @@ describe('GET datasets sorted by user fields', () => {
 
         const returnedNoUserDataset = response.body.data.find(dataset => dataset.id === noUserDataset._id);
         response.body.data.indexOf(returnedNoUserDataset).should.be.equal(0);
-        nock.cleanAll();
     });
 
     it('Sorting datasets by user role DESC puts datasets without valid users in the end of the list', async () => {
@@ -166,7 +159,6 @@ describe('GET datasets sorted by user fields', () => {
 
         const returnedNoUserDataset = response.body.data.find(dataset => dataset.id === noUserDataset._id);
         response.body.data.indexOf(returnedNoUserDataset).should.be.equal(4);
-        nock.cleanAll();
     });
 
     afterEach(async () => {
