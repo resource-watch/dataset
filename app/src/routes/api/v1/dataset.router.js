@@ -1,7 +1,7 @@
 const Router = require('koa-router');
 const koaMulter = require('koa-multer');
 const logger = require('logger');
-const _ = require('lodash');
+const xor = require('lodash/xor');
 const DatasetService = require('services/dataset.service');
 const VerificationService = require('services/verification.service');
 const RelationshipsService = require('services/relationships.service');
@@ -50,7 +50,7 @@ class DatasetRouter {
         const requestApps = ctx.request.query.application ? ctx.request.query.application : ctx.request.body.application;
         if (requestApps && ctx.request.method === 'PATCH') {
             const dataset = await DatasetService.get(ctx.params.dataset);
-            return _.xor(dataset.application || [], requestApps);
+            return xor(dataset.application || [], requestApps);
         }
 
         return requestApps;

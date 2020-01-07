@@ -52,8 +52,24 @@ const USERS = {
             ]
         }
     },
+    RW_USER: {
+        id: '2a10d7c6e0a37126611fd7a5',
+        role: 'USER',
+        provider: 'local',
+        email: 'user@control-tower.org',
+        name: 'RW User',
+        extraUserData: { apps: ['rw'] }
+    },
+    RW_MANAGER: {
+        id: '2a10d7c6e0a37126611fd7a6',
+        role: 'MANAGER',
+        provider: 'local',
+        email: 'manager@control-tower.org',
+        name: 'RW Manager',
+        extraUserData: { apps: ['rw'] }
+    },
     RW_ADMIN: {
-        id: '1a10d7c6e0a37123311fd7a7',
+        id: '2a10d7c6e0a37123311fd7a7',
         role: 'ADMIN',
         provider: 'local',
         email: 'admin@control-tower.org',
