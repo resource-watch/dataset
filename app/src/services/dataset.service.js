@@ -684,7 +684,7 @@ class DatasetService {
 
     static async hasPermission(id, user, datasetApps) {
         let permission = true;
-        if (datasetApps && !DatasetService.validateAppPermission(user, datasetApps)) {
+        if (datasetApps && datasetApps.length > 0 && !DatasetService.validateAppPermission(user, datasetApps)) {
             permission = false;
         }
 

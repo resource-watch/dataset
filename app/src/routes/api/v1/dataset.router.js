@@ -504,7 +504,7 @@ const authorizationMiddleware = async (ctx, next) => {
     }
 
     const datasetApps = await DatasetRouter.getDatasetApplications(ctx);
-    if (datasetApps && !DatasetService.validateAppPermission(user, datasetApps)) {
+    if (datasetApps && datasetApps.length > 0 && !DatasetService.validateAppPermission(user, datasetApps)) {
         ctx.throw(403, 'Forbidden - User does not have access to this dataset\'s application'); // if manager or admin but no application -> out
         return;
     }
