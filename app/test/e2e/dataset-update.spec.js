@@ -402,6 +402,19 @@ describe('Dataset update tests', () => {
         dataset.should.have.property('application').and.eql(['rw']);
     });
 
+    it('As an ADMIN, editing the dataset without changing the dataset apps should return 200 OK with the updated dataset', async () => {
+        const fakeDataset = await new Dataset(createDataset('cartodb', { application: ['rw'] })).save();
+        const response = await requester
+            .patch(`/api/v1/dataset/${fakeDataset._id}`)
+            .send({ application: ['rw'], loggedUser: USERS.RW_ADMIN });
+
+        response.status.should.equal(200);
+        response.body.should.have.property('data').and.be.an('object');
+        const dataset = deserializeDataset(response);
+        dataset.should.have.property('status').and.equal('saved');
+        dataset.should.have.property('application').and.eql(['rw']);
+    });
+
     afterEach(async () => {
         await Dataset.deleteMany({}).exec();
 
