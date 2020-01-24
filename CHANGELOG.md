@@ -1,3 +1,7 @@
+# 24/01/2020
+
+- Fix bug patching dataset without changing dataset apps.
+
 # v1.0.0
 
 ## 14/01/2020
