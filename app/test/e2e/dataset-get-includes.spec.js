@@ -2,8 +2,6 @@
 const nock = require('nock');
 const chai = require('chai');
 const Dataset = require('models/dataset.model');
-const fs = require('fs');
-const path = require('path');
 const { createDataset, deserializeDataset } = require('./utils/helpers');
 const { createMockUser } = require('./utils/mocks');
 
@@ -14,15 +12,58 @@ const vocabularyFindById = require('./dataset-get-includes-responses/vocabulary-
 const layersFindById = require('./dataset-get-includes-responses/layer-find-by-ids');
 const graphFindById = require('./dataset-get-includes-responses/graph-find-by-ids');
 const datasetGetIncludeAllAnonymous = require('./dataset-get-includes-responses/dataset-get-include-all-anonymous');
-const datasetGetIncludeUserAdmin = require('./dataset-get-includes-responses/dataset-get-include-user-admin');
 const datasetGetIncludeAllAdmin = require('./dataset-get-includes-responses/dataset-get-include-all-admin');
 const { getTestServer } = require('./utils/test-server');
-const { getUUID } = require('./utils/helpers');
 const { USERS } = require('./utils/test.constants');
 
-const should = chai.should();
+chai.should();
 
 const requester = getTestServer();
+
+const mockThreeUsers = (id1, id2, id3) => {
+    createMockUser([{
+        _id: id1,
+        provider: 'local',
+        name: 'test user',
+        email: 'user-one@control-tower.org',
+        role: 'USER',
+        extraUserData: {
+            apps: [
+                'rw',
+                'gfw',
+                'gfw-climate',
+                'prep',
+                'aqueduct',
+                'forest-atlas'
+            ]
+        }
+    }, {
+        _id: id2,
+        role: 'MANAGER',
+        provider: 'local',
+        email: 'user-two@control-tower.org',
+        extraUserData: {
+            apps: [
+                'rw',
+                'gfw',
+                'gfw-climate',
+                'prep',
+                'aqueduct',
+                'forest-atlas'
+            ]
+        }
+    }, {
+        _id: id3,
+        role: 'MANAGER',
+        provider: 'local',
+        name: 'user three',
+        extraUserData: {
+            apps: [
+                'rw'
+            ]
+        }
+    }]);
+};
 
 describe('Get datasets with includes tests', () => {
 
@@ -263,49 +304,7 @@ describe('Get datasets with includes tests', () => {
         const fakeDatasetOne = await new Dataset(createDataset('cartodb')).save();
         const fakeDatasetTwo = await new Dataset(createDataset('cartodb')).save();
         const fakeDatasetThree = await new Dataset(createDataset('cartodb')).save();
-
-        createMockUser([{
-            _id: fakeDatasetOne.userId,
-            provider: 'local',
-            name: 'test user',
-            email: 'user-one@control-tower.org',
-            role: 'USER',
-            extraUserData: {
-                apps: [
-                    'rw',
-                    'gfw',
-                    'gfw-climate',
-                    'prep',
-                    'aqueduct',
-                    'forest-atlas'
-                ]
-            }
-        }, {
-            _id: fakeDatasetTwo.userId,
-            role: 'MANAGER',
-            provider: 'local',
-            email: 'user-two@control-tower.org',
-            extraUserData: {
-                apps: [
-                    'rw',
-                    'gfw',
-                    'gfw-climate',
-                    'prep',
-                    'aqueduct',
-                    'forest-atlas'
-                ]
-            }
-        }, {
-            _id: fakeDatasetThree.userId,
-            role: 'MANAGER',
-            provider: 'local',
-            name: 'user three',
-            extraUserData: {
-                apps: [
-                    'rw'
-                ]
-            }
-        }]);
+        mockThreeUsers(fakeDatasetOne.userId, fakeDatasetTwo.userId, fakeDatasetThree.userId);
 
         const response = await requester
             .get(`/api/v1/dataset`)
@@ -313,8 +312,6 @@ describe('Get datasets with includes tests', () => {
                 includes: 'user',
                 loggedUser: JSON.stringify(USERS.ADMIN)
             });
-
-        const datasets = deserializeDataset(response);
 
         response.status.should.equal(200);
         response.body.should.have.property('data').with.lengthOf(3);
@@ -335,6 +332,30 @@ describe('Get datasets with includes tests', () => {
         responseDatasetThree.attributes.user.role.should.be.a('string').and.equal('MANAGER');
         responseDatasetThree.attributes.user.name.should.be.a('string').and.equal('user three');
         responseDatasetThree.attributes.user.should.not.have.property('email');
+    });
+
+    it('Getting datasets with includes user and user role USER should not add the usersRole query param to the pagination links', async () => {
+        const fakeDatasetOne = await new Dataset(createDataset('cartodb')).save();
+        const fakeDatasetTwo = await new Dataset(createDataset('cartodb')).save();
+        const fakeDatasetThree = await new Dataset(createDataset('cartodb')).save();
+        mockThreeUsers(fakeDatasetOne.userId, fakeDatasetTwo.userId, fakeDatasetThree.userId);
+        nock(process.env.CT_URL).get('/auth/user/ids/USER').reply(200, { data: [USERS.USER.id] });
+
+        const response = await requester
+            .get(`/api/v1/dataset`)
+            .query({
+                includes: 'user',
+                'user.role': 'USER',
+                loggedUser: JSON.stringify(USERS.ADMIN)
+            });
+
+        response.status.should.equal(200);
+        response.body.should.have.property('links').and.be.an('object');
+        response.body.links.should.have.property('first').and.not.contain('usersRole=');
+        response.body.links.should.have.property('last').and.not.contain('usersRole=');
+        response.body.links.should.have.property('prev').and.not.contain('usersRole=');
+        response.body.links.should.have.property('next').and.not.contain('usersRole=');
+        response.body.links.should.have.property('self').and.not.contain('usersRole=');
     });
 
     afterEach(async () => {
