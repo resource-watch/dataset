@@ -10,8 +10,9 @@ const should = chai.should();
 
 const requester = getTestServer();
 
-let cartoFakeDataset;
-let jsonFakeDataset;
+let datasetOne;
+let datasetTwo;
+let datasetThree;
 
 
 describe('Sort datasets tests', () => {
@@ -23,68 +24,86 @@ describe('Sort datasets tests', () => {
 
         await Dataset.deleteMany({}).exec();
 
-        cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
-        jsonFakeDataset = await new Dataset(createDataset('json')).save();
+        datasetOne = await new Dataset(createDataset('cartodb')).save();
+        datasetTwo = await new Dataset(createDataset('json')).save();
+        datasetThree = await new Dataset(createDataset('gee')).save();
     });
 
     it('Sort datasets by non-existent field (implicit order)', async () => {
-        const responseOne = await requester.get(`/api/v1/dataset?sort=potato`);
+        const responseOne = await requester
+            .get(`/api/v1/dataset`)
+            .query({ sort: 'potato' });
+
         const datasetsOne = deserializeDataset(responseOne);
 
         responseOne.status.should.equal(200);
-        responseOne.body.should.have.property('data').with.lengthOf(2);
+        responseOne.body.should.have.property('data').with.lengthOf(3);
         responseOne.body.should.have.property('links').and.be.an('object');
 
         const datasetIds = datasetsOne.map(dataset => dataset.id);
 
-        datasetIds.should.contain(jsonFakeDataset._id);
-        datasetIds.should.contain(cartoFakeDataset._id);
+        datasetIds.should.contain(datasetTwo._id);
+        datasetIds.should.contain(datasetOne._id);
     });
 
     it('Sort datasets by provider (implicit order)', async () => {
-        const responseOne = await requester.get(`/api/v1/dataset?sort=provider`);
+        const responseOne = await requester
+            .get(`/api/v1/dataset`)
+            .query({ sort: 'provider' });
         const datasetsOne = deserializeDataset(responseOne);
 
         responseOne.status.should.equal(200);
-        responseOne.body.should.have.property('data').with.lengthOf(2);
+        responseOne.body.should.have.property('data').with.lengthOf(3);
         responseOne.body.should.have.property('links').and.be.an('object');
 
         const datasetIdsOne = datasetsOne.map(dataset => dataset.id);
 
-        datasetIdsOne[0].should.equal(cartoFakeDataset._id);
-        datasetIdsOne[1].should.equal(jsonFakeDataset._id);
+        datasetIdsOne[0].should.equal(datasetOne._id);
+        datasetIdsOne[1].should.equal(datasetThree._id);
+        datasetIdsOne[2].should.equal(datasetTwo._id);
     });
 
     it('Sort datasets by provider (explicit asc order)', async () => {
-        const responseOne = await requester.get(`/api/v1/dataset?sort=+provider`);
+        const responseOne = await requester
+            .get(`/api/v1/dataset`)
+            .query({ sort: '+provider' });
+
         const datasetsOne = deserializeDataset(responseOne);
 
         responseOne.status.should.equal(200);
-        responseOne.body.should.have.property('data').with.lengthOf(2);
+        responseOne.body.should.have.property('data').with.lengthOf(3);
         responseOne.body.should.have.property('links').and.be.an('object');
 
         const datasetIdsOne = datasetsOne.map(dataset => dataset.id);
 
-        datasetIdsOne[0].should.equal(cartoFakeDataset._id);
-        datasetIdsOne[1].should.equal(jsonFakeDataset._id);
+        datasetIdsOne[0].should.equal(datasetOne._id);
+        datasetIdsOne[1].should.equal(datasetThree._id);
+        datasetIdsOne[2].should.equal(datasetTwo._id);
     });
 
     it('Sort datasets by provider (explicit desc order)', async () => {
-        const responseOne = await requester.get(`/api/v1/dataset?sort=-provider`);
+        const responseOne = await requester
+            .get(`/api/v1/dataset`)
+            .query({ sort: '-provider' });
+
         const datasetsOne = deserializeDataset(responseOne);
 
         responseOne.status.should.equal(200);
-        responseOne.body.should.have.property('data').with.lengthOf(2);
+        responseOne.body.should.have.property('data').with.lengthOf(3);
         responseOne.body.should.have.property('links').and.be.an('object');
 
         const datasetIdsOne = datasetsOne.map(dataset => dataset.id);
 
-        datasetIdsOne[0].should.equal(jsonFakeDataset._id);
-        datasetIdsOne[1].should.equal(cartoFakeDataset._id);
+        datasetIdsOne[0].should.equal(datasetTwo._id);
+        datasetIdsOne[1].should.equal(datasetThree._id);
+        datasetIdsOne[2].should.equal(datasetOne._id);
     });
 
     it('Sort datasets by relevance with no search criteria should return invalid query error', async () => {
-        const responseOne = await requester.get(`/api/v1/dataset?sort=-relevance`);
+        const responseOne = await requester
+            .get(`/api/v1/dataset`)
+            .query({ sort: '-relevance' });
+
         const datasetsOne = deserializeDataset(responseOne);
 
         responseOne.status.should.equal(400);

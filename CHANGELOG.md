@@ -1,3 +1,8 @@
+# 17/03/2020
+
+- Fix issue with sorting for ascending order.
+
+
 # 09/03/2020
 
 - Remove `usersRole` query param which generated huge pagination links.

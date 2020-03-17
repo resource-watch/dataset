@@ -201,13 +201,13 @@ class DatasetService {
         const datasetAttributes = Object.keys(Dataset.schema.obj);
         sortParams.forEach((param) => {
             let sign = param.substr(0, 1);
-            let realParam = param.substr(1);
-            if (sign !== '-') {
+            let signlessParam = param.substr(1);
+            if (sign !== '-' && sign !== '+') {
+                signlessParam = param;
                 sign = '+';
-                realParam = param;
             }
-            if (datasetAttributes.indexOf(realParam) >= 0) {
-                filteredSort[realParam] = parseInt(sign + 1, 10);
+            if (datasetAttributes.indexOf(signlessParam) >= 0) {
+                filteredSort[signlessParam] = parseInt(sign + 1, 10);
             }
         });
         return filteredSort;
