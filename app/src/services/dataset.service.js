@@ -280,7 +280,6 @@ class DatasetService {
             subscribable: dataset.subscribable,
             mainDateField: dataset.mainDateField,
             protected: dataset.protected,
-            verified: dataset.verified,
             legend: dataset.legend,
             clonedHost: dataset.clonedHost,
             widgetRelevantProps: dataset.widgetRelevantProps,
@@ -424,9 +423,6 @@ class DatasetService {
         if ((dataset.published === false || dataset.published === true) && user.role === 'ADMIN') {
             currentDataset.published = dataset.published;
         }
-        if ((dataset.verified === false || dataset.verified === true)) {
-            currentDataset.verified = dataset.verified;
-        }
         if ((dataset.protected === false || dataset.protected === true)) {
             currentDataset.protected = dataset.protected;
         }
@@ -449,9 +445,6 @@ class DatasetService {
                 currentDataset.status = 'failed';
                 currentDataset.errorMessage = dataset.errorMessage;
             }
-        }
-        if (user.id === 'microservice' && dataset.blockchain && dataset.blockchain.id && dataset.blockchain.hash) {
-            currentDataset.blockchain = dataset.blockchain;
         }
         if (user.id === 'microservice' && dataset.taskId) {
             currentDataset.taskId = dataset.taskId;

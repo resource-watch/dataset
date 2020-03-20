@@ -7,7 +7,6 @@
   "service": {
     "port": "PORT"
   },
-  "stampery": "STAMPERY_TOKEN",
   "logger": {
     "level": "LOGGER_LEVEL"
   }

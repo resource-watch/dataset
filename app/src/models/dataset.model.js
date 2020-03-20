@@ -41,7 +41,6 @@ const Dataset = new Schema({
     },
     status: { type: String, enum: STATUS, default: 'pending' },
     overwrite: { type: Boolean, required: false, default: false },
-    verified: { type: Boolean, required: false, default: false },
     errorMessage: {
         type: String, required: false, trim: true, default: null
     },
@@ -58,13 +57,6 @@ const Dataset = new Schema({
         type: String, required: false, trim: true, default: null
     },
     subscribable: { type: Schema.Types.Mixed },
-    blockchain: {
-        _id: false,
-        id: { type: String, required: false, trim: true },
-        hash: { type: String, required: false, trim: true },
-        time: { type: String, required: false, trim: true },
-        backupUrl: { type: String, required: false, trim: true },
-    },
     legend: {
         _id: false,
         lat: { type: String, required: false, trim: true },

@@ -74,7 +74,6 @@ describe('Dataset clone tests', () => {
                     published: true,
                     mainDateField: null,
                     errorMessage: null,
-                    verified: false,
                     overwrite: true,
                     status: 'pending',
                     tableName: cartoFakeDataset.tableName,

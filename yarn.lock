@@ -4666,15 +4666,6 @@ request-promise-core@1.1.3:
   dependencies:
     lodash "^4.17.15"
 
-request-promise-native@^1.0.5:
-  version "1.0.8"
-  resolved "https://registry.yarnpkg.com/request-promise-native/-/request-promise-native-1.0.8.tgz#a455b960b826e44e2bf8999af64dff2bfe58cb36"
-  integrity sha512-dapwLGqkHtwL5AEbfenuzjTYg35Jd6KPytsC2/TLkVMz8rm+tNt72MGUWT1RP/aYawMpN6HqbNGBQaRcBtjQMQ==
-  dependencies:
-    request-promise-core "1.1.3"
-    stealthy-require "^1.1.1"
-    tough-cookie "^2.3.3"
-
 request-promise@^4.1.1:
   version "4.2.5"
   resolved "https://registry.yarnpkg.com/request-promise/-/request-promise-4.2.5.tgz#186222c59ae512f3497dfe4d75a9c8461bd0053c"
@@ -4685,7 +4676,7 @@ request-promise@^4.1.1:
     stealthy-require "^1.1.1"
     tough-cookie "^2.3.3"
 
-request@^2.74.0, request@^2.79.0, request@^2.83.0:
+request@^2.74.0, request@^2.79.0:
   version "2.88.0"
   resolved "https://registry.yarnpkg.com/request/-/request-2.88.0.tgz#9c2fca4f7d35b592efe57c7f0a55e81052124fef"
   integrity sha512-NAqBSrijGLZdM0WZNsInLJpkJokL72XYjUpnB0iwsRgxh7dB6COrHnTBNwN0E+lHDAJzu7kLAkDeY08z2/A0hg==
@@ -5169,14 +5160,6 @@ stack-parser@^0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/stack-parser/-/stack-parser-0.0.1.tgz#7d3b63a17887e9e2c2bf55dbd3318fe34a39d1e7"
   integrity sha1-fTtjoXiH6eLCv1Xb0zGP40o50ec=
-
-stampery@^6.1.0:
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/stampery/-/stampery-6.1.0.tgz#3dbc39d5cce3c8397eab89e9d776cf03be30ed81"
-  integrity sha512-Hyh5BimkkB24NoDl1Sd0REEq0RIZ1KDRmxojHLx16wojqD86deYSGf2LNNLkQIwusixTxIYICn23ZyKweiPlUA==
-  dependencies:
-    request "^2.83.0"
-    request-promise-native "^1.0.5"
 
 static-extend@^0.1.1:
   version "0.1.2"

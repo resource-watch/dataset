@@ -85,7 +85,6 @@
     "request-promise": "^4.1.1",
     "sleep": "^6.1.0",
     "slug": "^0.9.1",
-    "stampery": "^6.1.0",
     "uuid": "^3.0.1"
   }
 }

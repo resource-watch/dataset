@@ -3,7 +3,6 @@ const koaMulter = require('koa-multer');
 const logger = require('logger');
 const xor = require('lodash/xor');
 const DatasetService = require('services/dataset.service');
-const VerificationService = require('services/verification.service');
 const RelationshipsService = require('services/relationships.service');
 const UserService = require('services/user.service');
 const FileDataService = require('services/fileDataService.service');
@@ -455,24 +454,6 @@ class DatasetRouter {
         }
     }
 
-    static async verification(ctx) {
-        const id = ctx.params.dataset;
-        logger.info(`[DatasetRouter] Getting verification with id: ${id}`);
-        const { query } = ctx;
-        delete query.loggedUser;
-        try {
-            const dataset = await DatasetService.get(id, query);
-            let verificationData = { message: 'Not verification data' };
-            if (dataset.verified && dataset.blockchain && dataset.blockchain.id) {
-                verificationData = await VerificationService.getVerificationData(dataset.blockchain.id);
-            }
-            logger.debug(verificationData);
-            ctx.body = verificationData;
-        } catch (err) {
-            ctx.throw(500, 'Error getting verification data');
-        }
-    }
-
     static async flushDataset(ctx) {
         const datasetId = ctx.params.dataset;
         const dataset = await DatasetService.get(datasetId);
@@ -605,7 +586,6 @@ router.post('/:dataset/flush', authorizationMiddleware, DatasetRouter.flushDatas
 router.post('/:dataset/recover', authorizationRecover, DatasetRouter.recover);
 
 router.get('/:dataset', DatasetRouter.get);
-router.get('/:dataset/verification', DatasetRouter.verification);
 router.patch('/:dataset', validationMiddleware, authorizationMiddleware, DatasetRouter.update);
 router.delete('/:dataset', authorizationMiddleware, DatasetRouter.delete);
 router.post('/:dataset/clone', validationMiddleware, authorizationMiddleware, DatasetRouter.clone);

@@ -46,8 +46,6 @@ const expectedDataset = dataset => ({
             status: 'saved',
             published: true,
             overwrite: true,
-            verified: false,
-            blockchain: {},
             mainDateField: null,
             env: 'production',
             geoInfo: false,

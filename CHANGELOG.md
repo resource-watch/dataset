@@ -1,5 +1,6 @@
 # 20/03/2020
 
+- Remove blockchain and verified fields and associated blockchain signature logic.
 - Fix issue where dataset upload would fail.
 
 # 17/03/2020

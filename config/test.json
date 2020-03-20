@@ -9,6 +9,5 @@
         "database": "dataset_test",
         "host": "mymachine",
         "port": 27017
-    },
-    "stampery": "STAMPERY_TOKEN"
+    }
 }
