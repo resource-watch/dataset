@@ -3,13 +3,11 @@ const nock = require('nock');
 
 const Dataset = require('models/dataset.model');
 
-const { USERS, ERRORS } = require('./utils/test.constants');
+const { USERS } = require('./utils/test.constants');
 const { getTestServer } = require('./utils/test-server');
 const { ensureCorrectError } = require('./utils/helpers');
 
 const requester = getTestServer();
-
-const BASE_URL = '/api/v1/dataset';
 
 describe('Upload raw data', () => {
 
@@ -21,12 +19,29 @@ describe('Upload raw data', () => {
         await Dataset.deleteMany({}).exec();
     });
 
-    it('Return error if no user provided', async () => {
+    it('Upload a dataset without a provider should return a 400 error', async () => {
+        const response = await requester
+            .post(`/api/v1/dataset/upload`);
+
+        response.status.should.equal(400);
+        ensureCorrectError(response.body, '- no file to check - provider: provider must be in [csv,json,tsv,xml,tif,tiff,geo.tiff]. - ');
+    });
+
+    it('Upload a dataset without a valid file should return a 400 error', async () => {
+        const response = await requester
+            .post(`/api/v1/dataset/upload`)
+            .field('provider', 'csv');
+
+        response.status.should.equal(400);
+        ensureCorrectError(response.body, '- dataset: file dataset can not be a empty file. - ');
+    });
+
+    it('Upload a dataset without being authenticated shoudl return a 401 error', async () => {
         const filename = 'dataset_1.csv';
 
         const fileData = fs.readFileSync(`${__dirname}/upload-data/${filename}`);
 
-        const response = await requester.post(`${BASE_URL}/upload`)
+        const response = await requester.post(`/api/v1/dataset/upload`)
             .field('provider', 'csv')
             .attach('dataset', fileData, filename);
 
@@ -39,7 +54,7 @@ describe('Upload raw data', () => {
 
         const fileData = fs.readFileSync(`${__dirname}/upload-data/${filename}`);
 
-        const response = await requester.post(`${BASE_URL}/upload`)
+        const response = await requester.post(`/api/v1/dataset/upload`)
             .field('loggedUser', JSON.stringify(USERS.USER))
             .field('provider', 'csv')
             .attach('dataset', fileData, filename);
@@ -50,11 +65,11 @@ describe('Upload raw data', () => {
 
     it('Return error if no data provided at all', async () => {
         const response = await requester
-            .post(`${BASE_URL}/upload`)
+            .post(`/api/v1/dataset/upload`)
             .field('loggedUser', JSON.stringify(USERS.USER));
 
         response.status.should.equal(400);
-        ensureCorrectError(response.body, ERRORS.UPLOAD_EMPTY_FILE);
+        ensureCorrectError(response.body, '- dataset: file dataset can not be a empty file. - provider: provider must be in [csv,json,tsv,xml,tif,tiff,geo.tiff]. - ');
     });
 
     it('Return error if provider and file are different', async () => {
@@ -62,7 +77,7 @@ describe('Upload raw data', () => {
 
         const fileData = fs.readFileSync(`${__dirname}/upload-data/${filename}`);
 
-        const response = await requester.post(`${BASE_URL}/upload`)
+        const response = await requester.post(`/api/v1/dataset/upload`)
             .field('loggedUser', JSON.stringify(USERS.USER))
             .field('provider', 'csv')
             .attach('dataset', fileData, filename);
@@ -72,7 +87,7 @@ describe('Upload raw data', () => {
         ensureCorrectError(response.body, '- dataset: file dataset_1.json is bad file type. - ');
     });
 
-    it('Return 200 when uploading a file', async () => {
+    it('Uploading a dataset with a binary file should return a 200 (happy case)', async () => {
         const filename = 'dataset_1.csv';
 
         const fileData = fs.readFileSync(`${__dirname}/upload-data/${filename}`);
@@ -86,7 +101,7 @@ describe('Upload raw data', () => {
                 Server: 'AmazonS3'
             });
 
-        const response = await requester.post(`${BASE_URL}/upload`)
+        const response = await requester.post(`/api/v1/dataset/upload`)
             .field('loggedUser', JSON.stringify(USERS.USER))
             .field('provider', 'csv')
             .attach('dataset', fileData, filename);
@@ -96,6 +111,29 @@ describe('Upload raw data', () => {
         response.status.should.equal(200);
         response.body.connectorUrl.should.match(regex);
     });
+
+    // // TODO: WTH is this?
+    // it('Uploading a dataset with the rw.dataset.raw thingy should... ????', async () => {
+    //     nock('https://wri-api-backups.s3.amazonaws.com:443')
+    //         .put(() => true)
+    //         .once()
+    //         .reply(200, '', {
+    //             ETag: '"7e3a0db8fad94dd0f51bd9c1b1b239d2"',
+    //             'Content-Length': '0',
+    //             Server: 'AmazonS3'
+    //         });
+    //
+    //     const response = await requester.post(`/api/v1/dataset/upload`)
+    //         .send({
+    //             loggedUser: USERS.USER,
+    //             provider: 'csv'
+    //         });
+    //
+    //     const regex = /rw.dataset.raw\/.+_dataset_1.csv/g;
+    //
+    //     response.status.should.equal(200);
+    //     response.body.connectorUrl.should.match(regex);
+    // });
 
     afterEach(() => {
         if (!nock.isDone()) {

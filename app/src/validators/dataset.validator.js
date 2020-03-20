@@ -322,20 +322,11 @@ class DatasetValidator {
         logger.info('Validating Dataset Raw Upload');
         koaObj.checkFile('dataset').notEmpty();
         koaObj.checkBody('provider').in(CONNECTOR_TYPES.document.provider.concat(RASDAMAN_TYPES));
-        if (koaObj.request.body.fields.loggedUser) {
-            const loggedUser = JSON.parse(koaObj.request.body.fields.loggedUser);
-            if (loggedUser.role === 'USER') {
-                koaObj.checkFile('dataset').size(0, 4 * 1024 * 1024, 'file too large');
-            }
-        }
-        if (koaObj.request.body.files) {
-            koaObj.checkFile('dataset').suffixIn(koaObj.request.body.fields.provider);
+        if (koaObj.request.body.files && koaObj.request.body.files.dataset) {
+            koaObj.checkFile('dataset').notEmpty().suffixIn(koaObj.request.body.fields.provider).size(0, 4 * 1024 * 1024, 'file too large');
         }
         if (koaObj.errors) {
-            logger.error('Errors uploading', koaObj.errors);
-            // koaObj.errors = [{
-            //     dataset: 'it has to be a valid file'
-            // }];
+            logger.info('Errors uploading', koaObj.errors);
             logger.info('Error validating dataset creation');
             throw new DatasetNotValid(koaObj.errors);
         }

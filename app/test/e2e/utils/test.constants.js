@@ -101,10 +101,6 @@ const USERS = {
     }
 };
 
-const ERRORS = {
-    UPLOAD_EMPTY_FILE: '- dataset: file dataset can not be a empty file. - provider: provider must be in [csv,json,tsv,xml,tif,tiff,geo.tiff]. - dataset: file too large - dataset: file dataset is bad file type. - '
-};
-
 const BLOCKCHAIN_FAKE_INFO = {
     verified: true,
     blockchain: {
@@ -178,6 +174,5 @@ const STAMPERY_RESPONSE_OBJECT = {
 module.exports = {
     USERS,
     STAMPERY_RESPONSE_OBJECT,
-    BLOCKCHAIN_FAKE_INFO,
-    ERRORS,
+    BLOCKCHAIN_FAKE_INFO
 };

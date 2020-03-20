@@ -1,3 +1,7 @@
+# 20/03/2020
+
+- Fix issue where dataset upload would fail.
+
 # 17/03/2020
 
 - Add support for nested filters in applicationConfig object.

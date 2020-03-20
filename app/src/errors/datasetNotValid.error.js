@@ -9,7 +9,11 @@ class DatasetNotValid extends Error {
     getMessages() {
         let messages = '- ';
         this.messages.forEach((message) => {
-            messages += `${Object.keys(message)[0]}: ${message[Object.keys(message)[0]]} - `;
+            if (typeof message === 'object' && message !== null) {
+                messages += `${Object.keys(message)[0]}: ${message[Object.keys(message)[0]]} - `;
+            } else {
+                messages += `${message} - `;
+            }
         });
         return messages;
     }
