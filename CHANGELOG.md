@@ -1,3 +1,7 @@
+# 21/03/2020
+
+- Fix issue where deleting wms datasets would fail
+
 # 20/03/2020
 
 - Remove blockchain and verified fields and associated blockchain signature logic.

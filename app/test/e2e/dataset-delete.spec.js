@@ -71,7 +71,12 @@ const runStandardTestCase = async (provider, fakeDataset, requestingUser = USERS
             data: []
         });
 
-    const deleteResponse = await requester.delete(`/api/v1/dataset/${fakeDataset._id}?loggedUser=${JSON.stringify(requestingUser)}`).send();
+    const deleteResponse = await requester
+        .delete(`/api/v1/dataset/${fakeDataset._id}`)
+        .query({
+            loggedUser: JSON.stringify(requestingUser)
+        })
+        .send();
 
     deleteResponse.status.should.equal(200);
     const createdDataset = deserializeDataset(deleteResponse);
@@ -549,31 +554,6 @@ describe('Dataset delete tests', () => {
         await runStandardTestCase('loca', locaFakeDataset);
     });
 
-    it('Deleting an existing wms dataset should be successful and return the dataset (happy case)', async () => {
-        const wmsFakeDataset = await new Dataset(createDataset('wms')).save();
-
-        nock(process.env.CT_URL)
-            .delete(`/v1/${wmsFakeDataset._id}`, (request) => {
-                const requestDataset = request.connector;
-
-                requestDataset.attributesPath.should.deep.equal(wmsFakeDataset.attributesPath);
-                requestDataset.connectorType.should.deep.equal(wmsFakeDataset.connectorType);
-                requestDataset.connectorUrl.should.deep.equal(wmsFakeDataset.connectorUrl);
-                requestDataset.name.should.deep.equal(wmsFakeDataset.name);
-                requestDataset.overwrite.should.deep.equal(wmsFakeDataset.overwrite);
-                requestDataset.slug.should.deep.equal(wmsFakeDataset.slug);
-                requestDataset.tableName.should.deep.equal(wmsFakeDataset.tableName);
-                return true;
-            })
-            .once()
-            .reply(200, {
-                status: 200,
-                data: []
-            });
-
-        await runStandardTestCase('wms', wmsFakeDataset);
-    });
-
     it('Delete a document dataset with missing tableName should delete (happy case)', async () => {
         const jsonFakeDataset = await new Dataset(createDataset('json', {
             tableName: null,
@@ -600,6 +580,15 @@ describe('Dataset delete tests', () => {
             });
 
         await runStandardTestCase('json', jsonFakeDataset);
+    });
+
+    it('Delete a WMS dataset should be successful (happy case)', async () => {
+        const dataset = await new Dataset(createDataset('wms', {
+            tableName: null,
+            connectorType: 'wms'
+        })).save();
+
+        await runStandardTestCase('wms', dataset);
     });
 
     afterEach(() => {

@@ -86,6 +86,8 @@ class DatasetRouter {
                 clonedDataset.connectorUrl = process.env.CT_URL + dataset.connectorUrl;
             }
             uri += `/doc-datasets/${provider}`;
+        } else {
+            return null;
         }
 
         if (ctx.request.method === 'DELETE') {
