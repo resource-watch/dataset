@@ -64,6 +64,7 @@
   },
   "dependencies": {
     "@auth0/s3": "^1.0.0",
+    "axios": "^0.19.2",
     "bunyan": "^1.8.5",
     "config": "^1.21.0",
     "cron-parser": "^2.13.0",

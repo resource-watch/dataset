@@ -5,11 +5,11 @@ const mongoose = require('mongoose');
 const config = require('config');
 const loader = require('loader');
 const koaSimpleHealthCheck = require('koa-simple-healthcheck');
-const ctRegisterMicroservice = require('ct-register-microservice-node');
 const ErrorSerializer = require('serializers/error.serializer');
 const sleep = require('sleep');
 const koaValidate = require('koa-validate');
 const koaBody = require('koa-body');
+const axios = require('axios');
 
 let mongooseOptions = require('../../config/mongoose');
 
@@ -100,23 +100,55 @@ koaValidate(app);
 loader.loadRoutes(app);
 
 const server = app.listen(process.env.PORT, () => {
-    ctRegisterMicroservice.register({
-        info: require('../microservice/register.json'),
-        swagger: require('../microservice/public-swagger.json'),
-        mode: (process.env.CT_REGISTER_MODE && process.env.CT_REGISTER_MODE === 'auto') ? ctRegisterMicroservice.MODE_AUTOREGISTER : ctRegisterMicroservice.MODE_NORMAL,
-        framework: ctRegisterMicroservice.KOA2,
-        app,
-        logger,
-        name: config.get('service.name'),
-        ctUrl: process.env.CT_URL,
-        url: process.env.LOCAL_URL,
-        token: process.env.CT_TOKEN,
-        active: true
-    }).then(() => {
-    }, (error) => {
-        logger.error(error);
-        process.exit(1);
-    });
+
+    const KONG_URL = 'http://localhost:8001';
+
+    axios.post(`${KONG_URL}/services`, {
+        name: 'dataset',
+        url: 'http://192.168.1.166:3000'
+    })
+        .then((response) => {
+            logger.debug(response);
+            logger.info('Service registered');
+        })
+        .catch((error) => {
+            if (error.response.status !== 409) {
+                logger.debug('Service already exists');
+                logger.error(error);
+            }
+        });
+
+    axios.post(`${KONG_URL}/services/dataset/routes`, {
+        paths: ['/api/v1/dataset']
+    })
+        .then((response) => {
+            logger.debug(response);
+            logger.info('Route registered');
+        })
+        .catch((error) => {
+            if (error.response.status !== 409) {
+                logger.error(error);
+            }
+        });
+
+
+    // ctRegisterMicroservice.register({
+    //     info: require('../microservice/register.json'),
+    //     swagger: require('../microservice/public-swagger.json'),
+    //     mode: (process.env.CT_REGISTER_MODE && process.env.CT_REGISTER_MODE === 'auto') ? ctRegisterMicroservice.MODE_AUTOREGISTER : ctRegisterMicroservice.MODE_NORMAL,
+    //     framework: ctRegisterMicroservice.KOA2,
+    //     app,
+    //     logger,
+    //     name: config.get('service.name'),
+    //     ctUrl: process.env.CT_URL,
+    //     url: process.env.LOCAL_URL,
+    //     token: process.env.CT_TOKEN,
+    //     active: true
+    // }).then(() => {
+    // }, (error) => {
+    //     logger.error(error);
+    //     process.exit(1);
+    // });
 });
 
 logger.info('Server started in ', process.env.PORT);
