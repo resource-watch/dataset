@@ -11,34 +11,11 @@ const sleep = require('sleep');
 const koaValidate = require('koa-validate');
 const koaBody = require('koa-body');
 
-let mongooseOptions = require('../../config/mongoose');
+const mongooseOptions = require('../../config/mongoose');
 
 const mongoUri = process.env.MONGO_URI || `mongodb://${config.get('mongodb.host')}:${config.get('mongodb.port')}/${config.get('mongodb.database')}`;
 
 let retries = 10;
-
-// KUBE CLUSTER
-if (mongoUri.indexOf('replicaSet') > -1) {
-    mongooseOptions = {
-        ...mongooseOptions,
-        db: { native_parser: true },
-        replset: {
-            auto_reconnect: false,
-            poolSize: 10,
-            socketOptions: {
-                keepAlive: 1000,
-                connectTimeoutMS: 30000
-            }
-        },
-        server: {
-            poolSize: 5,
-            socketOptions: {
-                keepAlive: 1000,
-                connectTimeoutMS: 30000
-            }
-        }
-    };
-}
 
 const onDbReady = (err) => {
     if (err) {
