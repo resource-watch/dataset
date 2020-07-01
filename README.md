@@ -19,6 +19,13 @@ Execution using Docker requires:
 
 Dependencies on other Microservices:
 - [Carto adapter](https://github.com/resource-watch/rw-adapter-carto/)
+- [Geostore](https://github.com/gfw-api/gfw-geostore-api)
+- [Graph Client](https://github.com/resource-watch/graph-client/)
+- [Layer](https://github.com/resource-watch/layer)
+- [Metadata](https://github.com/resource-watch/rw_metadata)
+- [Task Async](https://github.com/resource-watch/task-executor)
+- [Vocabulary](https://github.com/resource-watch/vocabulary-tag/)
+- [Widget](https://github.com/resource-watch/widget)
 
 ## Getting started
 
