@@ -1,3 +1,10 @@
+# v1.3.2
+
+## 13/07/2020
+
+- Minor logging improvements.
+- Security updates to the `handlebars` and `websocket-extensions` NPM packages.
+
 # v1.3.1
 
 ## 19/05/2020
