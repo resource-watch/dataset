@@ -342,7 +342,7 @@ class DatasetService {
         try {
             logger.debug('Updating widgets');
             await axios({
-                url: `${process.env.CT_URL}/v1/widget/change-environment/${datasetId}/${env}`,
+                url: `${process.env.API_URL}/v1/widget/change-environment/${datasetId}/${env}`,
                 method: 'PATCH'
             });
         } catch (err) {
@@ -351,7 +351,7 @@ class DatasetService {
         try {
             logger.debug('Updating layers');
             await axios({
-                url: `${process.env.CT_URL}/v1/layer/change-environment/${datasetId}/${env}`,
+                url: `${process.env.API_URL}/v1/layer/change-environment/${datasetId}/${env}`,
                 method: 'PATCH'
             });
         } catch (err) {
@@ -474,7 +474,7 @@ class DatasetService {
     static async deleteWidgets(datasetId) {
         logger.info('Deleting widgets of dataset', datasetId);
         await axios({
-            url: `${process.env.CT_URL}/v1/dataset/${datasetId}/widget`,
+            url: `${process.env.API_URL}/v1/dataset/${datasetId}/widget`,
             method: 'DELETE'
         });
     }
@@ -482,7 +482,7 @@ class DatasetService {
     static async deleteLayers(datasetId) {
         logger.info('Deleting layers of dataset', datasetId);
         await axios({
-            url: `${process.env.CT_URL}/v1/dataset/${datasetId}/layer`,
+            url: `${process.env.API_URL}/v1/dataset/${datasetId}/layer`,
             method: 'DELETE'
         });
     }
@@ -490,7 +490,7 @@ class DatasetService {
     static async deleteMetadata(datasetId) {
         logger.info('Deleting metadata of dataset', datasetId);
         await axios({
-            url: `${process.env.CT_URL}/v1/dataset/${datasetId}/metadata`,
+            url: `${process.env.API_URL}/v1/dataset/${datasetId}/metadata`,
             method: 'DELETE'
         });
     }
@@ -498,7 +498,7 @@ class DatasetService {
     static async deleteVocabularies(datasetId) {
         logger.info('Deleting vocabularies of dataset', datasetId);
         await axios({
-            url: `${process.env.CT_URL}/v1/dataset/${datasetId}/vocabulary`,
+            url: `${process.env.API_URL}/v1/dataset/${datasetId}/vocabulary`,
             method: 'DELETE'
         });
     }
@@ -506,7 +506,7 @@ class DatasetService {
     static async deleteKnowledgeGraphVocabulary(datasetId, application) {
         logger.info('Deleting knowledge graph of dataset', datasetId);
         await axios({
-            url: `${process.env.CT_URL}/v1/dataset/${datasetId}/vocabulary/knowledge_graph?application=${application}`,
+            url: `${process.env.API_URL}/v1/dataset/${datasetId}/vocabulary/knowledge_graph?application=${application}`,
             method: 'DELETE'
         });
     }
@@ -515,7 +515,7 @@ class DatasetService {
         logger.info('Checking if it is safe to delete the associated resources (layer, widget) of the dataset');
         try {
             const response = await axios({
-                url: `${process.env.CT_URL}/v1/dataset/${id}/layer?protected=true`,
+                url: `${process.env.API_URL}/v1/dataset/${id}/layer?protected=true`,
                 method: 'GET'
             });
             const layers = response.data.data;
@@ -533,7 +533,7 @@ class DatasetService {
         }
         try {
             const response = await axios({
-                url: `${process.env.CT_URL}/v1/dataset/${id}/widget?protected=true`,
+                url: `${process.env.API_URL}/v1/dataset/${id}/widget?protected=true`,
                 method: 'GET'
             });
             const widgets = response.data.data;

@@ -8,7 +8,7 @@ class SyncService {
         logger.debug('Sync creation');
         try {
             const response = await axios({
-                url: `${process.env.CT_URL}/v1/task/sync-dataset`,
+                url: `${process.env.API_URL}/v1/task/sync-dataset`,
                 method: 'POST',
                 data: {
                     datasetId: dataset._id,
@@ -30,7 +30,7 @@ class SyncService {
         logger.debug('Sync update');
         try {
             const response = await axios({
-                url: `${process.env.CT_URL}/v1/task/sync-dataset`,
+                url: `${process.env.API_URL}/v1/task/sync-dataset`,
                 method: 'PUT',
                 data: {
                     datasetId: dataset._id,
@@ -52,7 +52,7 @@ class SyncService {
         logger.debug('Sync deletion');
         try {
             const response = await axios({
-                url: `${process.env.CT_URL}/v1/task/sync-dataset/by-dataset/${id}`,
+                url: `${process.env.API_URL}/v1/task/sync-dataset/by-dataset/${id}`,
                 method: 'DELETE'
             });
             return response.data.data;

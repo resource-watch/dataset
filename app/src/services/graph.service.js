@@ -7,7 +7,7 @@ class GraphService {
         logger.debug('[GraphService]: Creating dataset in graph');
         try {
             return await axios({
-                url: `${process.env.CT_URL}/v1/graph/dataset/${id}`,
+                url: `${process.env.API_URL}/v1/graph/dataset/${id}`,
                 method: 'POST'
             });
         } catch (e) {
@@ -24,7 +24,7 @@ class GraphService {
                 return null;
             });
             return await axios({
-                url: `${process.env.CT_URL}/v1/graph/dataset/${id}/associate`,
+                url: `${process.env.API_URL}/v1/graph/dataset/${id}/associate`,
                 method: 'POST',
                 data: {
                     tags

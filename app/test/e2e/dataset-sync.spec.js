@@ -103,7 +103,7 @@ describe('Dataset sync tests', () => {
             }
         };
 
-        nock(process.env.CT_URL)
+        nock(process.env.API_URL)
             .post('/v1/task/sync-dataset', (body) => {
                 body.should.have.property('datasetId');
                 body.should.have.property('provider').and.equal('json');
@@ -120,7 +120,7 @@ describe('Dataset sync tests', () => {
                 detail: 'Ok'
             });
 
-        nock(process.env.CT_URL)
+        nock(process.env.API_URL)
             .post('/v1/doc-datasets/json')
             .reply(200, {
                 status: 200,
@@ -169,7 +169,7 @@ describe('Dataset sync tests', () => {
     it('Update a document dataset with valid sync data should return a 200 (happy case)', async () => {
         const fakeDataset = await new Dataset(createDataset('json')).save();
 
-        nock(process.env.CT_URL)
+        nock(process.env.API_URL)
             .put('/v1/task/sync-dataset', (body) => {
                 body.should.have.property('datasetId');
                 body.should.have.property('provider').and.equal('json');

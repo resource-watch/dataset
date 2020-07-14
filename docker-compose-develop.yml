@@ -10,9 +10,7 @@ services:
     environment:
       PORT: 3000
       NODE_PATH: app/src
-      CT_REGISTER_MODE: auto
       CT_TOKEN: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1pY3Jvc2VydmljZSIsImNyZWF0ZWRBdCI6IjIwMTYtMDktMTQifQ.IRCIRm1nfIQTfda_Wb6Pg-341zhV8soAgzw7dd5HxxQ
-      API_VERSION: v1
       MONGO_PORT_27017_TCP_ADDR: mongo
     command: develop
     depends_on:

@@ -82,8 +82,8 @@ class DatasetRouter {
             uri += `/rest-datasets/${provider}`;
         } else if (connectorType === 'document') {
             if (ctx.request.path.indexOf('clone') >= 0) {
-                clonedDataset.connector_url = process.env.CT_URL + dataset.connector_url;
-                clonedDataset.connectorUrl = process.env.CT_URL + dataset.connectorUrl;
+                clonedDataset.connector_url = process.env.API_URL + dataset.connector_url;
+                clonedDataset.connectorUrl = process.env.API_URL + dataset.connectorUrl;
             }
             uri += `/doc-datasets/${provider}`;
         } else {
@@ -98,7 +98,7 @@ class DatasetRouter {
 
         try {
             return await axios({
-                url: process.env.CT_URL + uri,
+                url: process.env.API_URL + uri,
                 method,
                 data: { connector: clonedDataset }
             });
@@ -144,7 +144,7 @@ class DatasetRouter {
         }
 
         return axios({
-            url: process.env.CT_URL + uri,
+            url: process.env.API_URL + uri,
             method: 'POST',
             data: { connector: clonedDataset }
         });

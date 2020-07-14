@@ -57,7 +57,7 @@ class RelationshipsService {
                     logger.debug('test uriQuery => ', `${uri}/${include}/find-by-ids?${uriQuery}`);
                     logger.debug('test payload length => ', ((payload || {}).ids || []).length);
                     const response = await axios({
-                        url: `${process.env.CT_URL}${uri}/${include}/find-by-ids${uriQuery}`,
+                        url: `${process.env.API_URL}${uri}/${include}/find-by-ids${uriQuery}`,
                         method: 'POST',
                         data: payload
                     });
@@ -145,7 +145,7 @@ class RelationshipsService {
     static async createVocabularies(id, vocabularies) {
         try {
             return await axios({
-                url: `${process.env.CT_URL}/v1/dataset/${id}/vocabulary`,
+                url: `${process.env.API_URL}/v1/dataset/${id}/vocabulary`,
                 method: 'POST',
                 data: vocabularies
             });
@@ -165,7 +165,7 @@ class RelationshipsService {
         vocabularyQuery = vocabularyQuery.substring(0, vocabularyQuery.length - 1);
         logger.debug(vocabularyQuery);
         const response = await axios({
-            url: `${process.env.CT_URL}/v1/dataset/vocabulary/find${vocabularyQuery}`,
+            url: `${process.env.API_URL}/v1/dataset/vocabulary/find${vocabularyQuery}`,
             method: 'GET',
         });
 
@@ -180,7 +180,7 @@ class RelationshipsService {
     static async cloneVocabularies(oldId, newId) {
         try {
             return await axios({
-                url: `${process.env.CT_URL}/v1/dataset/${oldId}/vocabulary/clone/dataset`,
+                url: `${process.env.API_URL}/v1/dataset/${oldId}/vocabulary/clone/dataset`,
                 method: 'POST',
                 data: {
                     newDataset: newId
@@ -194,7 +194,7 @@ class RelationshipsService {
     static async cloneMetadatas(oldId, newId) {
         try {
             return await axios({
-                url: `${process.env.CT_URL}/v1/dataset/${oldId}/metadata/clone`,
+                url: `${process.env.API_URL}/v1/dataset/${oldId}/metadata/clone`,
                 method: 'POST',
                 data: {
                     newDataset: newId
@@ -208,7 +208,7 @@ class RelationshipsService {
     static async getCollections(ids, userId) {
         try {
             const response = await axios({
-                url: `${process.env.CT_URL}/v1/collection/find-by-ids`,
+                url: `${process.env.API_URL}/v1/collection/find-by-ids`,
                 method: 'POST',
                 data: {
                     ids,
@@ -224,7 +224,7 @@ class RelationshipsService {
     static async getFavorites(app, userId) {
         try {
             const response = await axios({
-                url: `${process.env.CT_URL}/v1/favourite/find-by-user`,
+                url: `${process.env.API_URL}/v1/favourite/find-by-user`,
                 method: 'POST',
                 data: {
                     app,
@@ -248,7 +248,7 @@ class RelationshipsService {
 
         try {
             const response = await axios({
-                url: `${process.env.CT_URL}${uri}`,
+                url: `${process.env.API_URL}${uri}`,
                 method: 'GET'
             });
             const result = response.data.data;
@@ -265,7 +265,7 @@ class RelationshipsService {
     static async sortByMetadata(sign, query) {
         try {
             const response = await axios({
-                url: `${process.env.CT_URL}/v1/metadata?sort=${sign}name&type=dataset&${query}`,
+                url: `${process.env.API_URL}/v1/metadata?sort=${sign}name&type=dataset&${query}`,
                 method: 'GET'
             });
             const result = response.data.data;
@@ -279,7 +279,7 @@ class RelationshipsService {
     static async filterByConcepts(query) {
         try {
             const response = await axios({
-                url: `${process.env.CT_URL}/v1/graph/query/search-datasets-ids?${query}`,
+                url: `${process.env.API_URL}/v1/graph/query/search-datasets-ids?${query}`,
                 method: 'GET'
             });
             return response.data.data;
@@ -291,7 +291,7 @@ class RelationshipsService {
     static async searchBySynonyms(query) {
         try {
             const response = await axios({
-                url: `${process.env.CT_URL}/v1/graph/query/search-by-label-synonyms?${query}`,
+                url: `${process.env.API_URL}/v1/graph/query/search-by-label-synonyms?${query}`,
                 method: 'GET'
             });
             return response.data.data;
@@ -303,7 +303,7 @@ class RelationshipsService {
     static async getUsersInfoByIds(ids) {
         logger.debug('Fetching all users\' information');
         const response = await axios({
-            url: `${process.env.CT_URL}/auth/user/find-by-ids`,
+            url: `${process.env.API_URL}/auth/user/find-by-ids`,
             method: 'POST',
             data: { ids }
         });

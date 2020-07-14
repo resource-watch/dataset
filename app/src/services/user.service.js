@@ -5,7 +5,7 @@ class UserService {
 
     static async getUsersWithRole(role) {
         const response = await axios({
-            url: `${process.env.CT_URL}/auth/user/ids/${role}`,
+            url: `${process.env.API_URL}/auth/user/ids/${role}`,
             method: 'GET'
         });
         logger.debug('User ids', response.data.data);

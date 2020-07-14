@@ -39,7 +39,7 @@ describe('Get datasets tests', () => {
         await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
         await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
         await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
-        nock(process.env.CT_URL).get('/auth/user/ids/ADMIN').reply(200, { data: [USERS.ADMIN.id] });
+        nock(process.env.API_URL).get('/auth/user/ids/ADMIN').reply(200, { data: [USERS.ADMIN.id] });
 
         const response = await requester.get(`/api/v1/dataset?loggedUser=${JSON.stringify(USERS.ADMIN)}`).query({ 'user.role': 'ADMIN' });
         response.body.data.length.should.equal(2);
@@ -50,7 +50,7 @@ describe('Get datasets tests', () => {
         await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
         await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
         await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
-        nock(process.env.CT_URL).get('/auth/user/ids/USER').reply(200, { data: [USERS.USER.id] });
+        nock(process.env.API_URL).get('/auth/user/ids/USER').reply(200, { data: [USERS.USER.id] });
 
         const response = await requester.get(`/api/v1/dataset?loggedUser=${JSON.stringify(USERS.ADMIN)}`).query({ 'user.role': 'USER' });
         response.body.data.length.should.equal(1);

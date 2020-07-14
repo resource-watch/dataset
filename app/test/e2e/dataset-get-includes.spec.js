@@ -79,12 +79,12 @@ describe('Get datasets with includes tests', () => {
     it('Get datasets with includes should return requested data except users (anonymous request)', async () => {
         const fakeDatasetOne = await new Dataset(createDataset('cartodb')).save();
 
-        nock(process.env.CT_URL)
+        nock(process.env.API_URL)
             .get('/v1/metadata')
             .query({ search: 'human' })
             .reply(200, metadataGetWithSearchForHuman(fakeDatasetOne));
 
-        nock(process.env.CT_URL)
+        nock(process.env.API_URL)
             .get('/v1/graph/query/search-by-label-synonyms')
             .query({
                 application: 'rw',
@@ -98,7 +98,7 @@ describe('Get datasets with includes tests', () => {
             .reply(200, { data: [fakeDatasetOne.id] });
 
 
-        nock(process.env.CT_URL)
+        nock(process.env.API_URL)
             .post('/auth/user/find-by-ids', { ids: [fakeDatasetOne.userId] })
             .query({
                 application: 'rw',
@@ -111,7 +111,7 @@ describe('Get datasets with includes tests', () => {
             .reply(200, { data: [] });
 
 
-        nock(process.env.CT_URL)
+        nock(process.env.API_URL)
             .post('/v1/widget/find-by-ids', { ids: [fakeDatasetOne.id], app: 'rw' })
             .query({
                 application: 'rw',
@@ -124,7 +124,7 @@ describe('Get datasets with includes tests', () => {
             .reply(200, widgetsFindById(fakeDatasetOne));
 
 
-        nock(process.env.CT_URL)
+        nock(process.env.API_URL)
             .post('/v1/dataset/vocabulary/find-by-ids', { ids: [fakeDatasetOne.id] })
             .query({
                 application: 'rw',
@@ -137,7 +137,7 @@ describe('Get datasets with includes tests', () => {
             .reply(200, vocabularyFindById());
 
 
-        nock(process.env.CT_URL)
+        nock(process.env.API_URL)
             .post('/v1/dataset/metadata/find-by-ids', { ids: [fakeDatasetOne.id] })
             .query({
                 application: 'rw',
@@ -149,7 +149,7 @@ describe('Get datasets with includes tests', () => {
             })
             .reply(200, metadataFindById(fakeDatasetOne));
 
-        nock(process.env.CT_URL)
+        nock(process.env.API_URL)
             .post('/v1/layer/find-by-ids', { ids: [fakeDatasetOne.id], app: 'rw' })
             .query({
                 application: 'rw',
@@ -161,7 +161,7 @@ describe('Get datasets with includes tests', () => {
             })
             .reply(200, layersFindById(fakeDatasetOne));
 
-        nock(process.env.CT_URL)
+        nock(process.env.API_URL)
             .post('/v1/graph/find-by-ids', { ids: [fakeDatasetOne.id], app: 'rw' })
             .query({
                 application: 'rw',
@@ -186,12 +186,12 @@ describe('Get datasets with includes tests', () => {
     it('Get datasets with includes should return requested data including users (ADMIN user request)', async () => {
         const fakeDatasetOne = await new Dataset(createDataset('cartodb')).save();
 
-        nock(process.env.CT_URL)
+        nock(process.env.API_URL)
             .get('/v1/metadata')
             .query({ search: 'human' })
             .reply(200, metadataFindById(fakeDatasetOne));
 
-        nock(process.env.CT_URL)
+        nock(process.env.API_URL)
             .get('/v1/graph/query/search-by-label-synonyms')
             .query({
                 application: 'rw',
@@ -204,7 +204,7 @@ describe('Get datasets with includes tests', () => {
             })
             .reply(200, { data: [fakeDatasetOne.id] });
 
-        nock(process.env.CT_URL)
+        nock(process.env.API_URL)
             .post('/auth/user/find-by-ids', { ids: [fakeDatasetOne.userId] })
             .query({
                 application: 'rw',
@@ -221,7 +221,7 @@ describe('Get datasets with includes tests', () => {
                 }]
             });
 
-        nock(process.env.CT_URL)
+        nock(process.env.API_URL)
             .post('/v1/widget/find-by-ids', { ids: [fakeDatasetOne.id], app: 'rw' })
             .query({
                 application: 'rw',
@@ -234,7 +234,7 @@ describe('Get datasets with includes tests', () => {
             .reply(200, widgetsFindById(fakeDatasetOne));
 
 
-        nock(process.env.CT_URL)
+        nock(process.env.API_URL)
             .post('/v1/dataset/vocabulary/find-by-ids', { ids: [fakeDatasetOne.id] })
             .query({
                 application: 'rw',
@@ -247,7 +247,7 @@ describe('Get datasets with includes tests', () => {
             .reply(200, vocabularyFindById(fakeDatasetOne));
 
 
-        nock(process.env.CT_URL)
+        nock(process.env.API_URL)
             .post('/v1/dataset/metadata/find-by-ids', { ids: [fakeDatasetOne.id] })
             .query({
                 application: 'rw',
@@ -259,7 +259,7 @@ describe('Get datasets with includes tests', () => {
             })
             .reply(200, metadataFindById(fakeDatasetOne));
 
-        nock(process.env.CT_URL)
+        nock(process.env.API_URL)
             .post('/v1/layer/find-by-ids', { ids: [fakeDatasetOne.id], app: 'rw' })
             .query({
                 application: 'rw',
@@ -271,7 +271,7 @@ describe('Get datasets with includes tests', () => {
             })
             .reply(200, layersFindById(fakeDatasetOne));
 
-        nock(process.env.CT_URL)
+        nock(process.env.API_URL)
             .post('/v1/graph/find-by-ids', { ids: [fakeDatasetOne.id], app: 'rw' })
             .query({
                 application: 'rw',
@@ -332,7 +332,7 @@ describe('Get datasets with includes tests', () => {
         const fakeDatasetTwo = await new Dataset(createDataset('cartodb')).save();
         const fakeDatasetThree = await new Dataset(createDataset('cartodb')).save();
         mockThreeUsers(fakeDatasetOne.userId, fakeDatasetTwo.userId, fakeDatasetThree.userId);
-        nock(process.env.CT_URL).get('/auth/user/ids/USER').reply(200, { data: [USERS.USER.id] });
+        nock(process.env.API_URL).get('/auth/user/ids/USER').reply(200, { data: [USERS.USER.id] });
 
         const response = await requester
             .get(`/api/v1/dataset`)
