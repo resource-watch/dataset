@@ -170,7 +170,7 @@ describe('Dataset sync tests', () => {
         const fakeDataset = await new Dataset(createDataset('json')).save();
 
         nock(process.env.CT_URL)
-            .put('/v1/task/sync-dataset/by-dataset', (body) => {
+            .put('/v1/task/sync-dataset', (body) => {
                 body.should.have.property('datasetId');
                 body.should.have.property('provider').and.equal('json');
                 body.should.have.property('dataPath').and.equal(fakeDataset.dataPath);

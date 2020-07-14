@@ -1,5 +1,5 @@
 const logger = require('logger');
-const ctRegisterMicroservice = require('ct-register-microservice-node');
+const axios = require('axios');
 const { INCLUDES } = require('app.constants');
 const { compact, uniq } = require('lodash');
 const InvalidRequest = require('errors/invalidRequest.error');
@@ -27,11 +27,10 @@ class RelationshipsService {
         let resources = includes.map(async (include) => {
             const obj = {};
             if (INCLUDES.indexOf(include) >= 0) {
-                let uri = '';
+                let uri = '/v1';
                 let payload = {
                     ids
                 };
-                let version = true;
                 if (include === 'layer' || include === 'widget' || include === 'graph') {
                     const apps = query.application || query.app;
                     if (apps) {
@@ -39,13 +38,12 @@ class RelationshipsService {
                     }
                 }
                 if (include === 'vocabulary' || include === 'metadata') {
-                    uri = '/dataset';
+                    uri = '/v1/dataset';
                 }
                 if (include === 'user') {
                     payload = {
                         ids: compact(uniq(users))
                     };
-                    version = false;
                     uri = '/auth';
                 }
 
@@ -58,13 +56,13 @@ class RelationshipsService {
                 try {
                     logger.debug('test uriQuery => ', `${uri}/${include}/find-by-ids?${uriQuery}`);
                     logger.debug('test payload length => ', ((payload || {}).ids || []).length);
-                    obj[include] = await ctRegisterMicroservice.requestToMicroservice({
-                        uri: `${uri}/${include}/find-by-ids${uriQuery}`,
+                    const response = await axios({
+                        url: `${process.env.CT_URL}${uri}/${include}/find-by-ids${uriQuery}`,
                         method: 'POST',
-                        json: true,
-                        body: payload,
-                        version
+                        data: payload
                     });
+
+                    obj[include] = response.data.data;
                 } catch (e) {
                     logger.error(`Error loading '${include}' resources for dataset: ${e}`);
                     throw new Error(`Error loading '${include}' resources for dataset: ${e}`);
@@ -81,7 +79,7 @@ class RelationshipsService {
         }); // object with include as keys
         includes.forEach((include) => {
             if (resources[include]) {
-                const { data } = resources[include];
+                const data = resources[include];
                 const result = {};
                 if (data.length > 0) {
                     data.forEach((el) => {
@@ -146,14 +144,13 @@ class RelationshipsService {
 
     static async createVocabularies(id, vocabularies) {
         try {
-            return await ctRegisterMicroservice.requestToMicroservice({
-                uri: `/dataset/${id}/vocabulary`,
+            return await axios({
+                url: `${process.env.CT_URL}/v1/dataset/${id}/vocabulary`,
                 method: 'POST',
-                json: true,
-                body: vocabularies
+                data: vocabularies
             });
         } catch (e) {
-            throw new Error(e);
+            throw new Error(e.response.data.detail);
         }
     }
 
@@ -167,14 +164,14 @@ class RelationshipsService {
         }));
         vocabularyQuery = vocabularyQuery.substring(0, vocabularyQuery.length - 1);
         logger.debug(vocabularyQuery);
-        const result = await ctRegisterMicroservice.requestToMicroservice({
-            uri: `/dataset/vocabulary/find${vocabularyQuery}`,
+        const response = await axios({
+            url: `${process.env.CT_URL}/v1/dataset/vocabulary/find${vocabularyQuery}`,
             method: 'GET',
-            json: true,
         });
+
         let ids = ' ';
-        if (result.data.length > 0) {
-            const idsArray = result.data[0].attributes.resources.map((el) => el.id);
+        if (response.data.data.length > 0) {
+            const idsArray = response.data.data[0].attributes.resources.map((el) => el.id);
             ids = idsArray.reduce((acc, next) => `${acc}, ${next}`);
         }
         return ids;
@@ -182,11 +179,10 @@ class RelationshipsService {
 
     static async cloneVocabularies(oldId, newId) {
         try {
-            return await ctRegisterMicroservice.requestToMicroservice({
-                uri: `/dataset/${oldId}/vocabulary/clone/dataset`,
+            return await axios({
+                url: `${process.env.CT_URL}/v1/dataset/${oldId}/vocabulary/clone/dataset`,
                 method: 'POST',
-                json: true,
-                body: {
+                data: {
                     newDataset: newId
                 }
             });
@@ -197,11 +193,10 @@ class RelationshipsService {
 
     static async cloneMetadatas(oldId, newId) {
         try {
-            return await ctRegisterMicroservice.requestToMicroservice({
-                uri: `/dataset/${oldId}/metadata/clone`,
+            return await axios({
+                url: `${process.env.CT_URL}/v1/dataset/${oldId}/metadata/clone`,
                 method: 'POST',
-                json: true,
-                body: {
+                data: {
                     newDataset: newId
                 }
             });
@@ -212,16 +207,15 @@ class RelationshipsService {
 
     static async getCollections(ids, userId) {
         try {
-            const result = await ctRegisterMicroservice.requestToMicroservice({
-                uri: `/collection/find-by-ids`,
+            const response = await axios({
+                url: `${process.env.CT_URL}/v1/collection/find-by-ids`,
                 method: 'POST',
-                json: true,
-                body: {
+                data: {
                     ids,
                     userId
                 }
             });
-            return result.data.map((col) => col.attributes.resources.filter((res) => res.type === 'dataset')).reduce((pre, cur) => pre.concat(cur)).map((el) => el.id);
+            return response.data.data.map((col) => col.attributes.resources.filter((res) => res.type === 'dataset')).reduce((pre, cur) => pre.concat(cur)).map((el) => el.id);
         } catch (e) {
             throw new Error(e);
         }
@@ -229,15 +223,15 @@ class RelationshipsService {
 
     static async getFavorites(app, userId) {
         try {
-            const result = await ctRegisterMicroservice.requestToMicroservice({
-                uri: `/favourite/find-by-user`,
+            const response = await axios({
+                url: `${process.env.CT_URL}/v1/favourite/find-by-user`,
                 method: 'POST',
-                json: true,
-                body: {
+                data: {
                     app,
                     userId
                 }
             });
+            const result = response.data.data;
             logger.debug(result);
             return result.data.filter((fav) => fav.attributes.resourceType === 'dataset').map((el) => el.attributes.resourceId);
         } catch (e) {
@@ -246,23 +240,23 @@ class RelationshipsService {
     }
 
     static async filterByMetadata(search, sort) {
-        let uri = `/metadata?search=${search}`;
+        let uri = `/v1/metadata?search=${search}`;
 
         if (sort !== null) {
             uri = `${uri}&sort=${sort}`;
         }
 
         try {
-            const result = await ctRegisterMicroservice.requestToMicroservice({
-                uri,
-                method: 'GET',
-                json: true
+            const response = await axios({
+                url: `${process.env.CT_URL}${uri}`,
+                method: 'GET'
             });
+            const result = response.data.data;
             logger.debug(result);
-            return result.data.map((m) => m.attributes.dataset);
+            return result.map((m) => m.attributes.dataset);
         } catch (e) {
-            if (e.statusCode === 400) {
-                throw new InvalidRequest(e.message);
+            if (e.response.status === 400) {
+                throw new InvalidRequest(`${e.response.status} - ${JSON.stringify(e.response.data)}`);
             }
             throw new Error(e);
         }
@@ -270,11 +264,11 @@ class RelationshipsService {
 
     static async sortByMetadata(sign, query) {
         try {
-            const result = await ctRegisterMicroservice.requestToMicroservice({
-                uri: `/metadata?sort=${sign}name&type=dataset&${query}`,
-                method: 'GET',
-                json: true
+            const response = await axios({
+                url: `${process.env.CT_URL}/v1/metadata?sort=${sign}name&type=dataset&${query}`,
+                method: 'GET'
             });
+            const result = response.data.data;
             logger.debug(result);
             return result.data.map((m) => m.attributes.dataset);
         } catch (e) {
@@ -284,12 +278,11 @@ class RelationshipsService {
 
     static async filterByConcepts(query) {
         try {
-            const result = await ctRegisterMicroservice.requestToMicroservice({
-                uri: `/graph/query/search-datasets-ids?${query}`,
-                method: 'GET',
-                json: true
+            const response = await axios({
+                url: `${process.env.CT_URL}/v1/graph/query/search-datasets-ids?${query}`,
+                method: 'GET'
             });
-            return result.data;
+            return response.data.data;
         } catch (e) {
             throw new Error(e);
         }
@@ -297,12 +290,11 @@ class RelationshipsService {
 
     static async searchBySynonyms(query) {
         try {
-            const result = await ctRegisterMicroservice.requestToMicroservice({
-                uri: `/graph/query/search-by-label-synonyms?${query}`,
-                method: 'GET',
-                json: true
+            const response = await axios({
+                url: `${process.env.CT_URL}/v1/graph/query/search-by-label-synonyms?${query}`,
+                method: 'GET'
             });
-            return result.data;
+            return response.data.data;
         } catch (e) {
             throw new Error(`Error searching by label synonyms: ${e}`);
         }
@@ -310,15 +302,13 @@ class RelationshipsService {
 
     static async getUsersInfoByIds(ids) {
         logger.debug('Fetching all users\' information');
-        const body = await ctRegisterMicroservice.requestToMicroservice({
-            uri: `/auth/user/find-by-ids`,
+        const response = await axios({
+            url: `${process.env.CT_URL}/auth/user/find-by-ids`,
             method: 'POST',
-            json: true,
-            version: false,
-            body: { ids }
+            data: { ids }
         });
 
-        return body.data;
+        return response.data.data;
     }
 
 }

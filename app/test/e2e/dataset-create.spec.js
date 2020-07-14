@@ -135,6 +135,14 @@ describe('Dataset create tests', () => {
                 detail: 'Ok'
             });
 
+        nock(process.env.CT_URL)
+            .post(/v1\/graph\/dataset\/(\w|-)*$/)
+            .once()
+            .reply(200, {
+                status: 200,
+                detail: 'Ok'
+            });
+
         const response = await requester.post(`/api/v1/dataset`).send({
             dataset,
             loggedUser: USERS.ADMIN
@@ -208,6 +216,14 @@ describe('Dataset create tests', () => {
                 detail: 'Ok'
             });
 
+        nock(process.env.CT_URL)
+            .post(/v1\/graph\/dataset\/(\w|-)*$/)
+            .once()
+            .reply(200, {
+                status: 200,
+                detail: 'Ok'
+            });
+
         const response = await requester.post(`/api/v1/dataset`).send({
             dataset,
             loggedUser: USERS.ADMIN
@@ -264,6 +280,14 @@ describe('Dataset create tests', () => {
 
                 return true;
             })
+            .reply(200, {
+                status: 200,
+                detail: 'Ok'
+            });
+
+        nock(process.env.CT_URL)
+            .post(/v1\/graph\/dataset\/(\w|-)*$/)
+            .once()
             .reply(200, {
                 status: 200,
                 detail: 'Ok'
@@ -335,6 +359,14 @@ describe('Dataset create tests', () => {
                 detail: 'Ok'
             });
 
+        nock(process.env.CT_URL)
+            .post(/v1\/graph\/dataset\/(\w|-)*$/)
+            .once()
+            .reply(200, {
+                status: 200,
+                detail: 'Ok'
+            });
+
         const response = await requester.post(`/api/v1/dataset`).send({
             dataset,
             loggedUser: USERS.ADMIN
@@ -383,7 +415,6 @@ describe('Dataset create tests', () => {
             dataLastUpdated: timestamp.toISOString()
         };
 
-
         nock(process.env.CT_URL)
             .post('/v1/doc-datasets/csv', (request) => {
                 request.should.have.property('connector').and.be.an('object');
@@ -397,6 +428,14 @@ describe('Dataset create tests', () => {
 
                 return true;
             })
+            .reply(200, {
+                status: 200,
+                detail: 'Ok'
+            });
+
+        nock(process.env.CT_URL)
+            .post(/v1\/graph\/dataset\/(\w|-)*$/)
+            .once()
             .reply(200, {
                 status: 200,
                 detail: 'Ok'
@@ -553,6 +592,14 @@ describe('Dataset create tests', () => {
 
                 return true;
             })
+            .reply(200, {
+                status: 200,
+                detail: 'Ok'
+            });
+
+        nock(process.env.CT_URL)
+            .post(/v1\/graph\/dataset\/(\w|-)*$/)
+            .once()
             .reply(200, {
                 status: 200,
                 detail: 'Ok'

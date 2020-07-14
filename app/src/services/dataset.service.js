@@ -2,7 +2,7 @@ const { URL } = require('url');
 const logger = require('logger');
 const Dataset = require('models/dataset.model');
 const RelationshipsService = require('services/relationships.service');
-const ctRegisterMicroservice = require('ct-register-microservice-node');
+const axios = require('axios');
 const SyncService = require('services/sync.service');
 const FileDataService = require('services/fileDataService.service');
 const DatasetNotFound = require('errors/datasetNotFound.error');
@@ -341,20 +341,18 @@ class DatasetService {
         logger.debug('Updating env of all resources of dataset', datasetId, 'with env ', env);
         try {
             logger.debug('Updating widgets');
-            await ctRegisterMicroservice.requestToMicroservice({
-                uri: `/widget/change-environment/${datasetId}/${env}`,
-                method: 'PATCH',
-                json: true
+            await axios({
+                url: `${process.env.CT_URL}/v1/widget/change-environment/${datasetId}/${env}`,
+                method: 'PATCH'
             });
         } catch (err) {
             logger.error('Error updating widgets', err);
         }
         try {
             logger.debug('Updating layers');
-            await ctRegisterMicroservice.requestToMicroservice({
-                uri: `/layer/change-environment/${datasetId}/${env}`,
-                method: 'PATCH',
-                json: true
+            await axios({
+                url: `${process.env.CT_URL}/v1/layer/change-environment/${datasetId}/${env}`,
+                method: 'PATCH'
             });
         } catch (err) {
             logger.error('Error updating layers', err);
@@ -475,40 +473,40 @@ class DatasetService {
 
     static async deleteWidgets(datasetId) {
         logger.info('Deleting widgets of dataset', datasetId);
-        await ctRegisterMicroservice.requestToMicroservice({
-            uri: `/dataset/${datasetId}/widget`,
+        await axios({
+            url: `${process.env.CT_URL}/v1/dataset/${datasetId}/widget`,
             method: 'DELETE'
         });
     }
 
     static async deleteLayers(datasetId) {
         logger.info('Deleting layers of dataset', datasetId);
-        await ctRegisterMicroservice.requestToMicroservice({
-            uri: `/dataset/${datasetId}/layer`,
+        await axios({
+            url: `${process.env.CT_URL}/v1/dataset/${datasetId}/layer`,
             method: 'DELETE'
         });
     }
 
     static async deleteMetadata(datasetId) {
         logger.info('Deleting metadata of dataset', datasetId);
-        await ctRegisterMicroservice.requestToMicroservice({
-            uri: `/dataset/${datasetId}/metadata`,
+        await axios({
+            url: `${process.env.CT_URL}/v1/dataset/${datasetId}/metadata`,
             method: 'DELETE'
         });
     }
 
     static async deleteVocabularies(datasetId) {
         logger.info('Deleting vocabularies of dataset', datasetId);
-        await ctRegisterMicroservice.requestToMicroservice({
-            uri: `/dataset/${datasetId}/vocabulary`,
+        await axios({
+            url: `${process.env.CT_URL}/v1/dataset/${datasetId}/vocabulary`,
             method: 'DELETE'
         });
     }
 
     static async deleteKnowledgeGraphVocabulary(datasetId, application) {
         logger.info('Deleting knowledge graph of dataset', datasetId);
-        await ctRegisterMicroservice.requestToMicroservice({
-            uri: `/dataset/${datasetId}/vocabulary/knowledge_graph?application=${application}`,
+        await axios({
+            url: `${process.env.CT_URL}/v1/dataset/${datasetId}/vocabulary/knowledge_graph?application=${application}`,
             method: 'DELETE'
         });
     }
@@ -516,31 +514,39 @@ class DatasetService {
     static async checkSecureDeleteResources(id) {
         logger.info('Checking if it is safe to delete the associated resources (layer, widget) of the dataset');
         try {
-            const layers = await ctRegisterMicroservice.requestToMicroservice({
-                uri: `/dataset/${id}/layer?protected=true`,
-                method: 'GET',
-                json: true
+            const response = await axios({
+                url: `${process.env.CT_URL}/v1/dataset/${id}/layer?protected=true`,
+                method: 'GET'
             });
+            const layers = response.data.data;
+
             logger.debug(layers);
-            if (layers && layers.data.length > 0) {
+            if (layers && layers.length > 0) {
                 throw new DatasetProtected('There are protected layers associated with the dataset');
             }
         } catch (err) {
             logger.error('Error obtaining protected layers of the dataset');
-            throw new MicroserviceConnection(`Error obtaining protected layers of the dataset: ${err.message}`);
+            if (err instanceof DatasetProtected) {
+                throw err;
+            }
+            throw new MicroserviceConnection(`Error obtaining protected layers of the dataset: ${err.response.status} - ${JSON.stringify(err.response.data)}`);
         }
         try {
-            const widgets = await ctRegisterMicroservice.requestToMicroservice({
-                uri: `/dataset/${id}/widget?protected=true`,
-                method: 'GET',
-                json: true
+            const response = await axios({
+                url: `${process.env.CT_URL}/v1/dataset/${id}/widget?protected=true`,
+                method: 'GET'
             });
-            if (widgets && widgets.data.length > 0) {
+            const widgets = response.data.data;
+
+            if (widgets && widgets.length > 0) {
                 throw new DatasetProtected('There are widgets layers associated with the dataset');
             }
         } catch (err) {
             logger.error('Error obtaining protected widgets for the dataset');
-            throw new MicroserviceConnection(`Error obtaining protected widgets of the dataset: ${err.message}`);
+            if (err instanceof DatasetProtected) {
+                throw err;
+            }
+            throw new MicroserviceConnection(`Error obtaining protected widgets of the dataset: ${err.response.status} - ${JSON.stringify(err.response.data)}`);
         }
     }
 

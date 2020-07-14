@@ -1,5 +1,5 @@
 const logger = require('logger');
-const ctRegisterMicroservice = require('ct-register-microservice-node');
+const axios = require('axios');
 const SyncError = require('errors/sync.error');
 
 class SyncService {
@@ -7,11 +7,10 @@ class SyncService {
     static async create(dataset) {
         logger.debug('Sync creation');
         try {
-            const response = await ctRegisterMicroservice.requestToMicroservice({
-                uri: '/task/sync-dataset',
+            const response = await axios({
+                url: `${process.env.CT_URL}/v1/task/sync-dataset`,
                 method: 'POST',
-                json: true,
-                body: {
+                data: {
                     datasetId: dataset._id,
                     provider: dataset.provider,
                     dataPath: dataset.dataPath,
@@ -21,20 +20,19 @@ class SyncService {
                     url: dataset.sync.url
                 }
             });
-            return response;
+            return response.data.data;
         } catch (err) {
-            throw new SyncError(err.message);
+            throw new SyncError(JSON.stringify(err.response.data));
         }
     }
 
     static async update(dataset) {
         logger.debug('Sync update');
         try {
-            const response = await ctRegisterMicroservice.requestToMicroservice({
-                uri: '/task/sync-dataset/by-dataset',
+            const response = await axios({
+                url: `${process.env.CT_URL}/v1/task/sync-dataset`,
                 method: 'PUT',
-                json: true,
-                body: {
+                data: {
                     datasetId: dataset._id,
                     provider: dataset.provider,
                     dataPath: dataset.dataPath,
@@ -44,23 +42,22 @@ class SyncService {
                     url: dataset.sync.url
                 }
             });
-            return response;
+            return response.data.data;
         } catch (err) {
-            throw new SyncError(err.message);
+            throw new SyncError(JSON.stringify(err.response.data));
         }
     }
 
     static async delete(id) {
         logger.debug('Sync deletion');
         try {
-            const response = await ctRegisterMicroservice.requestToMicroservice({
-                uri: `/task/sync-dataset/by-dataset/${id}`,
-                method: 'DELETE',
-                json: true
+            const response = await axios({
+                url: `${process.env.CT_URL}/v1/task/sync-dataset/by-dataset/${id}`,
+                method: 'DELETE'
             });
-            return response;
+            return response.data.data;
         } catch (err) {
-            throw new SyncError(err.message);
+            throw new SyncError(JSON.stringify(err.response.data));
         }
     }
 

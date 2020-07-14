@@ -14,11 +14,11 @@ const DatasetProtected = require('errors/datasetProtected.error');
 const MicroserviceConnection = require('errors/microserviceConnection.error');
 const DatasetNotValid = require('errors/datasetNotValid.error');
 const ConnectorUrlNotValid = require('errors/connectorUrlNotValid.error');
-const ctRegisterMicroservice = require('ct-register-microservice-node');
 const { USER_ROLES } = require('app.constants');
 const InvalidRequest = require('errors/invalidRequest.error');
 const ForbiddenRequest = require('errors/forbiddenRequest.error');
 const DatasetModel = require('models/dataset.model');
+const axios = require('axios');
 
 const router = new Router({
     prefix: '/dataset',
@@ -77,7 +77,7 @@ class DatasetRouter {
         clonedDataset.table_name = dataset.tableName;
         clonedDataset.data = ctx.request.body.data;
 
-        let uri = '';
+        let uri = '/v1';
         if (connectorType === 'rest') {
             uri += `/rest-datasets/${provider}`;
         } else if (connectorType === 'document') {
@@ -97,15 +97,21 @@ class DatasetRouter {
         const method = ctx.request.method === 'DELETE' ? 'DELETE' : 'POST';
 
         try {
-            return await ctRegisterMicroservice.requestToMicroservice({
-                uri,
+            return await axios({
+                url: process.env.CT_URL + uri,
                 method,
-                json: true,
-                body: { connector: clonedDataset }
+                data: { connector: clonedDataset }
             });
+
+            // return await ctRegisterMicroservice.requestToMicroservice({
+            //     uri: url,
+            //     method,
+            //     json: true,
+            //     body: { connector: clonedDataset }
+            // });
         } catch (err) {
             logger.error('Error connecting to dataset adapter');
-            throw new MicroserviceConnection(`Error connecting to dataset adapter: ${err.message}`);
+            throw new MicroserviceConnection(`Error connecting to dataset adapter: ${err.response.status} - ${JSON.stringify(err.response.data)}`);
         }
     }
 
@@ -121,7 +127,7 @@ class DatasetRouter {
         clonedDataset.table_name = dataset.tableName;
         clonedDataset.data = ctx.request.body.data;
 
-        let uri = '';
+        let uri = '/v1';
         if (connectorType === 'rest') {
             uri += `/rest-datasets/${provider}`;
         } else if (connectorType === 'document') {
@@ -137,12 +143,18 @@ class DatasetRouter {
             delete clonedDataset.connectorUrl;
         }
 
-        return ctRegisterMicroservice.requestToMicroservice({
-            uri,
+        return axios({
+            url: process.env.CT_URL + uri,
             method: 'POST',
-            json: true,
-            body: { connector: clonedDataset }
+            data: { connector: clonedDataset }
         });
+
+        // return ctRegisterMicroservice.requestToMicroservice({
+        //     uri,
+        //     method: 'POST',
+        //     json: true,
+        //     body: { connector: clonedDataset }
+        // });
     }
 
     static async get(ctx) {

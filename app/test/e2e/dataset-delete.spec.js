@@ -222,7 +222,7 @@ describe('Dataset delete tests', () => {
     });
 
     // TODO: This endpoint should not actually call the provider, otherwise we may end up with a dataset with no data.
-    it('Deleting a protected dataset should return a 200', async () => {
+    it('Deleting a protected dataset should return a 400', async () => {
         const fakeDataset = await new Dataset(createDataset('cartodb', { protected: true })).save();
 
         nock(process.env.CT_URL)

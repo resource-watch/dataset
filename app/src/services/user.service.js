@@ -1,17 +1,15 @@
 const logger = require('logger');
-const ctRegisterMicroservice = require('ct-register-microservice-node');
+const axios = require('axios');
 
 class UserService {
 
     static async getUsersWithRole(role) {
-        const body = await ctRegisterMicroservice.requestToMicroservice({
-            uri: `/auth/user/ids/${role}`,
-            method: 'GET',
-            json: true,
-            version: false
+        const response = await axios({
+            url: `${process.env.CT_URL}/auth/user/ids/${role}`,
+            method: 'GET'
         });
-        logger.debug('User ids', body.data);
-        return body.data;
+        logger.debug('User ids', response.data.data);
+        return response.data.data;
     }
 
 }
