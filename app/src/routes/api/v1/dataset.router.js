@@ -494,38 +494,16 @@ const validationMiddleware = async (ctx, next) => {
     await next();
 };
 
-const flushAuthorizationMiddleware = async (ctx, next) => {
-    logger.info(`[DatasetRouter] Checking authorization for /flush`);
-    const user = DatasetRouter.getUser(ctx);
-    const datasetApps = await DatasetRouter.getDatasetApplications(ctx);
-    const permission = await DatasetService.hasPermission(ctx.params.dataset, user, datasetApps);
-
-    if (!user || USER_ROLES.indexOf(user.role) === -1) {
-        ctx.throw(401, 'Unauthorized'); // if not logged or invalid ROLE -> out
-        return;
-    }
-
-    if (user.role === 'USER') {
-        ctx.throw(403, 'Forbidden'); // if user is USER -> out
-        return;
-    }
-
-    // Admins and dataset owners can flush
-    if (user.role === 'ADMIN' || permission) {
-        await next();
-        return;
-    }
-
-    ctx.throw(403, 'Forbidden - dataset flush is limited to admin users and dataset owners');
-};
-
 const authorizationMiddleware = async (ctx, next) => {
     logger.info(`[DatasetRouter] Checking authorization`);
     // Get user from query (delete) or body (post-patch)
     const newDatasetCreation = ctx.request.path === '/dataset' && ctx.request.method === 'POST';
     const uploadDataset = ctx.request.path.indexOf('upload') >= 0 && ctx.request.method === 'POST';
     const user = DatasetRouter.getUser(ctx);
-
+    if (ctx.request.path.endsWith('flush') && user.role === 'ADMIN') {
+        await next();
+        return;
+    }
     if (user.id === 'microservice') {
         await next();
         return;
@@ -541,8 +519,6 @@ const authorizationMiddleware = async (ctx, next) => {
         }
     }
 
-    // This is technically redundant with the hasPermission check below, since hasPermission
-    // calls validateAppPermission anyway, but leaving here because the error message is informative
     const datasetApps = await DatasetRouter.getDatasetApplications(ctx);
     if (datasetApps && datasetApps.length > 0 && !DatasetService.validateAppPermission(user, datasetApps)) {
         ctx.throw(403, 'Forbidden - User does not have access to this dataset\'s application'); // if manager or admin but no application -> out
@@ -577,6 +553,18 @@ const authorizationBigQuery = async (ctx, next) => {
     await next();
 };
 
+// const authorizationSubscribable = async (ctx, next) => {
+//     logger.info(`[DatasetRouter] Checking if it can update the subscribable prop`);
+//     if (ctx.request.body.subscribable) {
+//         const user = DatasetRouter.getUser(ctx);
+//         if (user.email !== 'sergio.gordillo@vizzuality.com' && user.email !== 'raul.requero@vizzuality.com' && user.email !== 'alicia.arenzana@vizzuality.com') {
+//             ctx.throw(401, 'Unauthorized'); // if not logged or invalid ROLE -> out
+//             return;
+//         }
+//     }
+//     await next();
+// };
+
 const authorizationRecover = async (ctx, next) => {
     logger.info(`[DatasetRouter] Authorization for recovering`);
     const user = DatasetRouter.getUser(ctx);
@@ -592,7 +580,7 @@ router.post('/find-by-ids', validationMiddleware, DatasetRouter.findByIds);
 router.post('/', validationMiddleware, authorizationMiddleware, authorizationBigQuery, DatasetRouter.create);
 // router.post('/', validationMiddleware, authorizationMiddleware, authorizationBigQuery, authorizationSubscribable, DatasetRouter.create);
 router.post('/upload', validationMiddleware, authorizationMiddleware, DatasetRouter.upload);
-router.post('/:dataset/flush', flushAuthorizationMiddleware, DatasetRouter.flushDataset);
+router.post('/:dataset/flush', authorizationMiddleware, DatasetRouter.flushDataset);
 router.post('/:dataset/recover', authorizationRecover, DatasetRouter.recover);
 
 router.get('/:dataset', DatasetRouter.get);

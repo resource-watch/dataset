@@ -78,7 +78,7 @@ describe('Upload raw data', () => {
 
         response.status.should.equal(403);
         response.body.should.have.property('errors').and.be.an('array');
-        response.body.errors[0].should.have.property('detail').and.equal(`Forbidden - dataset flush is limited to admin users and dataset owners`);
+        response.body.errors[0].should.have.property('detail').and.equal(`Forbidden`);
     });
 
     it('Successfully flush a dataset as an ADMIN', async () => {

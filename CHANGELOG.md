@@ -5,7 +5,6 @@
 - Security update of NPM package `lodash` from 4.17.15 to 4.17.20.
 - Security update of NPM package `yargs-parser` from 13.1.1 to 13.1.2.
 - Security update of NPM package `bl` from 2.2.0 to 2.2.1.
-- Add more informative error message on `/:dataset/flush` 403 response.
 
 # v1.3.2
 
