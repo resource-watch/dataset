@@ -1,5 +1,5 @@
 const logger = require('logger');
-const ctRegisterMicroservice = require('ct-register-microservice-node');
+const { RWAPIMicroservice } = require('rw-api-microservice-node');
 const { INCLUDES } = require('app.constants');
 const { compact, uniq } = require('lodash');
 const InvalidRequest = require('errors/invalidRequest.error');
@@ -58,7 +58,7 @@ class RelationshipsService {
                 try {
                     logger.debug('test uriQuery => ', `${uri}/${include}/find-by-ids?${uriQuery}`);
                     logger.debug('test payload length => ', ((payload || {}).ids || []).length);
-                    obj[include] = await ctRegisterMicroservice.requestToMicroservice({
+                    obj[include] = await RWAPIMicroservice.requestToMicroservice({
                         uri: `${uri}/${include}/find-by-ids${uriQuery}`,
                         method: 'POST',
                         json: true,
@@ -146,7 +146,7 @@ class RelationshipsService {
 
     static async createVocabularies(id, vocabularies) {
         try {
-            return await ctRegisterMicroservice.requestToMicroservice({
+            return await RWAPIMicroservice.requestToMicroservice({
                 uri: `/dataset/${id}/vocabulary`,
                 method: 'POST',
                 json: true,
@@ -167,7 +167,7 @@ class RelationshipsService {
         }));
         vocabularyQuery = vocabularyQuery.substring(0, vocabularyQuery.length - 1);
         logger.debug(vocabularyQuery);
-        const result = await ctRegisterMicroservice.requestToMicroservice({
+        const result = await RWAPIMicroservice.requestToMicroservice({
             uri: `/dataset/vocabulary/find${vocabularyQuery}`,
             method: 'GET',
             json: true,
@@ -182,7 +182,7 @@ class RelationshipsService {
 
     static async cloneVocabularies(oldId, newId) {
         try {
-            return await ctRegisterMicroservice.requestToMicroservice({
+            return await RWAPIMicroservice.requestToMicroservice({
                 uri: `/dataset/${oldId}/vocabulary/clone/dataset`,
                 method: 'POST',
                 json: true,
@@ -197,7 +197,7 @@ class RelationshipsService {
 
     static async cloneMetadatas(oldId, newId) {
         try {
-            return await ctRegisterMicroservice.requestToMicroservice({
+            return await RWAPIMicroservice.requestToMicroservice({
                 uri: `/dataset/${oldId}/metadata/clone`,
                 method: 'POST',
                 json: true,
@@ -212,7 +212,7 @@ class RelationshipsService {
 
     static async getCollections(ids, userId) {
         try {
-            const result = await ctRegisterMicroservice.requestToMicroservice({
+            const result = await RWAPIMicroservice.requestToMicroservice({
                 uri: `/collection/find-by-ids`,
                 method: 'POST',
                 json: true,
@@ -229,7 +229,7 @@ class RelationshipsService {
 
     static async getFavorites(app, userId) {
         try {
-            const result = await ctRegisterMicroservice.requestToMicroservice({
+            const result = await RWAPIMicroservice.requestToMicroservice({
                 uri: `/favourite/find-by-user`,
                 method: 'POST',
                 json: true,
@@ -253,7 +253,7 @@ class RelationshipsService {
         }
 
         try {
-            const result = await ctRegisterMicroservice.requestToMicroservice({
+            const result = await RWAPIMicroservice.requestToMicroservice({
                 uri,
                 method: 'GET',
                 json: true
@@ -270,7 +270,7 @@ class RelationshipsService {
 
     static async sortByMetadata(sign, query) {
         try {
-            const result = await ctRegisterMicroservice.requestToMicroservice({
+            const result = await RWAPIMicroservice.requestToMicroservice({
                 uri: `/metadata?sort=${sign}name&type=dataset&${query}`,
                 method: 'GET',
                 json: true
@@ -284,7 +284,7 @@ class RelationshipsService {
 
     static async filterByConcepts(query) {
         try {
-            const result = await ctRegisterMicroservice.requestToMicroservice({
+            const result = await RWAPIMicroservice.requestToMicroservice({
                 uri: `/graph/query/search-datasets-ids?${query}`,
                 method: 'GET',
                 json: true
@@ -297,7 +297,7 @@ class RelationshipsService {
 
     static async searchBySynonyms(query) {
         try {
-            const result = await ctRegisterMicroservice.requestToMicroservice({
+            const result = await RWAPIMicroservice.requestToMicroservice({
                 uri: `/graph/query/search-by-label-synonyms?${query}`,
                 method: 'GET',
                 json: true
@@ -310,7 +310,7 @@ class RelationshipsService {
 
     static async getUsersInfoByIds(ids) {
         logger.debug('Fetching all users\' information');
-        const body = await ctRegisterMicroservice.requestToMicroservice({
+        const body = await RWAPIMicroservice.requestToMicroservice({
             uri: `/auth/user/find-by-ids`,
             method: 'POST',
             json: true,

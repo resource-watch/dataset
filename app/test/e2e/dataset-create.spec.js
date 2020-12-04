@@ -22,8 +22,11 @@ describe('Dataset create tests', () => {
         await Dataset.deleteMany({}).exec();
     });
 
-    /* Create a Carto Dataset */
     it('Create a CARTO DB dataset should be successful', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const timestamp = new Date().getTime();
         const dataset = {
             name: `Carto DB Dataset - ${timestamp}`,
@@ -66,11 +69,12 @@ describe('Dataset create tests', () => {
                 status: 200,
                 detail: 'Ok'
             });
+
         const response = await requester
             .post(`/api/v1/dataset`)
+            .set('Authorization', `Bearer abcd`)
             .send({
-                dataset,
-                loggedUser: USERS.ADMIN
+                dataset
             });
 
         const createdDataset = deserializeDataset(response);
@@ -97,6 +101,10 @@ describe('Dataset create tests', () => {
 
     /* Create a FeatureServer dataset */
     it('Create a FeatureServer dataset should be successful', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const timestamp = new Date().getTime();
         const dataset = {
             name: `FeatureServer Dataset - ${timestamp}`,
@@ -135,10 +143,12 @@ describe('Dataset create tests', () => {
                 detail: 'Ok'
             });
 
-        const response = await requester.post(`/api/v1/dataset`).send({
-            dataset,
-            loggedUser: USERS.ADMIN
-        });
+        const response = await requester
+            .post(`/api/v1/dataset`)
+            .set('Authorization', `Bearer abcd`)
+            .send({
+                dataset
+            });
         const createdDataset = deserializeDataset(response);
 
         response.status.should.equal(200);
@@ -158,6 +168,10 @@ describe('Dataset create tests', () => {
     });
 
     it('Create a JSON dataset with data in the body should be successful', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const timestamp = new Date();
         const dataset = {
             name: `JSON Dataset - ${timestamp.getTime()}`,
@@ -208,10 +222,12 @@ describe('Dataset create tests', () => {
                 detail: 'Ok'
             });
 
-        const response = await requester.post(`/api/v1/dataset`).send({
-            dataset,
-            loggedUser: USERS.ADMIN
-        });
+        const response = await requester
+            .post(`/api/v1/dataset`)
+            .set('Authorization', `Bearer abcd`)
+            .send({
+                dataset
+            });
         const createdDataset = deserializeDataset(response);
 
         response.status.should.equal(200);
@@ -231,6 +247,10 @@ describe('Dataset create tests', () => {
     });
 
     it('Create a JSON dataset with data from a file should be successful', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const timestamp = new Date();
         const dataset = {
             name: `JSON Dataset - ${timestamp.getTime()}`,
@@ -269,10 +289,12 @@ describe('Dataset create tests', () => {
                 detail: 'Ok'
             });
 
-        const response = await requester.post(`/api/v1/dataset`).send({
-            dataset,
-            loggedUser: USERS.ADMIN
-        });
+        const response = await requester
+            .post(`/api/v1/dataset`)
+            .set('Authorization', `Bearer abcd`)
+            .send({
+                dataset
+            });
         const createdDataset = deserializeDataset(response);
 
         response.status.should.equal(200);
@@ -292,6 +314,10 @@ describe('Dataset create tests', () => {
     });
 
     it('Create a JSON dataset with data from multiple files should be successful', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const timestamp = new Date();
         const dataset = {
             name: `JSON Dataset - ${timestamp.getTime()}`,
@@ -335,10 +361,12 @@ describe('Dataset create tests', () => {
                 detail: 'Ok'
             });
 
-        const response = await requester.post(`/api/v1/dataset`).send({
-            dataset,
-            loggedUser: USERS.ADMIN
-        });
+        const response = await requester
+            .post(`/api/v1/dataset`)
+            .set('Authorization', `Bearer abcd`)
+            .send({
+                dataset
+            });
         const createdDataset = deserializeDataset(response);
 
         response.status.should.equal(200);
@@ -359,6 +387,10 @@ describe('Dataset create tests', () => {
     });
 
     it('Create a CSV dataset with data from multiple files should be successful', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const timestamp = new Date();
         const dataset = {
             name: `CSV Dataset - ${timestamp.getTime()}`,
@@ -402,10 +434,12 @@ describe('Dataset create tests', () => {
                 detail: 'Ok'
             });
 
-        const response = await requester.post(`/api/v1/dataset`).send({
-            dataset,
-            loggedUser: USERS.ADMIN
-        });
+        const response = await requester
+            .post(`/api/v1/dataset`)
+            .set('Authorization', `Bearer abcd`)
+            .send({
+                dataset
+            });
         const createdDataset = deserializeDataset(response);
 
         response.status.should.equal(200);
@@ -426,6 +460,10 @@ describe('Dataset create tests', () => {
     });
 
     it('Create a JSON dataset with data from files in `sources` and `connectorUrl` should fail', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const timestamp = new Date();
         const dataset = {
             name: `JSON Dataset - ${timestamp.getTime()}`,
@@ -443,10 +481,12 @@ describe('Dataset create tests', () => {
             dataLastUpdated: timestamp.toISOString()
         };
 
-        const response = await requester.post(`/api/v1/dataset`).send({
-            dataset,
-            loggedUser: USERS.ADMIN
-        });
+        const response = await requester
+            .post(`/api/v1/dataset`)
+            .set('Authorization', `Bearer abcd`)
+            .send({
+                dataset
+            });
 
         response.status.should.equal(400);
         response.body.should.have.property('errors').and.be.an('array');
@@ -454,6 +494,10 @@ describe('Dataset create tests', () => {
     });
 
     it('Create a JSON dataset with data from files in `connectorUrl` and data in the body should fail', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const timestamp = new Date();
         const dataset = {
             name: `JSON Dataset - ${timestamp.getTime()}`,
@@ -478,10 +522,12 @@ describe('Dataset create tests', () => {
             dataLastUpdated: timestamp.toISOString()
         };
 
-        const response = await requester.post(`/api/v1/dataset`).send({
-            dataset,
-            loggedUser: USERS.ADMIN
-        });
+        const response = await requester
+            .post(`/api/v1/dataset`)
+            .set('Authorization', `Bearer abcd`)
+            .send({
+                dataset
+            });
 
         response.status.should.equal(400);
         response.body.should.have.property('errors').and.be.an('array');
@@ -489,6 +535,10 @@ describe('Dataset create tests', () => {
     });
 
     it('Create a JSON dataset with data from files in `sources` and data in the body should fail', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const timestamp = new Date();
         const dataset = {
             name: `JSON Dataset - ${timestamp.getTime()}`,
@@ -517,10 +567,12 @@ describe('Dataset create tests', () => {
             dataLastUpdated: timestamp.toISOString()
         };
 
-        const response = await requester.post(`/api/v1/dataset`).send({
-            dataset,
-            loggedUser: USERS.ADMIN
-        });
+        const response = await requester
+            .post(`/api/v1/dataset`)
+            .set('Authorization', `Bearer abcd`)
+            .send({
+                dataset
+            });
 
         response.status.should.equal(400);
         response.body.should.have.property('errors').and.be.an('array');
@@ -528,6 +580,10 @@ describe('Dataset create tests', () => {
     });
 
     it('Create a CSV dataset with data in the body should be successful', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const timestamp = new Date();
         const dataset = {
             name: `CSV Dataset - ${timestamp.getTime()}`,
@@ -558,10 +614,12 @@ describe('Dataset create tests', () => {
                 detail: 'Ok'
             });
 
-        const response = await requester.post(`/api/v1/dataset`).send({
-            dataset,
-            loggedUser: USERS.ADMIN
-        });
+        const response = await requester
+            .post(`/api/v1/dataset`)
+            .set('Authorization', `Bearer abcd`)
+            .send({
+                dataset
+            });
         const createdDataset = deserializeDataset(response);
 
         response.status.should.equal(200);
@@ -580,6 +638,10 @@ describe('Dataset create tests', () => {
     });
 
     it('Create a CSV dataset with an app that\'s not part of the user account should fail', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const timestamp = new Date();
         const dataset = {
             name: `CSV Dataset - ${timestamp.getTime()}`,
@@ -592,10 +654,12 @@ describe('Dataset create tests', () => {
             dataLastUpdated: timestamp.toISOString()
         };
 
-        const response = await requester.post(`/api/v1/dataset`).send({
-            dataset,
-            loggedUser: USERS.ADMIN
-        });
+        const response = await requester
+            .post(`/api/v1/dataset`)
+            .set('Authorization', `Bearer abcd`)
+            .send({
+                dataset
+            });
 
         response.status.should.equal(403);
         response.body.should.have.property('errors').and.be.an('array');

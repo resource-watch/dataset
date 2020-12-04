@@ -1,5 +1,5 @@
 const logger = require('logger');
-const ctRegisterMicroservice = require('ct-register-microservice-node');
+const { RWAPIMicroservice } = require('rw-api-microservice-node');
 const SyncError = require('errors/sync.error');
 
 class SyncService {
@@ -7,7 +7,7 @@ class SyncService {
     static async create(dataset) {
         logger.debug('Sync creation');
         try {
-            const response = await ctRegisterMicroservice.requestToMicroservice({
+            const response = await RWAPIMicroservice.requestToMicroservice({
                 uri: '/task/sync-dataset',
                 method: 'POST',
                 json: true,
@@ -30,7 +30,7 @@ class SyncService {
     static async update(dataset) {
         logger.debug('Sync update');
         try {
-            const response = await ctRegisterMicroservice.requestToMicroservice({
+            const response = await RWAPIMicroservice.requestToMicroservice({
                 uri: '/task/sync-dataset/by-dataset',
                 method: 'PUT',
                 json: true,
@@ -53,7 +53,7 @@ class SyncService {
     static async delete(id) {
         logger.debug('Sync deletion');
         try {
-            const response = await ctRegisterMicroservice.requestToMicroservice({
+            const response = await RWAPIMicroservice.requestToMicroservice({
                 uri: `/task/sync-dataset/by-dataset/${id}`,
                 method: 'DELETE',
                 json: true

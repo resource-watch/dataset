@@ -174,7 +174,8 @@ describe('Get datasets with includes tests', () => {
             .reply(200, graphFindById(fakeDatasetOne));
 
 
-        const response = await requester.get(`/api/v1/dataset?application=rw&env=production&includes=layer,metadata,vocabulary,widget,graph,user&language=en&page[number]=1&page[size]=12&published=true&search=human&page[size]=12&page[number]=1`);
+        const response = await requester
+            .get(`/api/v1/dataset?application=rw&env=production&includes=layer,metadata,vocabulary,widget,graph,user&language=en&page[number]=1&page[size]=12&published=true&search=human&page[size]=12&page[number]=1`);
 
         response.status.should.equal(200);
         response.body.should.have.property('data').with.lengthOf(1);
@@ -184,6 +185,10 @@ describe('Get datasets with includes tests', () => {
     });
 
     it('Get datasets with includes should return requested data including users (ADMIN user request)', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const fakeDatasetOne = await new Dataset(createDataset('cartodb')).save();
 
         nock(process.env.CT_URL)
@@ -284,7 +289,9 @@ describe('Get datasets with includes tests', () => {
             .reply(200, graphFindById(fakeDatasetOne));
 
 
-        const response = await requester.get(`/api/v1/dataset?application=rw&env=production&includes=layer,metadata,vocabulary,widget,graph,user&language=en&page[number]=1&page[size]=12&published=true&search=human&page[size]=12&page[number]=1&loggedUser=${JSON.stringify(USERS.ADMIN)}`);
+        const response = await requester
+            .get(`/api/v1/dataset?application=rw&env=production&includes=layer,metadata,vocabulary,widget,graph,user&language=en&page[number]=1&page[size]=12&published=true&search=human&page[size]=12&page[number]=1`)
+            .set('Authorization', `Bearer abcd`);
 
         response.status.should.equal(200);
         response.body.should.have.property('data').with.lengthOf(1);
@@ -294,6 +301,10 @@ describe('Get datasets with includes tests', () => {
     });
 
     it('Get datasets with includes user should return a list of datasets and user name, email and role, even if only partial data exists', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const fakeDatasetOne = await new Dataset(createDataset('cartodb')).save();
         const fakeDatasetTwo = await new Dataset(createDataset('cartodb')).save();
         const fakeDatasetThree = await new Dataset(createDataset('cartodb')).save();
@@ -301,9 +312,9 @@ describe('Get datasets with includes tests', () => {
 
         const response = await requester
             .get(`/api/v1/dataset`)
+            .set('Authorization', `Bearer abcd`)
             .query({
                 includes: 'user',
-                loggedUser: JSON.stringify(USERS.ADMIN)
             });
 
         response.status.should.equal(200);
@@ -328,6 +339,10 @@ describe('Get datasets with includes tests', () => {
     });
 
     it('Getting datasets with includes user and user role USER should not add the usersRole query param to the pagination links', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const fakeDatasetOne = await new Dataset(createDataset('cartodb')).save();
         const fakeDatasetTwo = await new Dataset(createDataset('cartodb')).save();
         const fakeDatasetThree = await new Dataset(createDataset('cartodb')).save();
@@ -336,10 +351,10 @@ describe('Get datasets with includes tests', () => {
 
         const response = await requester
             .get(`/api/v1/dataset`)
+            .set('Authorization', `Bearer abcd`)
             .query({
                 includes: 'user',
-                'user.role': 'USER',
-                loggedUser: JSON.stringify(USERS.ADMIN)
+                'user.role': 'USER'
             });
 
         response.status.should.equal(200);

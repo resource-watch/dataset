@@ -1,12 +1,12 @@
 const logger = require('logger');
-const ctRegisterMicroservice = require('ct-register-microservice-node');
+const { RWAPIMicroservice } = require('rw-api-microservice-node');
 
 class GraphService {
 
     static async createDataset(id) {
         logger.debug('[GraphService]: Creating dataset in graph');
         try {
-            return await ctRegisterMicroservice.requestToMicroservice({
+            return await RWAPIMicroservice.requestToMicroservice({
                 uri: `/graph/dataset/${id}`,
                 method: 'POST',
                 json: true
@@ -24,7 +24,7 @@ class GraphService {
                 tags = tags.concat(vocabularies[key].tags);
                 return null;
             });
-            return await ctRegisterMicroservice.requestToMicroservice({
+            return await RWAPIMicroservice.requestToMicroservice({
                 uri: `/graph/dataset/${id}/associate`,
                 method: 'POST',
                 json: true,

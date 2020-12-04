@@ -24,12 +24,16 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset that does not exist should return a 404 error', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const response = await requester
             .post(`/api/v1/dataset/1234/clone`)
+            .set('Authorization', `Bearer abcd`)
             .send({
                 datasetUrl: '/query/123456?sql=select * from data',
-                application: ['gfw', 'rw'],
-                loggedUser: USERS.ADMIN
+                application: ['gfw', 'rw']
             });
 
         response.status.should.equal(404);
@@ -52,15 +56,18 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset while being logged in as a USER should return a 403 error', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.USER);
+
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         const response = await requester
             .post(`/api/v1/dataset/${cartoFakeDataset._id}/clone`)
+            .set('Authorization', `Bearer abcd`)
             .send({
                 datasetUrl: '/query/123456?sql=select * from data',
-                application: ['gfw', 'rw'],
-
-                loggedUser: USERS.USER
+                application: ['gfw', 'rw']
             });
 
         response.status.should.equal(403);
@@ -69,15 +76,18 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset while being logged in as a MANAGER and not being the dataset owner should return a 403 error', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.MANAGER);
+
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         const response = await requester
             .post(`/api/v1/dataset/${cartoFakeDataset._id}/clone`)
+            .set('Authorization', `Bearer abcd`)
             .send({
                 datasetUrl: '/query/123456?sql=select * from data',
-                application: ['gfw', 'rw'],
-
-                loggedUser: USERS.MANAGER
+                application: ['gfw', 'rw']
             });
 
         response.status.should.equal(403);
@@ -86,14 +96,18 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset while not having access to the target application should return a 403 error', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         const response = await requester
             .post(`/api/v1/dataset/${cartoFakeDataset._id}/clone`)
+            .set('Authorization', `Bearer abcd`)
             .send({
                 datasetUrl: '/query/123456?sql=select * from data',
-                application: ['potato'],
-                loggedUser: USERS.ADMIN
+                application: ['potato']
             });
 
         response.status.should.equal(403);
@@ -102,6 +116,10 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset while being logged in as a MANAGER and being the dataset owner should be successful (happy case)', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.MANAGER);
+
         const cartoFakeDataset = await new Dataset(createDataset('cartodb', { userId: USERS.MANAGER.id })).save();
 
         nock(process.env.CT_URL)
@@ -177,10 +195,10 @@ describe('Dataset clone tests', () => {
 
         const response = await requester
             .post(`/api/v1/dataset/${cartoFakeDataset._id}/clone`)
+            .set('Authorization', `Bearer abcd`)
             .send({
                 datasetUrl: '/query/123456?sql=select * from data',
-                application: ['gfw', 'rw'],
-                loggedUser: USERS.MANAGER
+                application: ['gfw', 'rw']
             });
         const dataset = deserializeDataset(response);
 
@@ -204,13 +222,17 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset without application should return a 400 error', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         const response = await requester
             .post(`/api/v1/dataset/${cartoFakeDataset._id}/clone`)
+            .set('Authorization', `Bearer abcd`)
             .send({
-                datasetUrl: '/query/123456?sql=select * from data',
-                loggedUser: USERS.ADMIN
+                datasetUrl: '/query/123456?sql=select * from data'
             });
 
         response.status.should.equal(400);
@@ -219,14 +241,18 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset with an invalid application value should return a 400 error', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         const response = await requester
             .post(`/api/v1/dataset/${cartoFakeDataset._id}/clone`)
+            .set('Authorization', `Bearer abcd`)
             .send({
                 datasetUrl: '/query/123456?sql=select * from data',
                 application: 'rw',
-                loggedUser: USERS.ADMIN
             });
 
         response.status.should.equal(400);
@@ -235,13 +261,17 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset without datasetUrl should return a 400 error', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         const response = await requester
             .post(`/api/v1/dataset/${cartoFakeDataset._id}/clone`)
+            .set('Authorization', `Bearer abcd`)
             .send({
                 application: ['gfw', 'rw'],
-                loggedUser: USERS.ADMIN
             });
 
         response.status.should.equal(400);
@@ -250,6 +280,10 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset as an ADMIN should be successful (happy case)', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         nock(process.env.CT_URL)
@@ -325,10 +359,10 @@ describe('Dataset clone tests', () => {
 
         const response = await requester
             .post(`/api/v1/dataset/${cartoFakeDataset._id}/clone`)
+            .set('Authorization', `Bearer abcd`)
             .send({
                 datasetUrl: '/query/123456?sql=select * from data',
                 application: ['gfw', 'rw'],
-                loggedUser: USERS.ADMIN
             });
         const dataset = deserializeDataset(response);
 
@@ -352,11 +386,14 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset as an ADMIN with full cloning set to true should be successful (happy case)', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         nock(process.env.CT_URL)
             .post(/v1\/graph\/dataset\/(\w|-)*$/)
-            .once()
             .reply(200, {
                 status: 200,
                 detail: 'Ok'
@@ -368,7 +405,6 @@ describe('Dataset clone tests', () => {
                 request.should.have.property('newDataset').and.not.be.empty;
                 return true;
             })
-            .once()
             .reply(200, {
                 status: 200,
                 detail: 'Ok'
@@ -381,7 +417,6 @@ describe('Dataset clone tests', () => {
                 request.should.have.property('newDataset').and.not.be.empty;
                 return true;
             })
-            .once()
             .reply(200, {
                 status: 200,
                 detail: 'Ok'
@@ -452,13 +487,13 @@ describe('Dataset clone tests', () => {
 
         const response = await requester
             .post(`/api/v1/dataset/${cartoFakeDataset._id}/clone`)
+            .set('Authorization', `Bearer abcd`)
             .query({
                 full: true
             })
             .send({
                 datasetUrl: '/query/123456?sql=select * from data',
-                application: ['gfw', 'rw'],
-                loggedUser: USERS.ADMIN
+                application: ['gfw', 'rw']
             });
         const dataset = deserializeDataset(response);
 

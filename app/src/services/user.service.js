@@ -1,10 +1,10 @@
 const logger = require('logger');
-const ctRegisterMicroservice = require('ct-register-microservice-node');
+const { RWAPIMicroservice } = require('rw-api-microservice-node');
 
 class UserService {
 
     static async getUsersWithRole(role) {
-        const body = await ctRegisterMicroservice.requestToMicroservice({
+        const body = await RWAPIMicroservice.requestToMicroservice({
             uri: `/auth/user/ids/${role}`,
             method: 'GET',
             json: true,

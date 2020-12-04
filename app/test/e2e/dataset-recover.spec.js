@@ -9,8 +9,6 @@ const requester = getTestServer();
 
 let jsonFakeDataset;
 
-const BASE_URL = '/api/v1/dataset';
-
 describe('Upload raw data', () => {
 
     before(async () => {
@@ -24,44 +22,60 @@ describe('Upload raw data', () => {
     });
 
     it('Return 401 error if no user provided', async () => {
-        const response = await requester.post(`${BASE_URL}/${jsonFakeDataset.id}/recover`);
-
+        const response = await requester
+            .post(`/api/v1/dataset/${jsonFakeDataset.id}/recover`);
 
         response.status.should.equal(401);
         ensureCorrectError(response.body, 'Unauthorized');
     });
 
     it('Return 401 error if role is USER', async () => {
-        const response = await requester.post(`${BASE_URL}/${jsonFakeDataset.id}/recover`)
-            .field('loggedUser', JSON.stringify(USERS.USER));
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.USER);
 
+        const response = await requester
+            .post(`/api/v1/dataset/${jsonFakeDataset.id}/recover`)
+            .set('Authorization', `Bearer abcd`);
 
         response.status.should.equal(401);
         ensureCorrectError(response.body, 'Unauthorized');
     });
 
     it('Return 401 error if role is MANAGER', async () => {
-        const response = await requester.post(`${BASE_URL}/${jsonFakeDataset.id}/recover`)
-            .field('loggedUser', JSON.stringify(USERS.MANAGER));
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.MANAGER);
 
+        const response = await requester
+            .post(`/api/v1/dataset/${jsonFakeDataset.id}/recover`)
+            .set('Authorization', `Bearer abcd`);
 
         response.status.should.equal(401);
         ensureCorrectError(response.body, 'Unauthorized');
     });
 
     it('Return 404 error if the dataset doesn\'t exist', async () => {
-        const response = await requester.post(`${BASE_URL}/fake-id/recover`)
-            .field('loggedUser', JSON.stringify(USERS.ADMIN));
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
 
+        const response = await requester
+            .post(`/api/v1/dataset/fake-id/recover`)
+            .set('Authorization', `Bearer abcd`);
 
         response.status.should.equal(404);
         ensureCorrectError(response.body, 'Dataset with id \'fake-id\' doesn\'t exist');
     });
 
     it('Successfully recover a dataset', async () => {
-        const response = await requester.post(`${BASE_URL}/${jsonFakeDataset.id}/recover`)
-            .field('loggedUser', JSON.stringify(USERS.ADMIN));
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
 
+        const response = await requester
+            .post(`/api/v1/dataset/${jsonFakeDataset.id}/recover`)
+            .set('Authorization', `Bearer abcd`);
 
         response.status.should.equal(200);
     });

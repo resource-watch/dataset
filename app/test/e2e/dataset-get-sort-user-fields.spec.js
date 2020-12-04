@@ -5,11 +5,7 @@ const mongoose = require('mongoose');
 const { getTestServer } = require('./utils/test-server');
 const { createDataset } = require('./utils/helpers');
 const { createMockUser } = require('./utils/mocks');
-const {
-    USERS: {
-        USER, MANAGER, ADMIN, SUPERADMIN
-    }
-} = require('./utils/test.constants');
+const { USERS } = require('./utils/test.constants');
 
 chai.should();
 
@@ -29,14 +25,14 @@ const mockUsersForSort = (users) => {
 
 const mockDatasetsForSorting = async () => {
     const id = mongoose.Types.ObjectId();
-    await new Dataset(createDataset('cartodb', { userId: USER.id })).save();
-    await new Dataset(createDataset('cartodb', { userId: MANAGER.id })).save();
-    await new Dataset(createDataset('cartodb', { userId: ADMIN.id })).save();
-    await new Dataset(createDataset('cartodb', { userId: SUPERADMIN.id })).save();
+    await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
+    await new Dataset(createDataset('cartodb', { userId: USERS.MANAGER.id })).save();
+    await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
+    await new Dataset(createDataset('cartodb', { userId: USERS.SUPERADMIN.id })).save();
     await new Dataset(createDataset('cartodb', { userId: id })).save();
 
     mockUsersForSort([
-        USER, MANAGER, ADMIN, SUPERADMIN, { id }
+        USERS.USER, USERS.MANAGER, USERS.ADMIN, USERS.SUPERADMIN, { id }
     ]);
 };
 
@@ -50,87 +46,135 @@ describe('GET datasets sorted by user fields', () => {
     });
 
     it('Getting datasets sorted by user.role ASC without authentication should return 403 Forbidden', async () => {
-        const response = await requester.get('/api/v1/dataset').query({ sort: 'user.role' });
+        const response = await requester
+            .get('/api/v1/dataset')
+            .query({ sort: 'user.role' });
         response.status.should.equal(403);
         response.body.should.have.property('errors').and.be.an('array');
         response.body.errors[0].should.have.property('detail').and.be.equal('Sorting by user name or role not authorized.');
     });
 
     it('Getting datasets sorted by user.role ASC with user with role USER should return 403 Forbidden', async () => {
-        const response = await requester.get('/api/v1/dataset').query({ sort: 'user.role', loggedUser: JSON.stringify(USER) });
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.USER);
+
+        const response = await requester
+            .get('/api/v1/dataset')
+            .set('Authorization', `Bearer abcd`)
+            .query({
+                sort: 'user.role',
+            });
         response.status.should.equal(403);
         response.body.should.have.property('errors').and.be.an('array');
         response.body.errors[0].should.have.property('detail').and.be.equal('Sorting by user name or role not authorized.');
     });
 
     it('Getting datasets sorted by user.role ASC with user with role MANAGER should return 403 Forbidden', async () => {
-        const response = await requester.get('/api/v1/dataset').query({ sort: 'user.role', loggedUser: JSON.stringify(MANAGER) });
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.MANAGER);
+
+        const response = await requester
+            .get('/api/v1/dataset')
+            .set('Authorization', `Bearer abcd`)
+            .query({
+                sort: 'user.role',
+            });
         response.status.should.equal(403);
         response.body.should.have.property('errors').and.be.an('array');
         response.body.errors[0].should.have.property('detail').and.be.equal('Sorting by user name or role not authorized.');
     });
 
     it('Getting datasets sorted by user.role ASC should return a list of datasets ordered by the role of the user who created the dataset (happy case)', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         await mockDatasetsForSorting();
-        const response = await requester.get('/api/v1/dataset').query({
-            includes: 'user',
-            sort: 'user.role',
-            loggedUser: JSON.stringify(ADMIN),
-        });
+        const response = await requester
+            .get('/api/v1/dataset')
+            .set('Authorization', `Bearer abcd`)
+            .query({
+                includes: 'user',
+                sort: 'user.role',
+            });
         response.status.should.equal(200);
         response.body.should.have.property('data').and.be.an('array').and.length(5);
         response.body.data.map((dataset) => dataset.attributes.user.role).should.be.deep.equal(['ADMIN', 'MANAGER', 'SUPERADMIN', 'USER', undefined]);
     });
 
     it('Getting datasets sorted by user.role DESC should return a list of datasets ordered by the role of the user who created the dataset (happy case)', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         await mockDatasetsForSorting();
-        const response = await requester.get('/api/v1/dataset').query({
-            includes: 'user',
-            sort: '-user.role',
-            loggedUser: JSON.stringify(ADMIN),
-        });
+        const response = await requester
+            .get('/api/v1/dataset')
+            .set('Authorization', `Bearer abcd`)
+            .query({
+                includes: 'user',
+                sort: '-user.role',
+            });
         response.status.should.equal(200);
         response.body.should.have.property('data').and.be.an('array').and.length(5);
         response.body.data.map((dataset) => dataset.attributes.user.role).should.be.deep.equal([undefined, 'USER', 'SUPERADMIN', 'MANAGER', 'ADMIN']);
     });
 
     it('Getting datasets sorted by user.name ASC should return a list of datasets ordered by the name of the user who created the dataset (happy case)', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         await mockDatasetsForSorting();
-        const response = await requester.get('/api/v1/dataset').query({
-            includes: 'user',
-            sort: 'user.name',
-            loggedUser: JSON.stringify(ADMIN),
-        });
+        const response = await requester
+            .get('/api/v1/dataset')
+            .set('Authorization', `Bearer abcd`)
+            .query({
+                includes: 'user',
+                sort: 'user.name',
+            });
         response.status.should.equal(200);
         response.body.should.have.property('data').and.be.an('array').and.length(5);
         response.body.data.map((dataset) => dataset.attributes.user.name).should.be.deep.equal(['test admin', 'test manager', 'test super admin', 'test user', undefined]);
     });
 
     it('Getting datasets sorted by user.name DESC should return a list of datasets ordered by the name of the user who created the dataset (happy case)', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         await mockDatasetsForSorting();
-        const response = await requester.get('/api/v1/dataset').query({
-            includes: 'user',
-            sort: '-user.name',
-            loggedUser: JSON.stringify(ADMIN),
-        });
+        const response = await requester
+            .get('/api/v1/dataset')
+            .set('Authorization', `Bearer abcd`)
+            .query({
+                includes: 'user',
+                sort: '-user.name',
+            });
         response.status.should.equal(200);
         response.body.should.have.property('data').and.be.an('array').and.length(5);
         response.body.data.map((dataset) => dataset.attributes.user.name).should.be.deep.equal([undefined, 'test user', 'test super admin', 'test manager', 'test admin']);
     });
 
     it('Sorting datasets by user role ASC puts datasets without valid users in the end of the list', async () => {
-        await new Dataset(createDataset('cartodb', { userId: USER.id })).save();
-        await new Dataset(createDataset('cartodb', { userId: MANAGER.id })).save();
-        await new Dataset(createDataset('cartodb', { userId: ADMIN.id })).save();
-        await new Dataset(createDataset('cartodb', { userId: SUPERADMIN.id })).save();
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
+        await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
+        await new Dataset(createDataset('cartodb', { userId: USERS.MANAGER.id })).save();
+        await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
+        await new Dataset(createDataset('cartodb', { userId: USERS.SUPERADMIN.id })).save();
         const noUserDataset1 = await new Dataset(createDataset('cartodb', { userId: 'legacy' })).save();
         const noUserDataset2 = await new Dataset(createDataset('cartodb', { userId: '5accc3660bb7c603ba473d0f' })).save();
 
         // Mock requests for includes=user
-        const fullUsers = [USER, MANAGER, ADMIN, SUPERADMIN].map((u) => ({ ...u, _id: u.id }));
+        const fullUsers = [USERS.USER, USERS.MANAGER, USERS.ADMIN, USERS.SUPERADMIN].map((u) => ({ ...u, _id: u.id }));
 
         // Custom mock find-by-ids call
-        const userIds = [USER.id, MANAGER.id, ADMIN.id, SUPERADMIN.id, 'legacy', '5accc3660bb7c603ba473d0f'];
+        const userIds = [USERS.USER.id, USERS.MANAGER.id, USERS.ADMIN.id, USERS.SUPERADMIN.id, 'legacy', '5accc3660bb7c603ba473d0f'];
         nock(process.env.CT_URL)
             .post('/auth/user/find-by-ids', { ids: userIds })
             .reply(200, { data: fullUsers });
@@ -139,11 +183,13 @@ describe('GET datasets sorted by user fields', () => {
             .post('/auth/user/find-by-ids?sort=user.role', (body) => body.ids.length === userIds.length)
             .reply(200, { data: fullUsers });
 
-        const response = await requester.get('/api/v1/dataset').query({
-            includes: 'user',
-            sort: 'user.role',
-            loggedUser: JSON.stringify(ADMIN),
-        });
+        const response = await requester
+            .get('/api/v1/dataset')
+            .set('Authorization', `Bearer abcd`)
+            .query({
+                includes: 'user',
+                sort: 'user.role',
+            });
         response.status.should.equal(200);
         response.body.should.have.property('data').and.be.an('array').and.length(6);
 
@@ -158,18 +204,22 @@ describe('GET datasets sorted by user fields', () => {
     });
 
     it('Sorting datasets by user role DESC puts datasets without valid users in the beginning of the list', async () => {
-        await new Dataset(createDataset('cartodb', { userId: USER.id })).save();
-        await new Dataset(createDataset('cartodb', { userId: MANAGER.id })).save();
-        await new Dataset(createDataset('cartodb', { userId: ADMIN.id })).save();
-        await new Dataset(createDataset('cartodb', { userId: SUPERADMIN.id })).save();
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
+        await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
+        await new Dataset(createDataset('cartodb', { userId: USERS.MANAGER.id })).save();
+        await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
+        await new Dataset(createDataset('cartodb', { userId: USERS.SUPERADMIN.id })).save();
         const noUserDataset1 = await new Dataset(createDataset('cartodb', { userId: 'legacy' })).save();
         const noUserDataset2 = await new Dataset(createDataset('cartodb', { userId: '5accc3660bb7c603ba473d0f' })).save();
 
         // Mock requests for includes=user
-        const fullUsers = [USER, MANAGER, ADMIN, SUPERADMIN].map((u) => ({ ...u, _id: u.id }));
+        const fullUsers = [USERS.USER, USERS.MANAGER, USERS.ADMIN, USERS.SUPERADMIN].map((u) => ({ ...u, _id: u.id }));
 
         // Custom mock find-by-ids call
-        const userIds = [USER.id, MANAGER.id, ADMIN.id, SUPERADMIN.id, 'legacy', '5accc3660bb7c603ba473d0f'];
+        const userIds = [USERS.USER.id, USERS.MANAGER.id, USERS.ADMIN.id, USERS.SUPERADMIN.id, 'legacy', '5accc3660bb7c603ba473d0f'];
         nock(process.env.CT_URL)
             .post('/auth/user/find-by-ids', { ids: userIds })
             .reply(200, { data: fullUsers });
@@ -178,11 +228,13 @@ describe('GET datasets sorted by user fields', () => {
             .post('/auth/user/find-by-ids?sort=-user.role', (body) => body.ids.length === userIds.length)
             .reply(200, { data: fullUsers });
 
-        const response = await requester.get('/api/v1/dataset').query({
-            includes: 'user',
-            sort: '-user.role',
-            loggedUser: JSON.stringify(ADMIN),
-        });
+        const response = await requester
+            .get('/api/v1/dataset')
+            .set('Authorization', `Bearer abcd`)
+            .query({
+                includes: 'user',
+                sort: '-user.role',
+            });
         response.status.should.equal(200);
         response.body.should.have.property('data').and.be.an('array').and.length(6);
 
@@ -196,38 +248,50 @@ describe('GET datasets sorted by user fields', () => {
     });
 
     it('Sorting datasets by user.name is case insensitive and returns a list of datasets ordered by the name of the user who created the dataset', async () => {
-        const firstUser = { ...USER, name: 'Anthony' };
-        const secondUser = { ...MANAGER, name: 'bernard' };
-        const thirdUser = { ...ADMIN, name: 'Carlos' };
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
+        const firstUser = { ...USERS.USER, name: 'Anthony' };
+        const secondUser = { ...USERS.MANAGER, name: 'bernard' };
+        const thirdUser = { ...USERS.ADMIN, name: 'Carlos' };
         await new Dataset(createDataset('cartodb', { userId: firstUser.id })).save();
         await new Dataset(createDataset('cartodb', { userId: secondUser.id })).save();
         await new Dataset(createDataset('cartodb', { userId: thirdUser.id })).save();
         mockUsersForSort([firstUser, secondUser, thirdUser]);
 
-        const response = await requester.get('/api/v1/dataset').query({
-            includes: 'user',
-            sort: 'user.name',
-            loggedUser: JSON.stringify(ADMIN),
-        });
+        const response = await requester
+            .get('/api/v1/dataset')
+            .set('Authorization', `Bearer abcd`)
+            .query({
+                includes: 'user',
+                sort: 'user.name',
+            });
         response.status.should.equal(200);
         response.body.should.have.property('data').and.be.an('array').and.length(3);
         response.body.data.map((dataset) => dataset.attributes.user.name).should.be.deep.equal(['Anthony', 'bernard', 'Carlos']);
     });
 
     it('Sorting datasets by user.name is deterministic, applying an implicit sort by id after sorting by user.name', async () => {
-        const spoofedUser = { ...USER, name: 'AAA' };
-        const spoofedManager = { ...MANAGER, name: 'AAA' };
-        const spoofedAdmin = { ...ADMIN, name: 'AAA' };
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
+        const spoofedUser = { ...USERS.USER, name: 'AAA' };
+        const spoofedManager = { ...USERS.MANAGER, name: 'AAA' };
+        const spoofedAdmin = { ...USERS.ADMIN, name: 'AAA' };
         await new Dataset(createDataset('cartodb', { _id: '2', userId: spoofedManager.id })).save();
         await new Dataset(createDataset('cartodb', { _id: '3', userId: spoofedUser.id })).save();
         await new Dataset(createDataset('cartodb', { _id: '1', userId: spoofedAdmin.id })).save();
         mockUsersForSort([spoofedUser, spoofedManager, spoofedAdmin]);
 
-        const response = await requester.get('/api/v1/dataset').query({
-            includes: 'user',
-            sort: 'user.name',
-            loggedUser: JSON.stringify(ADMIN),
-        });
+        const response = await requester
+            .get('/api/v1/dataset')
+            .set('Authorization', `Bearer abcd`)
+            .query({
+                includes: 'user',
+                sort: 'user.name',
+            });
         response.status.should.equal(200);
         response.body.should.have.property('data').and.be.an('array').and.length(3);
         response.body.data.map((dataset) => dataset.id).should.be.deep.equal(['1', '2', '3']);

@@ -23,7 +23,8 @@ describe('Get datasets tests', () => {
     it('Get all datasets with no arguments should be successful', async () => {
         const cartoFakeDataset = await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
 
-        const response = await requester.get(`/api/v1/dataset`);
+        const response = await requester
+            .get(`/api/v1/dataset`);
 
         response.status.should.equal(200);
         response.body.should.have.property('data').and.be.an('array');
@@ -36,42 +37,70 @@ describe('Get datasets tests', () => {
     });
 
     it('Get datasets filtered by owner\'s role = ADMIN as an ADMIN should be successful and filter by the given role', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
         await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
         await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
         nock(process.env.CT_URL).get('/auth/user/ids/ADMIN').reply(200, { data: [USERS.ADMIN.id] });
 
-        const response = await requester.get(`/api/v1/dataset?loggedUser=${JSON.stringify(USERS.ADMIN)}`).query({ 'user.role': 'ADMIN' });
+        const response = await requester
+            .get(`/api/v1/dataset`)
+            .set('Authorization', `Bearer abcd`)
+            .query({ 'user.role': 'ADMIN' });
         response.body.data.length.should.equal(2);
         response.body.data.map((dataset) => dataset.attributes.userId.should.equal(USERS.ADMIN.id));
     });
 
     it('Get datasets filtered by owner\'s role = USER as an ADMIN should be successful and filter by the given role', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
         await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
         await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
         nock(process.env.CT_URL).get('/auth/user/ids/USER').reply(200, { data: [USERS.USER.id] });
 
-        const response = await requester.get(`/api/v1/dataset?loggedUser=${JSON.stringify(USERS.ADMIN)}`).query({ 'user.role': 'USER' });
+        const response = await requester
+            .get(`/api/v1/dataset`)
+            .set('Authorization', `Bearer abcd`)
+            .query({ 'user.role': 'USER' });
         response.body.data.length.should.equal(1);
         response.body.data.map((dataset) => dataset.attributes.userId.should.equal(USERS.USER.id));
     });
 
     it('Get datasets filtered by owner\'s as a MANAGER should be successful but not filter by the given role', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.MANAGER);
+
         await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
         await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
         await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
 
-        const response = await requester.get(`/api/v1/dataset?loggedUser=${JSON.stringify(USERS.MANAGER)}`).query({ 'user.role': 'USER' });
+        const response = await requester
+            .get(`/api/v1/dataset`)
+            .set('Authorization', `Bearer abcd`)
+            .query({ 'user.role': 'USER' });
         response.body.data.length.should.equal(3);
     });
 
     it('Get datasets filtered by owner\'s as a USER should be successful but not filter by the given role', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.USER);
+
         await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
         await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
         await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
 
-        const response = await requester.get(`/api/v1/dataset?loggedUser=${JSON.stringify(USERS.USER)}`).query({ 'user.role': 'USER' });
+        const response = await requester
+            .get(`/api/v1/dataset`)
+            .set('Authorization', `Bearer abcd`)
+            .query({ 'user.role': 'USER' });
         response.body.data.length.should.equal(3);
     });
 
@@ -80,14 +109,17 @@ describe('Get datasets tests', () => {
         await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
         await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
 
-        const response = await requester.get(`/api/v1/dataset`).query({ 'user.role': 'USER' });
+        const response = await requester
+            .get(`/api/v1/dataset`)
+            .query({ 'user.role': 'USER' });
         response.body.data.length.should.equal(3);
     });
 
     it('Get an existing dataset by ID should be successful', async () => {
         const cartoFakeDataset = await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
 
-        const response = await requester.get(`/api/v1/dataset/${cartoFakeDataset._id}`);
+        const response = await requester
+            .get(`/api/v1/dataset/${cartoFakeDataset._id}`);
         const dataset = deserializeDataset(response);
 
         response.status.should.equal(200);
@@ -98,7 +130,8 @@ describe('Get datasets tests', () => {
 
     it('Get an non-existing dataset by ID should fail', async () => {
         const uuid = getUUID();
-        const response = await requester.get(`/api/v1/dataset/${uuid}`);
+        const response = await requester
+            .get(`/api/v1/dataset/${uuid}`);
 
         response.status.should.equal(404);
         response.body.should.have.property('errors').and.be.an('array');
@@ -111,7 +144,8 @@ describe('Get datasets tests', () => {
         const jsonFakeDataset = await new Dataset(createDataset('json')).save();
         const csvFakeDataset = await new Dataset(createDataset('csv')).save();
 
-        const response = await requester.get(`/api/v1/dataset?page[number]=1&page[size]=3`);
+        const response = await requester
+            .get(`/api/v1/dataset?page[number]=1&page[size]=3`);
         const datasets = deserializeDataset(response);
 
         response.status.should.equal(200);
@@ -135,7 +169,8 @@ describe('Get datasets tests', () => {
         await new Dataset(createDataset('json')).save();
         await new Dataset(createDataset('csv')).save();
 
-        const response = await requester.get(`/api/v1/dataset?page[number]=1&page[size]=1`);
+        const response = await requester
+            .get(`/api/v1/dataset?page[number]=1&page[size]=1`);
         const datasets = deserializeDataset(response);
 
         response.status.should.equal(200);
@@ -152,7 +187,8 @@ describe('Get datasets tests', () => {
         const jsonFakeDataset = await new Dataset(createDataset('json')).save();
         await new Dataset(createDataset('csv')).save();
 
-        const response = await requester.get(`/api/v1/dataset?page[number]=2&page[size]=1`);
+        const response = await requester
+            .get(`/api/v1/dataset?page[number]=2&page[size]=1`);
         const datasets = deserializeDataset(response);
 
         response.status.should.equal(200);
@@ -169,7 +205,8 @@ describe('Get datasets tests', () => {
         await new Dataset(createDataset('json')).save();
         const csvFakeDataset = await new Dataset(createDataset('csv')).save();
 
-        const response = await requester.get(`/api/v1/dataset/${csvFakeDataset._id}`);
+        const response = await requester
+            .get(`/api/v1/dataset/${csvFakeDataset._id}`);
         const dataset = deserializeDataset(response);
 
         response.status.should.equal(200);
@@ -185,7 +222,8 @@ describe('Get datasets tests', () => {
         const ds3 = await new Dataset(createDataset('cartodb', { subscribable: {} })).save();
         const ds4 = await new Dataset(createDataset('cartodb', { subscribable: { hello: 1 } })).save();
 
-        const response = await requester.get(`/api/v1/dataset`);
+        const response = await requester
+            .get(`/api/v1/dataset`);
         response.status.should.equal(200);
         response.body.should.have.property('data').with.lengthOf(4);
 
@@ -203,7 +241,8 @@ describe('Get datasets tests', () => {
         const ds3 = await new Dataset(createDataset('cartodb', { subscribable: {} })).save();
         const ds4 = await new Dataset(createDataset('cartodb', { subscribable: { hello: 1 } })).save();
 
-        const response = await requester.get(`/api/v1/dataset?subscribable=true`);
+        const response = await requester
+            .get(`/api/v1/dataset?subscribable=true`);
         response.status.should.equal(200);
         response.body.should.have.property('data').with.lengthOf(1);
 
@@ -221,7 +260,8 @@ describe('Get datasets tests', () => {
         const ds3 = await new Dataset(createDataset('cartodb', { subscribable: {} })).save();
         const ds4 = await new Dataset(createDataset('cartodb', { subscribable: { hello: 1 } })).save();
 
-        const response = await requester.get(`/api/v1/dataset?subscribable=false`);
+        const response = await requester
+            .get(`/api/v1/dataset?subscribable=false`);
         response.status.should.equal(200);
         response.body.should.have.property('data').with.lengthOf(3);
 
@@ -239,7 +279,8 @@ describe('Get datasets tests', () => {
         const ds3 = await new Dataset(createDataset('cartodb', { applicationConfig: { rw: { highlighted: 'true' } } })).save();
         const ds4 = await new Dataset(createDataset('cartodb', { applicationConfig: { rw: { highlighted: true } } })).save();
 
-        const response = await requester.get(`/api/v1/dataset?applicationConfig.rw.highlighted=true`);
+        const response = await requester
+            .get(`/api/v1/dataset?applicationConfig.rw.highlighted=true`);
         response.status.should.equal(200);
         response.body.should.have.property('data').with.lengthOf(1);
 
@@ -257,7 +298,8 @@ describe('Get datasets tests', () => {
         const ds3 = await new Dataset(createDataset('cartodb', { applicationConfig: { rw: { highlighted: 'true' } } })).save();
         const ds4 = await new Dataset(createDataset('cartodb', { applicationConfig: { rw: { highlighted: true } } })).save();
 
-        const response1 = await requester.get(`/api/v1/dataset?provider=cartodb&applicationConfig.rw.highlighted=true`);
+        const response1 = await requester
+            .get(`/api/v1/dataset?provider=cartodb&applicationConfig.rw.highlighted=true`);
         response1.status.should.equal(200);
         response1.body.should.have.property('data').with.lengthOf(1);
 
@@ -267,7 +309,8 @@ describe('Get datasets tests', () => {
         datasetIds1.should.contain(ds3._id);
         datasetIds1.should.not.contain(ds4._id);
 
-        const response2 = await requester.get(`/api/v1/dataset?provider=gee&applicationConfig.rw.highlighted=false`);
+        const response2 = await requester
+            .get(`/api/v1/dataset?provider=gee&applicationConfig.rw.highlighted=false`);
         response2.status.should.equal(200);
         response2.body.should.have.property('data').with.lengthOf(1);
 
@@ -283,7 +326,8 @@ describe('Get datasets tests', () => {
      * However, as this will cause a production BC break, we can't enforce it just now
      */
     // it('Getting datasets with page size over 100 should return 400 Bad Request', async () => {
-    //     const list = await requester.get('/api/v1/dataset?page[size]=101');
+    //     const list = await requester
+    //          .get('/api/v1/dataset?page[size]=101');
     //     list.status.should.equal(400);
     //     list.body.errors[0].should.have.property('detail').and.equal('Invalid page size');
     // });

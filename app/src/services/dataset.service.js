@@ -2,7 +2,7 @@ const { URL } = require('url');
 const logger = require('logger');
 const Dataset = require('models/dataset.model');
 const RelationshipsService = require('services/relationships.service');
-const ctRegisterMicroservice = require('ct-register-microservice-node');
+const { RWAPIMicroservice } = require('rw-api-microservice-node');
 const SyncService = require('services/sync.service');
 const FileDataService = require('services/fileDataService.service');
 const DatasetNotFound = require('errors/datasetNotFound.error');
@@ -341,7 +341,7 @@ class DatasetService {
         logger.debug('Updating env of all resources of dataset', datasetId, 'with env ', env);
         try {
             logger.debug('Updating widgets');
-            await ctRegisterMicroservice.requestToMicroservice({
+            await RWAPIMicroservice.requestToMicroservice({
                 uri: `/widget/change-environment/${datasetId}/${env}`,
                 method: 'PATCH',
                 json: true
@@ -351,7 +351,7 @@ class DatasetService {
         }
         try {
             logger.debug('Updating layers');
-            await ctRegisterMicroservice.requestToMicroservice({
+            await RWAPIMicroservice.requestToMicroservice({
                 uri: `/layer/change-environment/${datasetId}/${env}`,
                 method: 'PATCH',
                 json: true
@@ -475,7 +475,7 @@ class DatasetService {
 
     static async deleteWidgets(datasetId) {
         logger.info('Deleting widgets of dataset', datasetId);
-        await ctRegisterMicroservice.requestToMicroservice({
+        await RWAPIMicroservice.requestToMicroservice({
             uri: `/dataset/${datasetId}/widget`,
             method: 'DELETE'
         });
@@ -483,7 +483,7 @@ class DatasetService {
 
     static async deleteLayers(datasetId) {
         logger.info('Deleting layers of dataset', datasetId);
-        await ctRegisterMicroservice.requestToMicroservice({
+        await RWAPIMicroservice.requestToMicroservice({
             uri: `/dataset/${datasetId}/layer`,
             method: 'DELETE'
         });
@@ -491,7 +491,7 @@ class DatasetService {
 
     static async deleteMetadata(datasetId) {
         logger.info('Deleting metadata of dataset', datasetId);
-        await ctRegisterMicroservice.requestToMicroservice({
+        await RWAPIMicroservice.requestToMicroservice({
             uri: `/dataset/${datasetId}/metadata`,
             method: 'DELETE'
         });
@@ -499,7 +499,7 @@ class DatasetService {
 
     static async deleteVocabularies(datasetId) {
         logger.info('Deleting vocabularies of dataset', datasetId);
-        await ctRegisterMicroservice.requestToMicroservice({
+        await RWAPIMicroservice.requestToMicroservice({
             uri: `/dataset/${datasetId}/vocabulary`,
             method: 'DELETE'
         });
@@ -507,7 +507,7 @@ class DatasetService {
 
     static async deleteKnowledgeGraphVocabulary(datasetId, application) {
         logger.info('Deleting knowledge graph of dataset', datasetId);
-        await ctRegisterMicroservice.requestToMicroservice({
+        await RWAPIMicroservice.requestToMicroservice({
             uri: `/dataset/${datasetId}/vocabulary/knowledge_graph?application=${application}`,
             method: 'DELETE'
         });
@@ -516,7 +516,7 @@ class DatasetService {
     static async checkSecureDeleteResources(id) {
         logger.info('Checking if it is safe to delete the associated resources (layer, widget) of the dataset');
         try {
-            const layers = await ctRegisterMicroservice.requestToMicroservice({
+            const layers = await RWAPIMicroservice.requestToMicroservice({
                 uri: `/dataset/${id}/layer?protected=true`,
                 method: 'GET',
                 json: true
@@ -530,7 +530,7 @@ class DatasetService {
             throw new MicroserviceConnection(`Error obtaining protected layers of the dataset: ${err.message}`);
         }
         try {
-            const widgets = await ctRegisterMicroservice.requestToMicroservice({
+            const widgets = await RWAPIMicroservice.requestToMicroservice({
                 uri: `/dataset/${id}/widget?protected=true`,
                 method: 'GET',
                 json: true

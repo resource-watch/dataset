@@ -14,7 +14,7 @@ const DatasetProtected = require('errors/datasetProtected.error');
 const MicroserviceConnection = require('errors/microserviceConnection.error');
 const DatasetNotValid = require('errors/datasetNotValid.error');
 const ConnectorUrlNotValid = require('errors/connectorUrlNotValid.error');
-const ctRegisterMicroservice = require('ct-register-microservice-node');
+const { RWAPIMicroservice } = require('rw-api-microservice-node');
 const { USER_ROLES } = require('app.constants');
 const InvalidRequest = require('errors/invalidRequest.error');
 const ForbiddenRequest = require('errors/forbiddenRequest.error');
@@ -97,7 +97,7 @@ class DatasetRouter {
         const method = ctx.request.method === 'DELETE' ? 'DELETE' : 'POST';
 
         try {
-            return await ctRegisterMicroservice.requestToMicroservice({
+            return await RWAPIMicroservice.requestToMicroservice({
                 uri,
                 method,
                 json: true,
@@ -137,7 +137,7 @@ class DatasetRouter {
             delete clonedDataset.connectorUrl;
         }
 
-        return ctRegisterMicroservice.requestToMicroservice({
+        return RWAPIMicroservice.requestToMicroservice({
             uri,
             method: 'POST',
             json: true,

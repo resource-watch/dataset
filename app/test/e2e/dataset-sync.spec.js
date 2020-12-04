@@ -5,7 +5,6 @@ const { USERS } = require('./utils/test.constants');
 const { getTestServer } = require('./utils/test-server');
 const { createDataset, deserializeDataset } = require('./utils/helpers');
 
-
 chai.should();
 chai.use(require('chai-datetime'));
 
@@ -24,6 +23,10 @@ describe('Dataset sync tests', () => {
     });
 
     it('Create a document dataset with empty sync data should return a 400 error', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const timestamp = new Date();
         const dataset = {
             name: `JSON Dataset - ${timestamp.getTime()}`,
@@ -56,10 +59,12 @@ describe('Dataset sync tests', () => {
             sync: {}
         };
 
-        const response = await requester.post(`/api/v1/dataset`).send({
-            dataset,
-            loggedUser: USERS.ADMIN
-        });
+        const response = await requester
+            .post(`/api/v1/dataset`)
+            .set('Authorization', `Bearer abcd`)
+            .send({
+                dataset,
+            });
 
         response.status.should.equal(400);
         response.body.should.have.property('errors').and.be.an('array');
@@ -67,6 +72,10 @@ describe('Dataset sync tests', () => {
     });
 
     it('Create a document dataset with valid sync data should return a 200 (happy case)', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const timestamp = new Date();
         const dataset = {
             name: `JSON Dataset - ${timestamp.getTime()}`,
@@ -127,10 +136,12 @@ describe('Dataset sync tests', () => {
                 detail: 'Ok'
             });
 
-        const response = await requester.post(`/api/v1/dataset`).send({
-            dataset,
-            loggedUser: USERS.ADMIN
-        });
+        const response = await requester
+            .post(`/api/v1/dataset`)
+            .set('Authorization', `Bearer abcd`)
+            .send({
+                dataset
+            });
         const createdDataset = deserializeDataset(response);
 
         response.status.should.equal(200);
@@ -150,14 +161,18 @@ describe('Dataset sync tests', () => {
     });
 
     it('Update a document dataset with empty sync data should return a 400 error', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         const response = await requester
             .patch(`/api/v1/dataset/${fakeDataset._id}`)
+            .set('Authorization', `Bearer abcd`)
             .send({
                 name: 'other name',
                 application: ['gfw', 'rw'],
-                loggedUser: USERS.ADMIN,
                 sync: {}
             });
 
@@ -167,6 +182,10 @@ describe('Dataset sync tests', () => {
     });
 
     it('Update a document dataset with valid sync data should return a 200 (happy case)', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const fakeDataset = await new Dataset(createDataset('json')).save();
 
         nock(process.env.CT_URL)
@@ -188,10 +207,10 @@ describe('Dataset sync tests', () => {
 
         const response = await requester
             .patch(`/api/v1/dataset/${fakeDataset._id}`)
+            .set('Authorization', `Bearer abcd`)
             .send({
                 name: 'other name',
                 application: ['gfw', 'rw'],
-                loggedUser: USERS.ADMIN,
                 sync: {
                     cronPattern: '0 * * * * *',
                     action: 'concat',

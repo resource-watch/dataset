@@ -16,7 +16,6 @@ nock.enableNetConnect(process.env.HOST_IP);
 const runStandardTestCase = async (provider, fakeDataset, requestingUser = USERS.ADMIN) => {
     nock(process.env.CT_URL)
         .get(`/v1/dataset/${fakeDataset._id}/layer?protected=true`)
-        .once()
         .reply(200, {
             status: 200,
             data: []
@@ -24,7 +23,6 @@ const runStandardTestCase = async (provider, fakeDataset, requestingUser = USERS
 
     nock(process.env.CT_URL)
         .get(`/v1/dataset/${fakeDataset._id}/widget?protected=true`)
-        .once()
         .reply(200, {
             status: 200,
             data: []
@@ -32,7 +30,6 @@ const runStandardTestCase = async (provider, fakeDataset, requestingUser = USERS
 
     nock(process.env.CT_URL)
         .delete(`/v1/dataset/${fakeDataset._id}/vocabulary/knowledge_graph?application=rw`)
-        .once()
         .reply(200, {
             status: 200,
             data: []
@@ -40,7 +37,6 @@ const runStandardTestCase = async (provider, fakeDataset, requestingUser = USERS
 
     nock(process.env.CT_URL)
         .delete(`/v1/dataset/${fakeDataset._id}/layer`)
-        .once()
         .reply(200, {
             status: 200,
             data: []
@@ -48,7 +44,6 @@ const runStandardTestCase = async (provider, fakeDataset, requestingUser = USERS
 
     nock(process.env.CT_URL)
         .delete(`/v1/dataset/${fakeDataset._id}/widget`)
-        .once()
         .reply(200, {
             status: 200,
             data: []
@@ -56,7 +51,6 @@ const runStandardTestCase = async (provider, fakeDataset, requestingUser = USERS
 
     nock(process.env.CT_URL)
         .delete(`/v1/dataset/${fakeDataset._id}/metadata`)
-        .once()
         .reply(200, {
             status: 200,
             data: []
@@ -64,17 +58,18 @@ const runStandardTestCase = async (provider, fakeDataset, requestingUser = USERS
 
     nock(process.env.CT_URL)
         .delete(`/v1/dataset/${fakeDataset._id}/vocabulary`)
-        .once()
         .reply(200, {
             status: 200,
             data: []
         });
 
+    nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+        .get('/auth/user/me')
+        .reply(200, requestingUser);
+
     const deleteResponse = await requester
         .delete(`/api/v1/dataset/${fakeDataset._id}`)
-        .query({
-            loggedUser: JSON.stringify(requestingUser)
-        })
+        .set('Authorization', `Bearer abcd`)
         .send();
 
     deleteResponse.status.should.equal(200);
@@ -92,7 +87,9 @@ const runStandardTestCase = async (provider, fakeDataset, requestingUser = USERS
     createdDataset.legend.should.be.an.instanceOf(Object);
     createdDataset.clonedHost.should.be.an.instanceOf(Object);
 
-    const getResponse = await requester.get(`/api/v1/dataset/${fakeDataset._id}`).send();
+    const getResponse = await requester
+        .get(`/api/v1/dataset/${fakeDataset._id}`)
+        .send();
 
     getResponse.status.should.equal(404);
     getResponse.body.should.have.property('errors').and.be.an('array');
@@ -108,8 +105,15 @@ describe('Dataset delete tests', () => {
     });
 
     it('Deleting a non-existing dataset should return a 404 error', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const uuid = getUUID();
-        const response = await requester.delete(`/api/v1/dataset/${uuid}?loggedUser=${JSON.stringify(USERS.ADMIN)}`).send();
+        const response = await requester
+            .delete(`/api/v1/dataset/${uuid}`)
+            .set('Authorization', `Bearer abcd`)
+            .send();
 
         response.status.should.equal(404);
         response.body.should.have.property('errors').and.be.an('array');
@@ -128,9 +132,16 @@ describe('Dataset delete tests', () => {
     });
 
     it('Deleting a dataset owned by a different user as a USER should return a 403 error', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.USER);
+
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
-        const deleteResponse = await requester.delete(`/api/v1/dataset/${fakeDataset._id}?loggedUser=${JSON.stringify(USERS.USER)}`).send();
+        const deleteResponse = await requester
+            .delete(`/api/v1/dataset/${fakeDataset._id}`)
+            .set('Authorization', `Bearer abcd`)
+            .send();
 
         deleteResponse.status.should.equal(403);
         deleteResponse.body.should.have.property('errors').and.be.an('array');
@@ -138,11 +149,18 @@ describe('Dataset delete tests', () => {
     });
 
     it('Deleting a dataset owned by the user as a USER should return a 403 error', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.USER);
+
         const fakeDataset = await new Dataset(createDataset('cartodb', {
             userId: USERS.USER.id,
         })).save();
 
-        const deleteResponse = await requester.delete(`/api/v1/dataset/${fakeDataset._id}?loggedUser=${JSON.stringify(USERS.USER)}`).send();
+        const deleteResponse = await requester
+            .delete(`/api/v1/dataset/${fakeDataset._id}`)
+            .set('Authorization', `Bearer abcd`)
+            .send();
 
         deleteResponse.status.should.equal(403);
         deleteResponse.body.should.have.property('errors').and.be.an('array');
@@ -150,9 +168,16 @@ describe('Dataset delete tests', () => {
     });
 
     it('Deleting a dataset owned by a different user as a MANAGER should return a 403 error', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.MANAGER);
+
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
-        const deleteResponse = await requester.delete(`/api/v1/dataset/${fakeDataset._id}?loggedUser=${JSON.stringify(USERS.MANAGER)}`).send();
+        const deleteResponse = await requester
+            .delete(`/api/v1/dataset/${fakeDataset._id}`)
+            .set('Authorization', `Bearer abcd`)
+            .send();
 
         deleteResponse.status.should.equal(403);
         deleteResponse.body.should.have.property('errors').and.be.an('array');
@@ -187,9 +212,16 @@ describe('Dataset delete tests', () => {
     });
 
     it('Deleting a dataset as a USER should return a 403 error', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.USER);
+
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
-        const deleteResponse = await requester.delete(`/api/v1/dataset/${fakeDataset._id}?loggedUser=${JSON.stringify(USERS.USER)}`).send();
+        const deleteResponse = await requester
+            .delete(`/api/v1/dataset/${fakeDataset._id}`)
+            .set('Authorization', `Bearer abcd`)
+            .send();
 
         deleteResponse.status.should.equal(403);
         deleteResponse.body.should.have.property('errors').and.be.an('array');
@@ -223,6 +255,10 @@ describe('Dataset delete tests', () => {
 
     // TODO: This endpoint should not actually call the provider, otherwise we may end up with a dataset with no data.
     it('Deleting a protected dataset should return a 200', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const fakeDataset = await new Dataset(createDataset('cartodb', { protected: true })).save();
 
         nock(process.env.CT_URL)
@@ -245,7 +281,8 @@ describe('Dataset delete tests', () => {
             });
 
         const deleteResponse = await requester
-            .delete(`/api/v1/dataset/${fakeDataset._id}?loggedUser=${JSON.stringify(USERS.ADMIN)}`)
+            .delete(`/api/v1/dataset/${fakeDataset._id}`)
+            .set('Authorization', `Bearer abcd`)
             .send();
 
         deleteResponse.status.should.equal(400);
@@ -254,6 +291,10 @@ describe('Dataset delete tests', () => {
     });
 
     it('Deleting an existing carto dataset with missing layer MS should fail with a meaningful error', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         nock(process.env.CT_URL)
@@ -283,7 +324,10 @@ describe('Dataset delete tests', () => {
                 data: []
             });
 
-        const response = await requester.delete(`/api/v1/dataset/${cartoFakeDataset._id}?loggedUser=${JSON.stringify(USERS.ADMIN)}`).send();
+        const response = await requester
+            .delete(`/api/v1/dataset/${cartoFakeDataset._id}`)
+            .set('Authorization', `Bearer abcd`)
+            .send();
 
         response.status.should.equal(500);
         response.body.should.have.property('errors').and.be.an('array');
@@ -291,6 +335,10 @@ describe('Dataset delete tests', () => {
     });
 
     it('Deleting an existing carto dataset with missing widget MS should fail with a meaningful error', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         nock(process.env.CT_URL)
@@ -328,7 +376,10 @@ describe('Dataset delete tests', () => {
                 data: []
             });
 
-        const response = await requester.delete(`/api/v1/dataset/${cartoFakeDataset._id}?loggedUser=${JSON.stringify(USERS.ADMIN)}`).send();
+        const response = await requester
+            .delete(`/api/v1/dataset/${cartoFakeDataset._id}`)
+            .set('Authorization', `Bearer abcd`)
+            .send();
 
         response.status.should.equal(500);
         response.body.should.have.property('errors').and.be.an('array');
@@ -336,6 +387,10 @@ describe('Dataset delete tests', () => {
     });
 
     it('Deleting an existing carto dataset with missing carto MS should fail with a meaningful error', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.ADMIN);
+
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         nock(process.env.CT_URL)
@@ -357,7 +412,10 @@ describe('Dataset delete tests', () => {
                 detail: 'Endpoint not found'
             });
 
-        const response = await requester.delete(`/api/v1/dataset/${cartoFakeDataset._id}?loggedUser=${JSON.stringify(USERS.ADMIN)}`).send();
+        const response = await requester
+            .delete(`/api/v1/dataset/${cartoFakeDataset._id}`)
+            .set('Authorization', `Bearer abcd`)
+            .send();
 
         response.status.should.equal(500);
         response.body.should.have.property('errors').and.be.an('array');

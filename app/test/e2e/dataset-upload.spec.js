@@ -41,7 +41,8 @@ describe('Upload raw data', () => {
 
         const fileData = fs.readFileSync(`${__dirname}/upload-data/${filename}`);
 
-        const response = await requester.post(`/api/v1/dataset/upload`)
+        const response = await requester
+            .post(`/api/v1/dataset/upload`)
             .field('provider', 'csv')
             .attach('dataset', fileData, filename);
 
@@ -50,12 +51,17 @@ describe('Upload raw data', () => {
     });
 
     it('Return 400 when uploading a large file', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.USER);
+
         const filename = 'large_dataset.csv';
 
         const fileData = fs.readFileSync(`${__dirname}/upload-data/${filename}`);
 
-        const response = await requester.post(`/api/v1/dataset/upload`)
-            .field('loggedUser', JSON.stringify(USERS.USER))
+        const response = await requester
+            .post(`/api/v1/dataset/upload`)
+            .set('Authorization', `Bearer abcd`)
             .field('provider', 'csv')
             .attach('dataset', fileData, filename);
 
@@ -64,21 +70,32 @@ describe('Upload raw data', () => {
     });
 
     it('Return error if no data provided at all', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.USER);
+
         const response = await requester
             .post(`/api/v1/dataset/upload`)
-            .field('loggedUser', JSON.stringify(USERS.USER));
+            .set('Authorization', `Bearer abcd`)
+            // Needed to force request type
+            .field('', '');
 
         response.status.should.equal(400);
         ensureCorrectError(response.body, '- dataset: file dataset can not be a empty file. - provider: provider must be in [csv,json,tsv,xml,tif,tiff,geo.tiff]. - ');
     });
 
     it('Return error if provider and file are different', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.USER);
+
         const filename = 'dataset_1.json';
 
         const fileData = fs.readFileSync(`${__dirname}/upload-data/${filename}`);
 
-        const response = await requester.post(`/api/v1/dataset/upload`)
-            .field('loggedUser', JSON.stringify(USERS.USER))
+        const response = await requester
+            .post(`/api/v1/dataset/upload`)
+            .set('Authorization', `Bearer abcd`)
             .field('provider', 'csv')
             .attach('dataset', fileData, filename);
 
@@ -88,6 +105,10 @@ describe('Upload raw data', () => {
     });
 
     it('Uploading a dataset with a binary file should return a 200 (happy case)', async () => {
+        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+            .get('/auth/user/me')
+            .reply(200, USERS.USER);
+
         const filename = 'dataset_1.csv';
 
         const fileData = fs.readFileSync(`${__dirname}/upload-data/${filename}`);
@@ -101,8 +122,9 @@ describe('Upload raw data', () => {
                 Server: 'AmazonS3'
             });
 
-        const response = await requester.post(`/api/v1/dataset/upload`)
-            .field('loggedUser', JSON.stringify(USERS.USER))
+        const response = await requester
+            .post(`/api/v1/dataset/upload`)
+            .set('Authorization', `Bearer abcd`)
             .field('provider', 'csv')
             .attach('dataset', fileData, filename);
 

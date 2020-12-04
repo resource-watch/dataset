@@ -27,7 +27,8 @@ describe('Find by ids datasets', () => {
     });
 
     it('Return no data if there\'s no such id', async () => {
-        const response = await requester.post(`${BASE_URL}/find-by-ids`)
+        const response = await requester
+            .post(`${BASE_URL}/find-by-ids`)
             .send({
                 ids: ['non-existing-id']
             });
@@ -38,7 +39,8 @@ describe('Find by ids datasets', () => {
 
     it('Return datasets when getting them by ids', async () => {
         const ids = [cartoFakeDataset.id, jsonFakeDataset.id];
-        const response = await requester.post(`${BASE_URL}/find-by-ids`).send({ ids });
+        const response = await requester
+            .post(`${BASE_URL}/find-by-ids`).send({ ids });
 
         response.status.should.equal(200);
         response.body.should.have.property('data').with.lengthOf(2);
@@ -51,7 +53,8 @@ describe('Find by ids datasets', () => {
 
     it('Return only existing datasets', async () => {
         const ids = [cartoFakeDataset.id, 'non-existing-id'];
-        const response = await requester.post(`${BASE_URL}/find-by-ids`).send({ ids });
+        const response = await requester
+            .post(`${BASE_URL}/find-by-ids`).send({ ids });
 
         response.status.should.equal(200);
         response.body.should.have.property('data').with.lengthOf(1);
@@ -62,13 +65,15 @@ describe('Find by ids datasets', () => {
     });
 
     it('Return 400 error if no data provided at all', async () => {
-        const response = await requester.post(`${BASE_URL}/find-by-ids`);
+        const response = await requester
+            .post(`${BASE_URL}/find-by-ids`);
         response.status.should.equal(400);
         ensureCorrectError(response.body, '- ids: ids can not be empty. - ');
     });
 
     it('Return 400 error if data is wrong', async () => {
-        const response = await requester.post(`${BASE_URL}/find-by-ids`).send({ ids: [{}] });
+        const response = await requester
+            .post(`${BASE_URL}/find-by-ids`).send({ ids: [{}] });
         response.status.should.equal(400);
         ensureCorrectError(response.body, '- ids: must be a string - ');
     });
