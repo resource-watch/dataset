@@ -95,25 +95,26 @@ app.use(async (ctx, next) => {
 
 app.use(koaLogger());
 
-koaValidate(app);
-
-RWAPIMicroservice.register({
+app.use(RWAPIMicroservice.bootstrap({
     info: require('../microservice/register.json'),
     swagger: require('../microservice/public-swagger.json'),
-    mode: (process.env.CT_REGISTER_MODE && process.env.CT_REGISTER_MODE === 'auto') ? RWAPIMicroservice.MODE_AUTOREGISTER : RWAPIMicroservice.MODE_NORMAL,
-    framework: RWAPIMicroservice.KOA2,
-    app,
     logger,
-    name: config.get('service.name'),
     baseURL: process.env.CT_URL,
     url: process.env.LOCAL_URL,
     token: process.env.CT_TOKEN,
-    active: true
-});
+}));
+
+koaValidate(app);
 
 loader.loadRoutes(app);
 
-const server = app.listen(process.env.PORT);
+const server = app.listen(process.env.PORT, () => {
+    RWAPIMicroservice.register().then(() => {
+    }, (error) => {
+        logger.error(error);
+        process.exit(1);
+    });
+});
 
 logger.info('Server started in ', process.env.PORT);
 

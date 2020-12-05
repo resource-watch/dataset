@@ -66,7 +66,7 @@
     "bunyan": "^1.8.5",
     "config": "^1.21.0",
     "cron-parser": "^2.13.0",
-    "rw-api-microservice-node": "^1.0.7",
+    "rw-api-microservice-node": "^2.0.0",
     "firstline": "^1.2.1",
     "koa": "^2.0.0",
     "koa-body": "^2.0.0",
