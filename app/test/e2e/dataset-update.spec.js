@@ -2,7 +2,9 @@ const nock = require('nock');
 const chai = require('chai');
 const Dataset = require('models/dataset.model');
 const { USERS } = require('./utils/test.constants');
-const { createDataset, deserializeDataset, ensureCorrectError } = require('./utils/helpers');
+const {
+    createDataset, deserializeDataset, ensureCorrectError, mockGetUserFromToken
+} = require('./utils/helpers');
 
 chai.should();
 
@@ -33,9 +35,7 @@ describe('Dataset update tests', () => {
     });
 
     it('Update a dataset while being logged in with role USER should return a 403 error', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.USER);
+        mockGetUserFromToken(USERS.USER);
 
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -52,9 +52,7 @@ describe('Dataset update tests', () => {
     });
 
     it('Update a dataset while being logged in with role MANAGER should return a 403 error', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.MANAGER);
+        mockGetUserFromToken(USERS.MANAGER);
 
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -71,9 +69,7 @@ describe('Dataset update tests', () => {
     });
 
     it('Update a dataset that doesn\'t exist should return a 404', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const response = await requester
             .patch(`/api/v1/dataset/12345`)
@@ -88,9 +84,7 @@ describe('Dataset update tests', () => {
     });
 
     it('Update a dataset as an ADMIN should be successful (happy case)', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -120,9 +114,7 @@ describe('Dataset update tests', () => {
 
     // TODO: this should probably fail, as a user should not be able to assign a dataset to an app it does not belong to.
     it('Update a dataset while being logged in with role ADMIN and a fake app should be sucessful (happy case)', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -138,9 +130,7 @@ describe('Dataset update tests', () => {
     });
 
     it('Update a dataset as a MICROSERVICE should be successful (happy case)', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.MICROSERVICE);
+        mockGetUserFromToken(USERS.MICROSERVICE);
 
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -169,9 +159,7 @@ describe('Dataset update tests', () => {
     });
 
     it('Update a dataset by slug should be successful (happy case)', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.MICROSERVICE);
+        mockGetUserFromToken(USERS.MICROSERVICE);
 
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -200,9 +188,7 @@ describe('Dataset update tests', () => {
     });
 
     it('Update a dataset with a valid dataLastUpdated value should work correctly', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -224,9 +210,7 @@ describe('Dataset update tests', () => {
 
 
     it('Update a dataset with an invalid dataLastUpdated should fail', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -243,9 +227,7 @@ describe('Dataset update tests', () => {
     });
 
     it('Update status for a dataset as USER that owns the dataset should fail', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.USER);
+        mockGetUserFromToken(USERS.USER);
 
         const fakeDataset = await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
 
@@ -264,9 +246,7 @@ describe('Dataset update tests', () => {
 
 
     it('Update status for a dataset as MANAGER that does not own the dataset should fail', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.MANAGER);
+        mockGetUserFromToken(USERS.MANAGER);
 
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -284,9 +264,7 @@ describe('Dataset update tests', () => {
     });
 
     it('Update status for a dataset as MANAGER that owns the dataset should fail', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.MANAGER);
+        mockGetUserFromToken(USERS.MANAGER);
 
         const fakeDataset = await new Dataset(createDataset('cartodb', { userId: USERS.MANAGER.id })).save();
 
@@ -304,9 +282,7 @@ describe('Dataset update tests', () => {
     });
 
     it('Update status for a dataset as non-admin with invalid status (string) should fail', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -324,9 +300,7 @@ describe('Dataset update tests', () => {
     });
 
     it('Update status for a dataset as non-admin with invalid status (int) should fail', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -344,9 +318,7 @@ describe('Dataset update tests', () => {
     });
 
     it('Update status for a dataset as admin with valid status (string) should succeed', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -367,9 +339,7 @@ describe('Dataset update tests', () => {
     });
 
     it('Update status for a dataset as admin with valid status (int) should succeed', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -391,9 +361,7 @@ describe('Dataset update tests', () => {
     });
 
     it('Update a dataset as ADMIN with empty connectorUrl and list of sources should succeed', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -418,9 +386,7 @@ describe('Dataset update tests', () => {
     });
 
     it('Update the applications of a dataset as an app ADMIN with associated app should succeed', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const fakeDataset = await new Dataset(createDataset('cartodb', {
             application: ['rw', 'gfw']
@@ -439,9 +405,7 @@ describe('Dataset update tests', () => {
     });
 
     it('Update the error message of a dataset as an ADMIN should succeed but not change the message', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const fakeDataset = await new Dataset(createDataset('cartodb', {
             errorMessage: 'Old error message'
@@ -464,9 +428,7 @@ describe('Dataset update tests', () => {
     });
 
     it('Update the error message of a dataset as a MICROSERVICE should succeed and change the message', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.MICROSERVICE);
+        mockGetUserFromToken(USERS.MICROSERVICE);
 
         const fakeDataset = await new Dataset(createDataset('cartodb', {
             errorMessage: 'Old error message'
@@ -489,9 +451,7 @@ describe('Dataset update tests', () => {
     });
 
     it('Clear the error message of a dataset as a MICROSERVICE should succeed and clear the message', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.MICROSERVICE);
+        mockGetUserFromToken(USERS.MICROSERVICE);
 
         const fakeDataset = await new Dataset(createDataset('cartodb', {
             errorMessage: 'Old error message'
@@ -514,9 +474,7 @@ describe('Dataset update tests', () => {
     });
 
     it('As an USER with a single app, removing my app from the array of apps of the dataset should return 403 Forbidden', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.RW_USER);
+        mockGetUserFromToken(USERS.RW_USER);
 
         const fakeDataset = await new Dataset(createDataset('cartodb', {
             userId: USERS.RW_USER.id, application: ['rw', 'gfw']
@@ -533,9 +491,7 @@ describe('Dataset update tests', () => {
     });
 
     it('As a MANAGER with a single app, removing my app from the array of apps of the dataset (that I own) should return 200 OK with the updated dataset', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.RW_MANAGER);
+        mockGetUserFromToken(USERS.RW_MANAGER);
 
         const fakeDataset = await new Dataset(createDataset('cartodb', {
             userId: USERS.RW_MANAGER.id, application: ['rw', 'gfw']
@@ -554,9 +510,7 @@ describe('Dataset update tests', () => {
     });
 
     it('As an ADMIN with a single app, removing apps not managed by me from the array of apps of the dataset should return 403 Forbidden', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.RW_ADMIN);
+        mockGetUserFromToken(USERS.RW_ADMIN);
 
         const fakeDataset = await new Dataset(createDataset('cartodb', {
             application: ['rw', 'prep', 'sdg4data', 'ng', 'aqueduct', 'gfw']
@@ -575,9 +529,7 @@ describe('Dataset update tests', () => {
     });
 
     it('As an ADMIN with a single app, removing my app from the array of apps of the dataset should return 200 OK with the updated dataset', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.RW_ADMIN);
+        mockGetUserFromToken(USERS.RW_ADMIN);
 
         const fakeDataset = await new Dataset(createDataset('cartodb', { application: ['rw', 'gfw'] })).save();
         const response = await requester
@@ -592,9 +544,7 @@ describe('Dataset update tests', () => {
     });
 
     it('As an ADMIN with a single app, adding my app to the array of apps of the dataset should return 200 OK with the updated dataset', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.RW_ADMIN);
+        mockGetUserFromToken(USERS.RW_ADMIN);
 
         const fakeDataset = await new Dataset(createDataset('cartodb', { application: null })).save();
         const response = await requester
@@ -610,9 +560,7 @@ describe('Dataset update tests', () => {
     });
 
     it('As an ADMIN, editing the dataset without changing the dataset apps should return 200 OK with the updated dataset', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.RW_ADMIN);
+        mockGetUserFromToken(USERS.RW_ADMIN);
 
         const fakeDataset = await new Dataset(createDataset('cartodb', { application: ['rw'] })).save();
         const response = await requester
@@ -628,9 +576,7 @@ describe('Dataset update tests', () => {
     });
 
     it('Updating a dataset with null sources and connectorUrl should return a 400', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const fakeDataset = await new Dataset(createDataset('json', { application: ['rw'] })).save();
         const response = await requester

@@ -2,7 +2,9 @@ const nock = require('nock');
 const chai = require('chai');
 const Dataset = require('models/dataset.model');
 const { USERS } = require('./utils/test.constants');
-const { createDataset, getUUID, deserializeDataset } = require('./utils/helpers');
+const {
+    createDataset, getUUID, deserializeDataset, mockGetUserFromToken
+} = require('./utils/helpers');
 
 chai.should();
 
@@ -63,9 +65,7 @@ const runStandardTestCase = async (provider, fakeDataset, requestingUser = USERS
             data: []
         });
 
-    nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-        .get('/auth/user/me')
-        .reply(200, requestingUser);
+    mockGetUserFromToken(requestingUser);
 
     const deleteResponse = await requester
         .delete(`/api/v1/dataset/${fakeDataset._id}`)
@@ -105,9 +105,7 @@ describe('Dataset delete tests', () => {
     });
 
     it('Deleting a non-existing dataset should return a 404 error', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const uuid = getUUID();
         const response = await requester
@@ -132,9 +130,7 @@ describe('Dataset delete tests', () => {
     });
 
     it('Deleting a dataset owned by a different user as a USER should return a 403 error', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.USER);
+        mockGetUserFromToken(USERS.USER);
 
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -149,9 +145,7 @@ describe('Dataset delete tests', () => {
     });
 
     it('Deleting a dataset owned by the user as a USER should return a 403 error', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.USER);
+        mockGetUserFromToken(USERS.USER);
 
         const fakeDataset = await new Dataset(createDataset('cartodb', {
             userId: USERS.USER.id,
@@ -168,9 +162,7 @@ describe('Dataset delete tests', () => {
     });
 
     it('Deleting a dataset owned by a different user as a MANAGER should return a 403 error', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.MANAGER);
+        mockGetUserFromToken(USERS.MANAGER);
 
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -212,9 +204,7 @@ describe('Dataset delete tests', () => {
     });
 
     it('Deleting a dataset as a USER should return a 403 error', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.USER);
+        mockGetUserFromToken(USERS.USER);
 
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -255,9 +245,7 @@ describe('Dataset delete tests', () => {
 
     // TODO: This endpoint should not actually call the provider, otherwise we may end up with a dataset with no data.
     it('Deleting a protected dataset should return a 200', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const fakeDataset = await new Dataset(createDataset('cartodb', { protected: true })).save();
 
@@ -291,9 +279,7 @@ describe('Dataset delete tests', () => {
     });
 
     it('Deleting an existing carto dataset with missing layer MS should fail with a meaningful error', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -335,9 +321,7 @@ describe('Dataset delete tests', () => {
     });
 
     it('Deleting an existing carto dataset with missing widget MS should fail with a meaningful error', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -387,9 +371,7 @@ describe('Dataset delete tests', () => {
     });
 
     it('Deleting an existing carto dataset with missing carto MS should fail with a meaningful error', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 

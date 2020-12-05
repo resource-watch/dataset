@@ -3,7 +3,7 @@ const chai = require('chai');
 const Dataset = require('models/dataset.model');
 const { USERS } = require('./utils/test.constants');
 const { getTestServer } = require('./utils/test-server');
-const { createDataset, deserializeDataset } = require('./utils/helpers');
+const { createDataset, deserializeDataset, mockGetUserFromToken } = require('./utils/helpers');
 
 chai.should();
 chai.use(require('chai-datetime'));
@@ -23,9 +23,7 @@ describe('Dataset sync tests', () => {
     });
 
     it('Create a document dataset with empty sync data should return a 400 error', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const timestamp = new Date();
         const dataset = {
@@ -72,9 +70,7 @@ describe('Dataset sync tests', () => {
     });
 
     it('Create a document dataset with valid sync data should return a 200 (happy case)', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const timestamp = new Date();
         const dataset = {
@@ -161,9 +157,7 @@ describe('Dataset sync tests', () => {
     });
 
     it('Update a document dataset with empty sync data should return a 400 error', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -182,9 +176,7 @@ describe('Dataset sync tests', () => {
     });
 
     it('Update a document dataset with valid sync data should return a 200 (happy case)', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const fakeDataset = await new Dataset(createDataset('json')).save();
 

@@ -1,4 +1,5 @@
 const { CONNECTOR_TYPES } = require('app.constants');
+const nock = require('nock');
 
 function isArray(element) {
     if (element instanceof Array) {
@@ -153,11 +154,18 @@ const mapDatasetToMetadataSearchResult = (dataset) => ({
     }
 });
 
+const mockGetUserFromToken = (userProfile) => {
+    nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+        .get('/auth/user/me')
+        .reply(200, userProfile);
+};
+
 module.exports = {
     createDataset,
     deserializeDataset,
     expectedDataset,
     ensureCorrectError,
     mapDatasetToMetadataSearchResult,
-    getUUID
+    getUUID,
+    mockGetUserFromToken
 };

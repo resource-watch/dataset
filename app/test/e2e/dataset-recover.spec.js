@@ -2,7 +2,7 @@ const nock = require('nock');
 const Dataset = require('models/dataset.model');
 
 const { USERS } = require('./utils/test.constants');
-const { createDataset, ensureCorrectError } = require('./utils/helpers');
+const { createDataset, ensureCorrectError, mockGetUserFromToken } = require('./utils/helpers');
 const { getTestServer } = require('./utils/test-server');
 
 const requester = getTestServer();
@@ -30,9 +30,7 @@ describe('Upload raw data', () => {
     });
 
     it('Return 401 error if role is USER', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.USER);
+        mockGetUserFromToken(USERS.USER);
 
         const response = await requester
             .post(`/api/v1/dataset/${jsonFakeDataset.id}/recover`)
@@ -43,9 +41,7 @@ describe('Upload raw data', () => {
     });
 
     it('Return 401 error if role is MANAGER', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.MANAGER);
+        mockGetUserFromToken(USERS.MANAGER);
 
         const response = await requester
             .post(`/api/v1/dataset/${jsonFakeDataset.id}/recover`)
@@ -56,9 +52,7 @@ describe('Upload raw data', () => {
     });
 
     it('Return 404 error if the dataset doesn\'t exist', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const response = await requester
             .post(`/api/v1/dataset/fake-id/recover`)
@@ -69,9 +63,7 @@ describe('Upload raw data', () => {
     });
 
     it('Successfully recover a dataset', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const response = await requester
             .post(`/api/v1/dataset/${jsonFakeDataset.id}/recover`)

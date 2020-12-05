@@ -5,7 +5,7 @@ const Dataset = require('models/dataset.model');
 
 const { USERS } = require('./utils/test.constants');
 const { getTestServer } = require('./utils/test-server');
-const { ensureCorrectError } = require('./utils/helpers');
+const { ensureCorrectError, mockGetUserFromToken } = require('./utils/helpers');
 
 const requester = getTestServer();
 
@@ -51,9 +51,7 @@ describe('Upload raw data', () => {
     });
 
     it('Return 400 when uploading a large file', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.USER);
+        mockGetUserFromToken(USERS.USER);
 
         const filename = 'large_dataset.csv';
 
@@ -70,9 +68,7 @@ describe('Upload raw data', () => {
     });
 
     it('Return error if no data provided at all', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.USER);
+        mockGetUserFromToken(USERS.USER);
 
         const response = await requester
             .post(`/api/v1/dataset/upload`)
@@ -85,9 +81,7 @@ describe('Upload raw data', () => {
     });
 
     it('Return error if provider and file are different', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.USER);
+        mockGetUserFromToken(USERS.USER);
 
         const filename = 'dataset_1.json';
 
@@ -105,9 +99,7 @@ describe('Upload raw data', () => {
     });
 
     it('Uploading a dataset with a binary file should return a 200 (happy case)', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.USER);
+        mockGetUserFromToken(USERS.USER);
 
         const filename = 'dataset_1.csv';
 

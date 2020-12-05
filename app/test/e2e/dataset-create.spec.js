@@ -2,7 +2,7 @@ const nock = require('nock');
 const chai = require('chai');
 const Dataset = require('models/dataset.model');
 const { USERS } = require('./utils/test.constants');
-const { deserializeDataset } = require('./utils/helpers');
+const { deserializeDataset, mockGetUserFromToken } = require('./utils/helpers');
 const { getTestServer } = require('./utils/test-server');
 
 chai.should();
@@ -23,9 +23,7 @@ describe('Dataset create tests', () => {
     });
 
     it('Create a CARTO DB dataset should be successful', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const timestamp = new Date().getTime();
         const dataset = {
@@ -101,9 +99,7 @@ describe('Dataset create tests', () => {
 
     /* Create a FeatureServer dataset */
     it('Create a FeatureServer dataset should be successful', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const timestamp = new Date().getTime();
         const dataset = {
@@ -168,9 +164,7 @@ describe('Dataset create tests', () => {
     });
 
     it('Create a JSON dataset with data in the body should be successful', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const timestamp = new Date();
         const dataset = {
@@ -247,9 +241,7 @@ describe('Dataset create tests', () => {
     });
 
     it('Create a JSON dataset with data from a file should be successful', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const timestamp = new Date();
         const dataset = {
@@ -314,9 +306,7 @@ describe('Dataset create tests', () => {
     });
 
     it('Create a JSON dataset with data from multiple files should be successful', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const timestamp = new Date();
         const dataset = {
@@ -387,9 +377,7 @@ describe('Dataset create tests', () => {
     });
 
     it('Create a CSV dataset with data from multiple files should be successful', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const timestamp = new Date();
         const dataset = {
@@ -460,9 +448,7 @@ describe('Dataset create tests', () => {
     });
 
     it('Create a JSON dataset with data from files in `sources` and `connectorUrl` should fail', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const timestamp = new Date();
         const dataset = {
@@ -494,9 +480,7 @@ describe('Dataset create tests', () => {
     });
 
     it('Create a JSON dataset with data from files in `connectorUrl` and data in the body should fail', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const timestamp = new Date();
         const dataset = {
@@ -535,9 +519,7 @@ describe('Dataset create tests', () => {
     });
 
     it('Create a JSON dataset with data from files in `sources` and data in the body should fail', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const timestamp = new Date();
         const dataset = {
@@ -580,9 +562,7 @@ describe('Dataset create tests', () => {
     });
 
     it('Create a CSV dataset with data in the body should be successful', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const timestamp = new Date();
         const dataset = {
@@ -638,9 +618,7 @@ describe('Dataset create tests', () => {
     });
 
     it('Create a CSV dataset with an app that\'s not part of the user account should fail', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const timestamp = new Date();
         const dataset = {

@@ -1,7 +1,7 @@
 const nock = require('nock');
 const Dataset = require('models/dataset.model');
 const { USERS } = require('./utils/test.constants');
-const { createDataset, ensureCorrectError } = require('./utils/helpers');
+const { createDataset, ensureCorrectError, mockGetUserFromToken } = require('./utils/helpers');
 const { getTestServer } = require('./utils/test-server');
 
 const requester = getTestServer();
@@ -25,9 +25,7 @@ describe('Upload raw data', () => {
     });
 
     it('Return 403 error if role USER tries to flush a dataset', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.USER);
+        mockGetUserFromToken(USERS.USER);
 
         const fakeDataset = await new Dataset(createDataset('json')).save();
 
@@ -40,9 +38,7 @@ describe('Upload raw data', () => {
     });
 
     it('Return 403 error if the dataset doesn\'t exit', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.USER);
+        mockGetUserFromToken(USERS.USER);
 
         const fakeDataset = await new Dataset(createDataset('json')).save();
 
@@ -55,9 +51,7 @@ describe('Upload raw data', () => {
     });
 
     it('Flush a dataset as a USER that the requesting user owns should fail', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.USER);
+        mockGetUserFromToken(USERS.USER);
 
         const fakeDataset = await new Dataset(createDataset('json', { userId: USERS.USER.id })).save();
 
@@ -69,9 +63,7 @@ describe('Upload raw data', () => {
     });
 
     it('Successfully flush a dataset as a MANAGER that the requesting user owns', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.MANAGER);
+        mockGetUserFromToken(USERS.MANAGER);
 
         const fakeDataset = await new Dataset(createDataset('json', { userId: USERS.MANAGER.id })).save();
 
@@ -83,9 +75,7 @@ describe('Upload raw data', () => {
     });
 
     it('Flush a dataset as a MANAGER that the requesting user does not own should fail', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.MANAGER);
+        mockGetUserFromToken(USERS.MANAGER);
 
         const fakeDataset = await new Dataset(createDataset('json', { userId: USERS.USER.id })).save();
 
@@ -99,9 +89,7 @@ describe('Upload raw data', () => {
     });
 
     it('Successfully flush a dataset as an ADMIN', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const fakeDataset = await new Dataset(createDataset('json')).save();
 

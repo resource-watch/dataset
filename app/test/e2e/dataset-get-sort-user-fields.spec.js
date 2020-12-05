@@ -3,7 +3,7 @@ const Dataset = require('models/dataset.model');
 const chai = require('chai');
 const mongoose = require('mongoose');
 const { getTestServer } = require('./utils/test-server');
-const { createDataset } = require('./utils/helpers');
+const { createDataset, mockGetUserFromToken } = require('./utils/helpers');
 const { createMockUser } = require('./utils/mocks');
 const { USERS } = require('./utils/test.constants');
 
@@ -55,9 +55,7 @@ describe('GET datasets sorted by user fields', () => {
     });
 
     it('Getting datasets sorted by user.role ASC with user with role USER should return 403 Forbidden', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.USER);
+        mockGetUserFromToken(USERS.USER);
 
         const response = await requester
             .get('/api/v1/dataset')
@@ -71,9 +69,7 @@ describe('GET datasets sorted by user fields', () => {
     });
 
     it('Getting datasets sorted by user.role ASC with user with role MANAGER should return 403 Forbidden', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.MANAGER);
+        mockGetUserFromToken(USERS.MANAGER);
 
         const response = await requester
             .get('/api/v1/dataset')
@@ -87,9 +83,7 @@ describe('GET datasets sorted by user fields', () => {
     });
 
     it('Getting datasets sorted by user.role ASC should return a list of datasets ordered by the role of the user who created the dataset (happy case)', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         await mockDatasetsForSorting();
         const response = await requester
@@ -105,9 +99,7 @@ describe('GET datasets sorted by user fields', () => {
     });
 
     it('Getting datasets sorted by user.role DESC should return a list of datasets ordered by the role of the user who created the dataset (happy case)', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         await mockDatasetsForSorting();
         const response = await requester
@@ -123,9 +115,7 @@ describe('GET datasets sorted by user fields', () => {
     });
 
     it('Getting datasets sorted by user.name ASC should return a list of datasets ordered by the name of the user who created the dataset (happy case)', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         await mockDatasetsForSorting();
         const response = await requester
@@ -141,9 +131,7 @@ describe('GET datasets sorted by user fields', () => {
     });
 
     it('Getting datasets sorted by user.name DESC should return a list of datasets ordered by the name of the user who created the dataset (happy case)', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         await mockDatasetsForSorting();
         const response = await requester
@@ -159,9 +147,7 @@ describe('GET datasets sorted by user fields', () => {
     });
 
     it('Sorting datasets by user role ASC puts datasets without valid users in the end of the list', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
         await new Dataset(createDataset('cartodb', { userId: USERS.MANAGER.id })).save();
@@ -204,9 +190,7 @@ describe('GET datasets sorted by user fields', () => {
     });
 
     it('Sorting datasets by user role DESC puts datasets without valid users in the beginning of the list', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
         await new Dataset(createDataset('cartodb', { userId: USERS.MANAGER.id })).save();
@@ -248,9 +232,7 @@ describe('GET datasets sorted by user fields', () => {
     });
 
     it('Sorting datasets by user.name is case insensitive and returns a list of datasets ordered by the name of the user who created the dataset', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const firstUser = { ...USERS.USER, name: 'Anthony' };
         const secondUser = { ...USERS.MANAGER, name: 'bernard' };
@@ -273,9 +255,7 @@ describe('GET datasets sorted by user fields', () => {
     });
 
     it('Sorting datasets by user.name is deterministic, applying an implicit sort by id after sorting by user.name', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const spoofedUser = { ...USERS.USER, name: 'AAA' };
         const spoofedManager = { ...USERS.MANAGER, name: 'AAA' };

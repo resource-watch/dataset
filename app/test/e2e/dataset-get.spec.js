@@ -2,7 +2,7 @@ const nock = require('nock');
 const chai = require('chai');
 const Dataset = require('models/dataset.model');
 const { USERS } = require('./utils/test.constants');
-const { createDataset, deserializeDataset } = require('./utils/helpers');
+const { createDataset, deserializeDataset, mockGetUserFromToken } = require('./utils/helpers');
 
 const { getTestServer } = require('./utils/test-server');
 const { getUUID, expectedDataset } = require('./utils/helpers');
@@ -37,9 +37,7 @@ describe('Get datasets tests', () => {
     });
 
     it('Get datasets filtered by owner\'s role = ADMIN as an ADMIN should be successful and filter by the given role', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
         await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
@@ -55,9 +53,7 @@ describe('Get datasets tests', () => {
     });
 
     it('Get datasets filtered by owner\'s role = USER as an ADMIN should be successful and filter by the given role', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
         await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
@@ -73,9 +69,7 @@ describe('Get datasets tests', () => {
     });
 
     it('Get datasets filtered by owner\'s as a MANAGER should be successful but not filter by the given role', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.MANAGER);
+        mockGetUserFromToken(USERS.MANAGER);
 
         await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
         await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
@@ -89,9 +83,7 @@ describe('Get datasets tests', () => {
     });
 
     it('Get datasets filtered by owner\'s as a USER should be successful but not filter by the given role', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.USER);
+        mockGetUserFromToken(USERS.USER);
 
         await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
         await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();

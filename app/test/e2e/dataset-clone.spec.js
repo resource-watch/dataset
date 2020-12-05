@@ -2,7 +2,7 @@ const nock = require('nock');
 const chai = require('chai');
 const Dataset = require('models/dataset.model');
 const { USERS } = require('./utils/test.constants');
-const { createDataset, deserializeDataset } = require('./utils/helpers');
+const { createDataset, deserializeDataset, mockGetUserFromToken } = require('./utils/helpers');
 const { getTestServer } = require('./utils/test-server');
 
 chai.should();
@@ -24,9 +24,7 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset that does not exist should return a 404 error', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const response = await requester
             .post(`/api/v1/dataset/1234/clone`)
@@ -56,9 +54,7 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset while being logged in as a USER should return a 403 error', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.USER);
+        mockGetUserFromToken(USERS.USER);
 
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -76,9 +72,7 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset while being logged in as a MANAGER and not being the dataset owner should return a 403 error', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.MANAGER);
+        mockGetUserFromToken(USERS.MANAGER);
 
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -96,9 +90,7 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset while not having access to the target application should return a 403 error', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -116,9 +108,7 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset while being logged in as a MANAGER and being the dataset owner should be successful (happy case)', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.MANAGER);
+        mockGetUserFromToken(USERS.MANAGER);
 
         const cartoFakeDataset = await new Dataset(createDataset('cartodb', { userId: USERS.MANAGER.id })).save();
 
@@ -222,9 +212,7 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset without application should return a 400 error', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -241,9 +229,7 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset with an invalid application value should return a 400 error', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -261,9 +247,7 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset without datasetUrl should return a 400 error', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -280,9 +264,7 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset as an ADMIN should be successful (happy case)', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -386,9 +368,7 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset as an ADMIN with full cloning set to true should be successful (happy case)', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 

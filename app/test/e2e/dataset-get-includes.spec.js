@@ -2,7 +2,7 @@
 const nock = require('nock');
 const chai = require('chai');
 const Dataset = require('models/dataset.model');
-const { createDataset } = require('./utils/helpers');
+const { createDataset, mockGetUserFromToken } = require('./utils/helpers');
 const { createMockUser } = require('./utils/mocks');
 
 const metadataGetWithSearchForHuman = require('./dataset-get-includes-responses/metadata-get-search-human');
@@ -185,9 +185,7 @@ describe('Get datasets with includes tests', () => {
     });
 
     it('Get datasets with includes should return requested data including users (ADMIN user request)', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const fakeDatasetOne = await new Dataset(createDataset('cartodb')).save();
 
@@ -301,9 +299,7 @@ describe('Get datasets with includes tests', () => {
     });
 
     it('Get datasets with includes user should return a list of datasets and user name, email and role, even if only partial data exists', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const fakeDatasetOne = await new Dataset(createDataset('cartodb')).save();
         const fakeDatasetTwo = await new Dataset(createDataset('cartodb')).save();
@@ -339,9 +335,7 @@ describe('Get datasets with includes tests', () => {
     });
 
     it('Getting datasets with includes user and user role USER should not add the usersRole query param to the pagination links', async () => {
-        nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-            .get('/auth/user/me')
-            .reply(200, USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
 
         const fakeDatasetOne = await new Dataset(createDataset('cartodb')).save();
         const fakeDatasetTwo = await new Dataset(createDataset('cartodb')).save();
