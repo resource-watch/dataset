@@ -468,7 +468,7 @@ class DatasetRouter {
      static async lastUpdated(ctx) {
         const datasetId = ctx.params.dataset;
         const dataset = await DatasetService.get(datasetId);   
-	logger.info(`[DatasetRouter: lastUpdated endpoint] Testing Developer Docs adding new /lastUpdated endpoint`
+	logger.info(`[DatasetRouter: lastUpdated endpoint] Testing Developer Docs adding new /lastUpdated endpoint`);
         logger.info(`[DatasetRouter: lastUpdated endpoint] dataset ` + datasetId + ' was created on ' + dataset.createdAt + ' and was updated on ' + dataset.updatedAt);     
         ctx.body = dataset.updatedAt;
      
