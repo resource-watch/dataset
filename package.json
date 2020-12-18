@@ -5,14 +5,15 @@
   "repository": "https://github.com/resource-watch/dataset",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_PATH=app/src node ./node_modules/.bin/grunt --gruntfile app/Gruntfile.js e2eTest",
-    "start": "NODE_PATH=app/src node app/index.js",
-    "coverage": "NODE_PATH=app/src node ./node_modules/.bin/grunt --gruntfile app/Gruntfile.js nyc",
-    "eslint": "eslint 'app/**/*.js' --fix"
+    "coverage": "nyc ts-mocha -b --project tsconfig.json -r tsconfig-paths/register --timeout 20000 'test/**/*.js' --exit",
+    "test": "ts-mocha -b --project tsconfig.json -r tsconfig-paths/register --timeout 20000 'test/**/*.js' --exit",
+    "start": "ts-node --files --project tsconfig.json -r tsconfig-paths/register src/index.ts",
+    "watch": "ts-node-dev --respawn --transpile-only --files --project tsconfig.json -r tsconfig-paths/register src/index.ts",
+    "lint": "tslint --project tsconfig.json"
   },
   "lint-staged": {
-    "*.js": [
-      "eslint --fix"
+    "*.ts": [
+      "tslint --fix"
     ]
   },
   "husky": {
@@ -36,30 +37,26 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@types/bunyan": "^1.8.6",
+    "@types/config": "^0.0.37",
+    "@types/koa": "^2.11.6",
+    "@types/koa-logger": "^3.1.1",
+    "@types/mongoose": "^5.10.1",
+    "@types/sleep": "^0.0.8",
     "chai": "^4.2.0",
     "chai-datetime": "^1.5.0",
     "chai-http": "^4.3.0",
-    "eslint": "^6.8.0",
-    "eslint-config-airbnb": "^18.1.0",
-    "eslint-plugin-import": "^2.20.1",
-    "eslint-plugin-jsx-a11y": "^6.2.3",
-    "eslint-plugin-mocha": "^6.3.0",
-    "eslint-plugin-react": "^7.19.0",
-    "grunt": "^1.1.0",
-    "grunt-cli": "^1.3.2",
-    "grunt-contrib-clean": "^2.0.0",
-    "grunt-contrib-jshint": "^2.1.0",
-    "grunt-contrib-watch": "^1.1.0",
-    "grunt-express-server": "^0.5.4",
-    "grunt-mocha-test": "^0.13.3",
-    "grunt-notify": "^0.4.5",
-    "grunt-simple-nyc": "^3.0.1",
     "husky": "^4.2.3",
     "lint-staged": "^10.0.8",
-    "load-grunt-tasks": "^5.1.0",
     "mocha": "^7.1.1",
     "nock": "^12.0.3",
-    "nyc": "^15.0.0"
+    "nyc": "^15.0.0",
+    "ts-mocha": "^8.0.0",
+    "ts-node": "^9.0.0",
+    "ts-node-dev": "^1.1.1",
+    "tsconfig-paths": "^3.9.0",
+    "tslint": "^6.1.3",
+    "tslint-config-prettier": "^1.18.0"
   },
   "dependencies": {
     "@auth0/s3": "^1.0.0",
@@ -84,6 +81,7 @@
     "request-promise": "^4.1.1",
     "sleep": "^6.1.0",
     "slug": "^0.9.1",
-    "uuid": "^3.0.1"
+    "uuid": "^3.0.1",
+    "typescript": "^4.1.2"
   }
 }

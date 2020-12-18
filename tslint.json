@@ -1,0 +1,21 @@
+{
+  "defaultSeverity": "error",
+  "extends": [
+    "tslint:recommended",
+    "tslint-config-prettier"
+  ],
+  "rules": {
+    "no-unused-expression": [false],
+    "semicolon": [
+      true,
+      "always"
+    ],
+    "typedef": [
+      true,
+      "call-signature",
+      "property-declaration",
+      "variable-declaration"
+    ]
+  },
+  "rulesDirectory": []
+}

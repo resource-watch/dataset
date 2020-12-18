@@ -1,3 +1,7 @@
+## 18/12/2020
+
+- Initial migration to Typescript
+
 ## 04/12/2020
 
 - Replace CT integration library
