@@ -24,9 +24,11 @@ let retries: number = 10;
 let mongooseOptions: ConnectionOptions = { ...mongooseDefaultOptions };
 
 // KUBE CLUSTER
+// @ts-ignore
 if (mongoUri.indexOf('replicaSet') > -1) {
     mongooseOptions = {
         ...mongooseOptions,
+        // @ts-ignore
         db: { native_parser: true },
         replset: {
             auto_reconnect: false,
