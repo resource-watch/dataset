@@ -29,7 +29,6 @@
       "invalidateCache": [
         "/dataset*"
       ],
-      "authenticated": true,
       "redirect": {
         "method": "POST",
         "path": "/api/v1/dataset"
@@ -49,7 +48,6 @@
       "invalidateCache": [
         "/dataset*"
       ],
-      "authenticated": true,
       "redirect": {
         "method": "PATCH",
         "path": "/api/v1/dataset/:dataset"
@@ -61,7 +59,6 @@
       "invalidateCache": [
         "/dataset*"
       ],
-      "authenticated": true,
       "redirect": {
         "method": "DELETE",
         "path": "/api/v1/dataset/:dataset"
@@ -70,7 +67,6 @@
     {
       "path": "/v1/dataset/:dataset/clone",
       "method": "POST",
-      "authenticated": true,
       "redirect": {
         "method": "POST",
         "path": "/api/v1/dataset/:dataset/clone"
@@ -79,7 +75,6 @@
     {
       "path": "/v1/dataset/upload",
       "method": "POST",
-      "authenticated": true,
       "redirect": {
         "method": "POST",
         "path": "/api/v1/dataset/upload"
@@ -88,7 +83,6 @@
     {
       "path": "/v1/dataset/:dataset/flush",
       "method": "POST",
-      "authenticated": true,
       "redirect": {
         "method": "POST",
         "path": "/api/v1/dataset/:dataset/flush"
@@ -97,7 +91,6 @@
     {
       "path": "/v1/dataset/:dataset/recover",
       "method": "POST",
-      "authenticated": true,
       "redirect": {
         "method": "POST",
         "path": "/api/v1/dataset/:dataset/recover"

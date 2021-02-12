@@ -21,35 +21,35 @@ describe('Upload raw data', () => {
         await Dataset.deleteMany({}).exec();
     });
 
-    it('Upload a dataset without a provider should return a 400 error', async () => {
+    it('Upload a dataset without being logged in should return a 401 error', async () => {
         const response = await requester
             .post(`/api/v1/dataset/upload`);
+
+        response.status.should.equal(401);
+        response.body.errors[0].should.have.property('detail').and.equal(`Unauthorized`);
+    });
+
+    it('Upload a dataset without a provider should return a 400 error', async () => {
+        mockGetUserFromToken(USERS.USER);
+
+        const response = await requester
+            .post(`/api/v1/dataset/upload`)
+            .set('Authorization', `Bearer abcd`);
 
         response.status.should.equal(400);
         ensureCorrectError(response.body, '- no file to check - provider: provider must be in [csv,json,tsv,xml,tif,tiff,geo.tiff]. - ');
     });
 
     it('Upload a dataset without a valid file should return a 400 error', async () => {
+        mockGetUserFromToken(USERS.USER);
+
         const response = await requester
             .post(`/api/v1/dataset/upload`)
+            .set('Authorization', `Bearer abcd`)
             .field('provider', 'csv');
 
         response.status.should.equal(400);
         ensureCorrectError(response.body, '- dataset: file dataset can not be a empty file. - ');
-    });
-
-    it('Upload a dataset without being authenticated shoudl return a 401 error', async () => {
-        const filename = 'dataset_1.csv';
-
-        const fileData = fs.readFileSync(`${__dirname}/upload-data/${filename}`);
-
-        const response = await requester
-            .post(`/api/v1/dataset/upload`)
-            .field('provider', 'csv')
-            .attach('dataset', fileData, filename);
-
-        response.status.should.equal(401);
-        ensureCorrectError(response.body, 'Unauthorized');
     });
 
     it('Return 400 when uploading a large file', async () => {

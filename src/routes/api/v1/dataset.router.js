@@ -465,14 +465,13 @@ class DatasetRouter {
 
 
 // Adding endpoint that was created to test Developer Docs
-     static async lastUpdated(ctx) {
+    static async lastUpdated(ctx) {
         const datasetId = ctx.params.dataset;
         const dataset = await DatasetService.get(datasetId);
         logger.info(`[DatasetRouter: lastUpdated endpoint] dataset ` + datasetId + ' was created on ' + dataset.createdAt + ' and was updated on ' + dataset.updatedAt);
         ctx.body = dataset.updatedAt;
 
     }
-
 
 
 }
@@ -587,18 +586,28 @@ const authorizationRecover = async (ctx, next) => {
     await next();
 };
 
+const isAuthenticated = async (ctx, next) => {
+    logger.info(`Verifying if user is authenticated`);
+    const user = DatasetRouter.getUser(ctx);
+    if (!user || !user.id) {
+        ctx.throw(401, 'Unauthorized');
+        return;
+    }
+    await next();
+};
+
 router.get('/', DatasetRouter.getAll);
 router.post('/find-by-ids', validationMiddleware, DatasetRouter.findByIds);
-router.post('/', validationMiddleware, authorizationMiddleware, authorizationBigQuery, DatasetRouter.create);
+router.post('/', isAuthenticated, validationMiddleware, authorizationMiddleware, authorizationBigQuery, DatasetRouter.create);
 // router.post('/', validationMiddleware, authorizationMiddleware, authorizationBigQuery, authorizationSubscribable, DatasetRouter.create);
-router.post('/upload', validationMiddleware, authorizationMiddleware, DatasetRouter.upload);
-router.post('/:dataset/flush', authorizationMiddleware, DatasetRouter.flushDataset);
-router.post('/:dataset/recover', authorizationRecover, DatasetRouter.recover);
+router.post('/upload', isAuthenticated, validationMiddleware, authorizationMiddleware, DatasetRouter.upload);
+router.post('/:dataset/flush', isAuthenticated, authorizationMiddleware, DatasetRouter.flushDataset);
+router.post('/:dataset/recover', isAuthenticated, authorizationRecover, DatasetRouter.recover);
 
 router.get('/:dataset', DatasetRouter.get);
-router.patch('/:dataset', validationMiddleware, authorizationMiddleware, DatasetRouter.update);
-router.delete('/:dataset', authorizationMiddleware, DatasetRouter.delete);
-router.post('/:dataset/clone', validationMiddleware, authorizationMiddleware, DatasetRouter.clone);
+router.patch('/:dataset', isAuthenticated, validationMiddleware, authorizationMiddleware, DatasetRouter.update);
+router.delete('/:dataset', isAuthenticated, authorizationMiddleware, DatasetRouter.delete);
+router.post('/:dataset/clone', isAuthenticated, validationMiddleware, authorizationMiddleware, DatasetRouter.clone);
 router.get('/:dataset/lastUpdated', DatasetRouter.lastUpdated);
 
 module.exports = router;

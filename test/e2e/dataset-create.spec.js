@@ -24,6 +24,15 @@ describe('Dataset create tests', () => {
         await Dataset.deleteMany({}).exec();
     });
 
+    it('Create a ataset without being logged in should return a 401 error', async () => {
+        const response = await requester
+            .post(`/api/v1/dataset`)
+            .send({});
+
+        response.status.should.equal(401);
+        response.body.errors[0].should.have.property('detail').and.equal(`Unauthorized`);
+    });
+
     it('Create a CARTO DB dataset should be successful', async () => {
         mockGetUserFromToken(USERS.ADMIN);
 
