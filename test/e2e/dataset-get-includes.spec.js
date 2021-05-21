@@ -65,7 +65,7 @@ const mockThreeUsers = (id1, id2, id3) => {
     }]);
 };
 
-describe('Get datasets with includes tests', () => {
+describe('Get datasets with includes', () => {
 
     before(async () => {
         if (process.env.NODE_ENV !== 'test') {

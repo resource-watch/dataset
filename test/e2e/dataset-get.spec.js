@@ -1,5 +1,6 @@
 const nock = require('nock');
 const chai = require('chai');
+const config = require('config');
 const Dataset = require('models/dataset.model');
 const { USERS } = require('./utils/test.constants');
 const { createDataset, deserializeDataset, mockGetUserFromToken } = require('./utils/helpers');
@@ -11,7 +12,7 @@ chai.should();
 
 let requester;
 
-describe('Get datasets tests', () => {
+describe('Get datasets', () => {
 
     before(async () => {
         if (process.env.NODE_ENV !== 'test') {
@@ -21,7 +22,39 @@ describe('Get datasets tests', () => {
         requester = await getTestServer();
     });
 
-    /* Get All Datasets */
+    describe('Test links objects', () => {
+        it('Get all datasets without referer header should be successful and use the request host', async () => {
+            const cartoFakeDataset = await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
+
+            const response = await requester
+                .get(`/api/v1/dataset`);
+
+            response.status.should.equal(200);
+            response.body.should.have.property('data').and.be.an('array');
+            response.body.should.have.property('links').and.be.an('object');
+            response.body.links.should.have.property('prev').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/dataset?page[number]=1&page[size]=10`);
+            response.body.links.should.have.property('next').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/dataset?page[number]=1&page[size]=10`);
+            response.body.links.should.have.property('first').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/dataset?page[number]=1&page[size]=10`);
+            response.body.links.should.have.property('last').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/dataset?page[number]=1&page[size]=10`);
+        });
+
+        it('Get all datasets with referer header should be successful and use that header on the links on the response', async () => {
+            const cartoFakeDataset = await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
+
+            const response = await requester
+                .get(`/api/v1/dataset`)
+                .set('referer', `https://potato.com/get-me-all-the-data`);
+
+            response.status.should.equal(200);
+            response.body.should.have.property('data').and.be.an('array');
+            response.body.should.have.property('links').and.be.an('object');
+            response.body.links.should.have.property('prev').and.equal('http://potato.com/v1/dataset?page[number]=1&page[size]=10');
+            response.body.links.should.have.property('next').and.equal('http://potato.com/v1/dataset?page[number]=1&page[size]=10');
+            response.body.links.should.have.property('first').and.equal('http://potato.com/v1/dataset?page[number]=1&page[size]=10');
+            response.body.links.should.have.property('last').and.equal('http://potato.com/v1/dataset?page[number]=1&page[size]=10');
+        });
+    })
+
     it('Get all datasets with no arguments should be successful', async () => {
         const cartoFakeDataset = await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
 
@@ -315,7 +348,6 @@ describe('Get datasets tests', () => {
         datasetIds2.should.not.contain(ds4._id);
     });
 
-
     it('Get an existing dataset by ID should be successful and you should be able to retrieve latestUpdated information', async () => {
         const cartoFakeDataset = await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
 
@@ -328,7 +360,6 @@ describe('Get datasets tests', () => {
         //dataset.should.have.property('name').and.equal(cartoFakeDataset.name);
        // response.body.data.should.deep.equal(expectedDataset(cartoFakeDataset));
     });
-
 
     /**
      * We'll want to limit the maximum page size in the future

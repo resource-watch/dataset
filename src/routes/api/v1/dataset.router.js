@@ -31,6 +31,14 @@ const serializeObjToQuery = (obj) => Object.keys(obj).reduce((a, k) => {
     return a;
 }, []).join('&');
 
+const getHostForPaginationLink = (ctx) => {
+    if ('referer' in ctx.request.header) {
+        const url = new URL(ctx.request.header.referer)
+        return url.host;
+    }
+    return ctx.request.host
+}
+
 const arrayIntersection = (arr1, arr2) => arr1.filter((n) => arr2.indexOf(n) !== -1);
 
 class DatasetRouter {
@@ -271,7 +279,6 @@ class DatasetRouter {
 
     static async getAll(ctx) {
         logger.info(`[DatasetRouter] Getting all datasets`);
-        logger.info(JSON.stringify(ctx.request));
         const user = DatasetRouter.getUser(ctx);
         const { query } = ctx;
         const { search } = query;
@@ -392,7 +399,7 @@ class DatasetRouter {
             delete clonedQuery.usersRole;
             const serializedQuery = serializeObjToQuery(clonedQuery) ? `?${serializeObjToQuery(clonedQuery)}&` : '?';
             const apiVersion = ctx.mountPath.split('/')[ctx.mountPath.split('/').length - 1];
-            const link = `${ctx.request.protocol}://${ctx.request.host}/${apiVersion}${ctx.request.path}${serializedQuery}`;
+            const link = `${ctx.request.protocol}://${getHostForPaginationLink(ctx)}/${apiVersion}${ctx.request.path}${serializedQuery}`;
             const datasets = await DatasetService.getAll(query, user && user.role === 'ADMIN');
             ctx.set('cache', `dataset ${query.includes ? query.includes.split(',').map((elem) => elem.trim()).join(' ') : ''}`);
             ctx.body = DatasetSerializer.serialize(datasets, link);

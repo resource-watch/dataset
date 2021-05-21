@@ -1,3 +1,7 @@
+## 21/05/2021
+
+- Add support for hosts from `referer` header when generating pagination links.
+
 ## 03/05/2021
 
 - Fix issue preventing updating `dataLastUpdated` with `null`.
