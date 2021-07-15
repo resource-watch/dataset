@@ -24,6 +24,10 @@ class RelationshipsService {
         logger.info(`Getting resources of ids: ${ids}`);
         delete query.ids;
         delete query.usersRole;
+        const filterIncludesByEnv = query.filterIncludesByEnv ? query.filterIncludesByEnv : false;
+        if(!filterIncludesByEnv) {
+            delete query.env
+        }
         let resources = includes.map(async (include) => {
             const obj = {};
             if (INCLUDES.indexOf(include) >= 0) {
@@ -83,7 +87,7 @@ class RelationshipsService {
             if (resources[include]) {
                 const { data } = resources[include];
                 const result = {};
-                if (data.length > 0) {
+                if (data && data.length > 0) {
                     data.forEach((el) => {
                         if (include === 'vocabulary') { // particular case of vocabulary. it changes the matching attr
                             if (Object.keys(result).indexOf(el.attributes.resource.id) < 0) {

@@ -373,7 +373,7 @@ describe('Get datasets with includes', () => {
 
     describe('Environments', () => {
 
-        it.skip('Get datasets with includes and search, with no filterIncludesByEnv filter and no env value, should load included data without filtering it by env', async () => {
+        it('Get datasets with includes and search, with no filterIncludesByEnv filter and no env value, should load included data without filtering it by env', async () => {
             const fakeDatasetOne = await new Dataset(createDataset('cartodb')).save();
 
             nock(process.env.GATEWAY_URL)
@@ -450,7 +450,7 @@ describe('Get datasets with includes', () => {
             response.body.data[0].should.deep.equal(datasetGetIncludeAllAnonymous(fakeDatasetOne));
         });
 
-        it.skip('Get datasets with includes and search, with no filterIncludesByEnv filter and custom env, should load included data without filtering it by env', async () => {
+        it('Get datasets with includes and search, with no filterIncludesByEnv filter and custom env, should load included data without filtering it by env', async () => {
             const fakeDatasetOne = await new Dataset(createDataset('cartodb', { env: 'custom' })).save();
 
             nock(process.env.GATEWAY_URL)
@@ -528,7 +528,7 @@ describe('Get datasets with includes', () => {
             response.body.data[0].should.deep.equal(datasetGetIncludeAllAnonymous(fakeDatasetOne));
         });
 
-        it.skip('Get datasets with includes and search, with filterIncludesByEnv set to true and custom env, should load included data filtered by env', async () => {
+        it('Get datasets with includes and search, with filterIncludesByEnv set to true and custom env, should load included data filtered by env', async () => {
             const fakeDatasetOne = await new Dataset(createDataset('cartodb')).save();
 
             nock(process.env.GATEWAY_URL)
