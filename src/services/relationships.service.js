@@ -11,23 +11,35 @@ const serializeObjToQuery = (obj) => Object.keys(obj).reduce((a, k) => {
 
 class RelationshipsService {
 
-    static treatQuery(query) {
+    /**
+     * - Clones the query object
+     * - Strips a few things that should not be passed over to other MSs
+     * - Encodes query into a URL param format
+     *
+     * @TODO: rawQuery is passed by reference, so we should evaluate cloning at an earlier point
+     *
+     * @param rawQuery
+     * @returns {string}
+     */
+    static prepareAndFormatQuery(rawQuery) {
+        const query = { ...rawQuery };
         if (!query.application && query.app) {
             query.application = query.app;
         }
+        const filterIncludesByEnv = query.filterIncludesByEnv ? query.filterIncludesByEnv : false;
+        if (!filterIncludesByEnv) {
+            delete query.env
+        }
+        delete query.filterIncludesByEnv;
         delete query.includes;
         delete query['user.role'];
-        return query;
+        return serializeObjToQuery(query);
     }
 
     static async getResources(ids, includes, query = '', users = [], isAdmin = false) {
         logger.info(`Getting resources of ids: ${ids}`);
         delete query.ids;
         delete query.usersRole;
-        const filterIncludesByEnv = query.filterIncludesByEnv ? query.filterIncludesByEnv : false;
-        if(!filterIncludesByEnv) {
-            delete query.env
-        }
         let resources = includes.map(async (include) => {
             const obj = {};
             if (INCLUDES.indexOf(include) >= 0) {
@@ -53,7 +65,7 @@ class RelationshipsService {
                     uri = '/auth';
                 }
 
-                let uriQuery = serializeObjToQuery(RelationshipsService.treatQuery(query));
+                let uriQuery = RelationshipsService.prepareAndFormatQuery(query);
 
                 if (uriQuery.length > 0) {
                     uriQuery = `?${uriQuery}`;
@@ -289,7 +301,7 @@ class RelationshipsService {
     static async filterByConcepts(query) {
         try {
             const result = await RWAPIMicroservice.requestToMicroservice({
-                uri: `/v1/graph/query/search-datasets-ids?${query}`,
+                uri: `/v1/graph/query/search-datasets-ids?${serializeObjToQuery(query)}`,
                 method: 'GET',
                 json: true
             });
@@ -302,7 +314,7 @@ class RelationshipsService {
     static async searchBySynonyms(query) {
         try {
             const result = await RWAPIMicroservice.requestToMicroservice({
-                uri: `/v1/graph/query/search-by-label-synonyms?${query}`,
+                uri: `/v1/graph/query/search-by-label-synonyms?${RelationshipsService.prepareAndFormatQuery(query)}`,
                 method: 'GET',
                 json: true
             });

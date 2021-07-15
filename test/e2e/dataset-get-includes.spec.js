@@ -89,10 +89,8 @@ describe('Get datasets with includes', () => {
             .get('/v1/graph/query/search-by-label-synonyms')
             .query({
                 application: 'rw',
-                env: 'production',
-                includes: 'layer,metadata,vocabulary,widget,graph,user',
                 language: 'en',
-                page: { number: '1,1', size: '12,12' },
+                page: { number: '1', size: '12' },
                 published: true,
                 search: 'human'
             })
@@ -103,9 +101,8 @@ describe('Get datasets with includes', () => {
             .post('/auth/user/find-by-ids', { ids: [fakeDatasetOne.userId] })
             .query({
                 application: 'rw',
-                env: 'production',
                 language: 'en',
-                page: { number: '1,1', size: '12,12' },
+                page: { number: '1', size: '12' },
                 published: true,
                 search: 'human'
             })
@@ -116,9 +113,8 @@ describe('Get datasets with includes', () => {
             .post('/v1/widget/find-by-ids', { ids: [fakeDatasetOne.id], app: 'rw' })
             .query({
                 application: 'rw',
-                env: 'production',
                 language: 'en',
-                page: { number: '1,1', size: '12,12' },
+                page: { number: '1', size: '12' },
                 published: true,
                 search: 'human'
             })
@@ -129,9 +125,8 @@ describe('Get datasets with includes', () => {
             .post('/v1/dataset/vocabulary/find-by-ids', { ids: [fakeDatasetOne.id] })
             .query({
                 application: 'rw',
-                env: 'production',
                 language: 'en',
-                page: { number: '1,1', size: '12,12' },
+                page: { number: '1', size: '12' },
                 published: true,
                 search: 'human'
             })
@@ -142,9 +137,8 @@ describe('Get datasets with includes', () => {
             .post('/v1/dataset/metadata/find-by-ids', { ids: [fakeDatasetOne.id] })
             .query({
                 application: 'rw',
-                env: 'production',
                 language: 'en',
-                page: { number: '1,1', size: '12,12' },
+                page: { number: '1', size: '12' },
                 published: true,
                 search: 'human'
             })
@@ -154,9 +148,8 @@ describe('Get datasets with includes', () => {
             .post('/v1/layer/find-by-ids', { ids: [fakeDatasetOne.id], app: 'rw' })
             .query({
                 application: 'rw',
-                env: 'production',
                 language: 'en',
-                page: { number: '1,1', size: '12,12' },
+                page: { number: '1', size: '12' },
                 published: true,
                 search: 'human'
             })
@@ -166,9 +159,8 @@ describe('Get datasets with includes', () => {
             .post('/v1/graph/find-by-ids', { ids: [fakeDatasetOne.id], app: 'rw' })
             .query({
                 application: 'rw',
-                env: 'production',
                 language: 'en',
-                page: { number: '1,1', size: '12,12' },
+                page: { number: '1', size: '12' },
                 published: true,
                 search: 'human'
             })
@@ -182,7 +174,7 @@ describe('Get datasets with includes', () => {
                 env: 'production',
                 includes: ['layer', 'metadata', 'vocabulary', 'widget', 'graph', 'user'].join(','),
                 language: 'en',
-                page: { number: '1,1', size: '12,12' },
+                page: { number: '1', size: '12' },
                 published: true,
                 search: 'human'
             });
@@ -208,10 +200,8 @@ describe('Get datasets with includes', () => {
             .get('/v1/graph/query/search-by-label-synonyms')
             .query({
                 application: 'rw',
-                env: 'production',
-                includes: 'layer,metadata,vocabulary,widget,graph,user',
                 language: 'en',
-                page: { number: '1,1', size: '12,12' },
+                page: { number: '1', size: '12' },
                 published: true,
                 search: 'human'
             })
@@ -221,9 +211,8 @@ describe('Get datasets with includes', () => {
             .post('/auth/user/find-by-ids', { ids: [fakeDatasetOne.userId] })
             .query({
                 application: 'rw',
-                env: 'production',
                 language: 'en',
-                page: { number: '1,1', size: '12,12' },
+                page: { number: '1', size: '12' },
                 published: true,
                 search: 'human'
             })
@@ -238,9 +227,8 @@ describe('Get datasets with includes', () => {
             .post('/v1/widget/find-by-ids', { ids: [fakeDatasetOne.id], app: 'rw' })
             .query({
                 application: 'rw',
-                env: 'production',
                 language: 'en',
-                page: { number: '1,1', size: '12,12' },
+                page: { number: '1', size: '12' },
                 published: true,
                 search: 'human'
             })
@@ -251,9 +239,8 @@ describe('Get datasets with includes', () => {
             .post('/v1/dataset/vocabulary/find-by-ids', { ids: [fakeDatasetOne.id] })
             .query({
                 application: 'rw',
-                env: 'production',
                 language: 'en',
-                page: { number: '1,1', size: '12,12' },
+                page: { number: '1', size: '12' },
                 published: true,
                 search: 'human'
             })
@@ -264,9 +251,8 @@ describe('Get datasets with includes', () => {
             .post('/v1/dataset/metadata/find-by-ids', { ids: [fakeDatasetOne.id] })
             .query({
                 application: 'rw',
-                env: 'production',
                 language: 'en',
-                page: { number: '1,1', size: '12,12' },
+                page: { number: '1', size: '12' },
                 published: true,
                 search: 'human'
             })
@@ -276,9 +262,8 @@ describe('Get datasets with includes', () => {
             .post('/v1/layer/find-by-ids', { ids: [fakeDatasetOne.id], app: 'rw' })
             .query({
                 application: 'rw',
-                env: 'production',
                 language: 'en',
-                page: { number: '1,1', size: '12,12' },
+                page: { number: '1', size: '12' },
                 published: true,
                 search: 'human'
             })
@@ -288,9 +273,8 @@ describe('Get datasets with includes', () => {
             .post('/v1/graph/find-by-ids', { ids: [fakeDatasetOne.id], app: 'rw' })
             .query({
                 application: 'rw',
-                env: 'production',
                 language: 'en',
-                page: { number: '1,1', size: '12,12' },
+                page: { number: '1', size: '12' },
                 published: true,
                 search: 'human'
             })
@@ -298,7 +282,19 @@ describe('Get datasets with includes', () => {
 
 
         const response = await requester
-            .get(`/api/v1/dataset?application=rw&env=production&includes=layer,metadata,vocabulary,widget,graph,user&language=en&page[number]=1&page[size]=12&published=true&search=human&page[size]=12&page[number]=1`)
+            .get(`/api/v1/dataset`)
+            .query({
+                application: 'rw',
+                env: 'production',
+                includes: 'layer,metadata,vocabulary,widget,graph,user',
+                language: 'en',
+                page: {
+                    number: 1,
+                    size: 12,
+                },
+                published: true,
+                search: 'human'
+            })
             .set('Authorization', `Bearer abcd`);
 
         response.status.should.equal(200);
@@ -384,7 +380,6 @@ describe('Get datasets with includes', () => {
             nock(process.env.GATEWAY_URL)
                 .get('/v1/graph/query/search-by-label-synonyms')
                 .query({
-                    includes: 'layer,metadata,vocabulary,widget,graph,user',
                     search: 'human'
                 })
                 .reply(200, { data: [fakeDatasetOne.id] });
@@ -461,7 +456,6 @@ describe('Get datasets with includes', () => {
             nock(process.env.GATEWAY_URL)
                 .get('/v1/graph/query/search-by-label-synonyms')
                 .query({
-                    includes: 'layer,metadata,vocabulary,widget,graph,user',
                     search: 'human'
                 })
                 .reply(200, { data: [fakeDatasetOne.id] });
@@ -525,11 +519,13 @@ describe('Get datasets with includes', () => {
             response.body.should.have.property('data').with.lengthOf(1);
             response.body.should.have.property('links').and.be.an('object');
 
-            response.body.data[0].should.deep.equal(datasetGetIncludeAllAnonymous(fakeDatasetOne));
+            const expectedData = datasetGetIncludeAllAnonymous(fakeDatasetOne);
+            expectedData.attributes.env = 'custom';
+            response.body.data[0].should.deep.equal(expectedData);
         });
 
         it('Get datasets with includes and search, with filterIncludesByEnv set to true and custom env, should load included data filtered by env', async () => {
-            const fakeDatasetOne = await new Dataset(createDataset('cartodb')).save();
+            const fakeDatasetOne = await new Dataset(createDataset('cartodb', { env: 'custom' })).save();
 
             nock(process.env.GATEWAY_URL)
                 .get('/v1/metadata')
@@ -540,7 +536,6 @@ describe('Get datasets with includes', () => {
                 .get('/v1/graph/query/search-by-label-synonyms')
                 .query({
                     env: 'custom',
-                    includes: 'layer,metadata,vocabulary,widget,graph,user',
                     search: 'human'
                 })
                 .reply(200, { data: [fakeDatasetOne.id] });
@@ -611,7 +606,9 @@ describe('Get datasets with includes', () => {
             response.body.should.have.property('data').with.lengthOf(1);
             response.body.should.have.property('links').and.be.an('object');
 
-            response.body.data[0].should.deep.equal(datasetGetIncludeAllAnonymous(fakeDatasetOne));
+            const expectedData = datasetGetIncludeAllAnonymous(fakeDatasetOne);
+            expectedData.attributes.env = 'custom';
+            response.body.data[0].should.deep.equal(expectedData);
         });
 
     });

@@ -377,7 +377,7 @@ class DatasetRouter {
                     }
 
                     const metadataIds = await RelationshipsService.filterByMetadata(search, metadataSort);
-                    const searchBySynonymsIds = await RelationshipsService.searchBySynonyms(serializeObjToQuery(query));
+                    const searchBySynonymsIds = await RelationshipsService.searchBySynonyms(query);
                     const datasetBySearchIds = await DatasetService.getDatasetIdsBySearch(search.split(' '));
                     searchIds = metadataIds.concat(searchBySynonymsIds).concat(datasetBySearchIds);
                 }
@@ -386,7 +386,7 @@ class DatasetRouter {
                     || sort.indexOf('most-favorited') >= 0
                     || sort.indexOf('most-viewed') >= 0
                 ) {
-                    conceptIds = await RelationshipsService.filterByConcepts(serializeObjToQuery(query));
+                    conceptIds = await RelationshipsService.filterByConcepts(query);
                 }
                 if ((searchIds && searchIds.length === 0) || (conceptIds && conceptIds.length === 0)) {
                     ctx.body = DatasetSerializer.serialize([], null);
