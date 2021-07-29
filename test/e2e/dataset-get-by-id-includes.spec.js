@@ -73,12 +73,11 @@ describe('Get dataset by id with includes', () => {
     });
 
     it('Get an existing dataset by ID with includes and env but no filterIncludesByEnv should be successful and include related data not filtered by env', async () => {
-        const fakeDatasetOne = await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
+        const fakeDatasetOne = await new Dataset(createDataset('cartodb', { env: 'potato', userId: USERS.ADMIN.id })).save();
 
         nock(process.env.GATEWAY_URL)
             .post('/auth/user/find-by-ids', { ids: [fakeDatasetOne.userId] })
             .reply(200, { data: [] });
-
 
         nock(process.env.GATEWAY_URL)
             .post('/v1/widget/find-by-ids', { ids: [fakeDatasetOne.id] })
@@ -114,52 +113,35 @@ describe('Get dataset by id with includes', () => {
         response.body.should.have.property('data').and.be.an('object');
 
         const expectedData = datasetGetIncludeAllAnonymous(fakeDatasetOne);
+        expectedData.attributes.env = 'potato';
         response.body.data.should.deep.equal(expectedData);
     });
 
     it('Get an existing dataset by ID with includes, env and filterIncludesByEnv=true should be successful and include related data filtered by env', async () => {
-        const fakeDatasetOne = await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
+        const fakeDatasetOne = await new Dataset(createDataset('cartodb', { env:'potato', userId: USERS.ADMIN.id })).save();
 
         nock(process.env.GATEWAY_URL)
             .post('/auth/user/find-by-ids', { ids: [fakeDatasetOne.userId] })
-            .query({
-                env: 'potato'
-            })
             .reply(200, { data: [] });
 
         nock(process.env.GATEWAY_URL)
-            .post('/v1/widget/find-by-ids', { ids: [fakeDatasetOne.id] })
-            .query({
-                env: 'potato'
-            })
+            .post('/v1/widget/find-by-ids', { ids: [fakeDatasetOne.id], env: 'potato' })
             .reply(200, widgetsFindById(fakeDatasetOne));
 
         nock(process.env.GATEWAY_URL)
-            .post('/v1/dataset/vocabulary/find-by-ids', { ids: [fakeDatasetOne.id] })
-            .query({
-                env: 'potato'
-            })
+            .post('/v1/dataset/vocabulary/find-by-ids', { ids: [fakeDatasetOne.id], env: 'potato' })
             .reply(200, vocabularyFindById());
 
         nock(process.env.GATEWAY_URL)
-            .post('/v1/dataset/metadata/find-by-ids', { ids: [fakeDatasetOne.id] })
-            .query({
-                env: 'potato'
-            })
+            .post('/v1/dataset/metadata/find-by-ids', { ids: [fakeDatasetOne.id], env: 'potato' })
             .reply(200, metadataFindById(fakeDatasetOne));
 
         nock(process.env.GATEWAY_URL)
-            .post('/v1/layer/find-by-ids', { ids: [fakeDatasetOne.id] })
-            .query({
-                env: 'potato'
-            })
+            .post('/v1/layer/find-by-ids', { ids: [fakeDatasetOne.id], env: 'potato' })
             .reply(200, layersFindById(fakeDatasetOne));
 
         nock(process.env.GATEWAY_URL)
-            .post('/v1/graph/find-by-ids', { ids: [fakeDatasetOne.id] })
-            .query({
-                env: 'potato'
-            })
+            .post('/v1/graph/find-by-ids', { ids: [fakeDatasetOne.id], env: 'potato' })
             .reply(200, graphFindById(fakeDatasetOne));
 
         const response = await requester
@@ -167,7 +149,7 @@ describe('Get dataset by id with includes', () => {
             .query({
                 includes: ['layer', 'metadata', 'vocabulary', 'widget', 'graph', 'user'].join(','),
                 env: 'potato',
-                filterIncludesByEnv: true
+                filterIncludesByEnv: "true"
             });
         const dataset = deserializeDataset(response);
 
@@ -175,6 +157,7 @@ describe('Get dataset by id with includes', () => {
         response.body.should.have.property('data').and.be.an('object');
 
         const expectedData = datasetGetIncludeAllAnonymous(fakeDatasetOne);
+        expectedData.attributes.env = 'potato';
         response.body.data.should.deep.equal(expectedData);
     });
 

@@ -26,10 +26,7 @@ class RelationshipsService {
         if (!query.application && query.app) {
             query.application = query.app;
         }
-        const filterIncludesByEnv = query.filterIncludesByEnv ? query.filterIncludesByEnv : false;
-        if (!filterIncludesByEnv) {
-            delete query.env
-        }
+        delete query.env
         delete query.filterIncludesByEnv;
         delete query.includes;
         delete query['user.role'];
@@ -54,6 +51,12 @@ class RelationshipsService {
                         payload.app = apps;
                     }
                 }
+
+                const filterIncludesByEnv = query.filterIncludesByEnv ? query.filterIncludesByEnv : false;
+                if (filterIncludesByEnv) {
+                    payload.env = query.env;
+                }
+
                 if (include === 'vocabulary' || include === 'metadata') {
                     uri = '/v1/dataset';
                 }

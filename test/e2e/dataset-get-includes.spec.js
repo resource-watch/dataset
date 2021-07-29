@@ -535,7 +535,6 @@ describe('Get datasets with includes', () => {
             nock(process.env.GATEWAY_URL)
                 .get('/v1/graph/query/search-by-label-synonyms')
                 .query({
-                    env: 'custom',
                     search: 'human'
                 })
                 .reply(200, { data: [fakeDatasetOne.id] });
@@ -544,50 +543,44 @@ describe('Get datasets with includes', () => {
             nock(process.env.GATEWAY_URL)
                 .post('/auth/user/find-by-ids', { ids: [fakeDatasetOne.userId] })
                 .query({
-                    env: 'custom',
                     search: 'human'
                 })
                 .reply(200, { data: [] });
 
 
             nock(process.env.GATEWAY_URL)
-                .post('/v1/widget/find-by-ids', { ids: [fakeDatasetOne.id] })
+                .post('/v1/widget/find-by-ids', { ids: [fakeDatasetOne.id], env: 'custom' })
                 .query({
-                    env: 'custom',
                     search: 'human'
                 })
                 .reply(200, widgetsFindById(fakeDatasetOne));
 
 
             nock(process.env.GATEWAY_URL)
-                .post('/v1/dataset/vocabulary/find-by-ids', { ids: [fakeDatasetOne.id] })
+                .post('/v1/dataset/vocabulary/find-by-ids', { ids: [fakeDatasetOne.id], env: 'custom' })
                 .query({
-                    env: 'custom',
                     search: 'human'
                 })
                 .reply(200, vocabularyFindById());
 
 
             nock(process.env.GATEWAY_URL)
-                .post('/v1/dataset/metadata/find-by-ids', { ids: [fakeDatasetOne.id] })
+                .post('/v1/dataset/metadata/find-by-ids', { ids: [fakeDatasetOne.id], env: 'custom' })
                 .query({
-                    env: 'custom',
                     search: 'human'
                 })
                 .reply(200, metadataFindById(fakeDatasetOne));
 
             nock(process.env.GATEWAY_URL)
-                .post('/v1/layer/find-by-ids', { ids: [fakeDatasetOne.id] })
+                .post('/v1/layer/find-by-ids', { ids: [fakeDatasetOne.id], env: 'custom' })
                 .query({
-                    env: 'custom',
                     search: 'human'
                 })
                 .reply(200, layersFindById(fakeDatasetOne));
 
             nock(process.env.GATEWAY_URL)
-                .post('/v1/graph/find-by-ids', { ids: [fakeDatasetOne.id] })
+                .post('/v1/graph/find-by-ids', { ids: [fakeDatasetOne.id], env: 'custom' })
                 .query({
-                    env: 'custom',
                     search: 'human'
                 })
                 .reply(200, graphFindById(fakeDatasetOne));
@@ -599,7 +592,7 @@ describe('Get datasets with includes', () => {
                     env: 'custom',
                     includes: ['layer', 'metadata', 'vocabulary', 'widget', 'graph', 'user'].join(','),
                     search: 'human',
-                    filterIncludesByEnv: true
+                    filterIncludesByEnv: "true"
                 });
 
             response.status.should.equal(200);
@@ -618,56 +611,50 @@ describe('Get datasets with includes', () => {
                 .post('/auth/user/find-by-ids', { ids: [fakeDatasetOne.userId] })
                 .query({
                     application: 'gfw',
-                    env: 'production,staging,preproduction-staging',
                     page: { size: 9999 },
                 })
                 .reply(200, { data: [] });
 
 
             nock(process.env.GATEWAY_URL)
-                .post('/v1/widget/find-by-ids', { ids: [fakeDatasetOne.id], app: 'gfw' })
+                .post('/v1/widget/find-by-ids', { ids: [fakeDatasetOne.id], app: 'gfw', env: 'production,staging,preproduction-staging' })
                 .query({
                     application: 'gfw',
-                    env: 'production,staging,preproduction-staging',
                     page: { size: 9999 },
                 })
                 .reply(200, widgetsFindById(fakeDatasetOne));
 
 
             nock(process.env.GATEWAY_URL)
-                .post('/v1/dataset/vocabulary/find-by-ids', { ids: [fakeDatasetOne.id] })
+                .post('/v1/dataset/vocabulary/find-by-ids', { ids: [fakeDatasetOne.id], env: 'production,staging,preproduction-staging' })
                 .query({
                     application: 'gfw',
-                    env: 'production,staging,preproduction-staging',
                     page: { size: 9999 },
                 })
                 .reply(200, vocabularyFindById());
 
 
             nock(process.env.GATEWAY_URL)
-                .post('/v1/dataset/metadata/find-by-ids', { ids: [fakeDatasetOne.id] })
+                .post('/v1/dataset/metadata/find-by-ids', { ids: [fakeDatasetOne.id], env: 'production,staging,preproduction-staging' })
                 .query({
                     application: 'gfw',
-                    env: 'production,staging,preproduction-staging',
                     page: { size: 9999 },
                 })
                 .reply(200, metadataFindById(fakeDatasetOne));
 
             nock(process.env.GATEWAY_URL)
-                .post('/v1/layer/find-by-ids', { ids: [fakeDatasetOne.id], app: 'gfw' })
+                .post('/v1/layer/find-by-ids', { ids: [fakeDatasetOne.id], app: 'gfw', env: 'production,staging,preproduction-staging' })
                 .query({
                     application: 'gfw',
-                    env: 'production,staging,preproduction-staging',
                     page: { size: 9999 },
 
                 })
                 .reply(200, layersFindById(fakeDatasetOne));
 
             nock(process.env.GATEWAY_URL)
-                .post('/v1/graph/find-by-ids', { ids: [fakeDatasetOne.id], app: 'gfw' })
+                .post('/v1/graph/find-by-ids', { ids: [fakeDatasetOne.id], app: 'gfw', env: 'production,staging,preproduction-staging' })
                 .query({
                     application: 'gfw',
-                    env: 'production,staging,preproduction-staging',
                     page: { size: 9999 },
                 })
                 .reply(200, graphFindById(fakeDatasetOne));
@@ -680,7 +667,7 @@ describe('Get datasets with includes', () => {
                     env: 'production,staging,preproduction-staging',
                     page: { size: 9999 },
                     includes: ['layer', 'metadata', 'vocabulary', 'widget', 'graph', 'user'].join(','),
-                    filterIncludesByEnv: true
+                    filterIncludesByEnv: "true"
                 });
 
             response.status.should.equal(200);
