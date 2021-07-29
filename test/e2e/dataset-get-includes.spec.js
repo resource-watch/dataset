@@ -611,6 +611,88 @@ describe('Get datasets with includes', () => {
             response.body.data[0].should.deep.equal(expectedData);
         });
 
+        it('Get datasets with includes and other query parameters, with filterIncludesByEnv set to true and custom env, should load included data filtered by env', async () => {
+            const fakeDatasetOne = await new Dataset(createDataset('cartodb', { env: 'staging', application: 'gfw' })).save();
+
+            nock(process.env.GATEWAY_URL)
+                .post('/auth/user/find-by-ids', { ids: [fakeDatasetOne.userId] })
+                .query({
+                    application: 'gfw',
+                    env: 'production,staging,preproduction-staging',
+                    page: { size: 9999 },
+                })
+                .reply(200, { data: [] });
+
+
+            nock(process.env.GATEWAY_URL)
+                .post('/v1/widget/find-by-ids', { ids: [fakeDatasetOne.id], app: 'gfw' })
+                .query({
+                    application: 'gfw',
+                    env: 'production,staging,preproduction-staging',
+                    page: { size: 9999 },
+                })
+                .reply(200, widgetsFindById(fakeDatasetOne));
+
+
+            nock(process.env.GATEWAY_URL)
+                .post('/v1/dataset/vocabulary/find-by-ids', { ids: [fakeDatasetOne.id] })
+                .query({
+                    application: 'gfw',
+                    env: 'production,staging,preproduction-staging',
+                    page: { size: 9999 },
+                })
+                .reply(200, vocabularyFindById());
+
+
+            nock(process.env.GATEWAY_URL)
+                .post('/v1/dataset/metadata/find-by-ids', { ids: [fakeDatasetOne.id] })
+                .query({
+                    application: 'gfw',
+                    env: 'production,staging,preproduction-staging',
+                    page: { size: 9999 },
+                })
+                .reply(200, metadataFindById(fakeDatasetOne));
+
+            nock(process.env.GATEWAY_URL)
+                .post('/v1/layer/find-by-ids', { ids: [fakeDatasetOne.id], app: 'gfw' })
+                .query({
+                    application: 'gfw',
+                    env: 'production,staging,preproduction-staging',
+                    page: { size: 9999 },
+
+                })
+                .reply(200, layersFindById(fakeDatasetOne));
+
+            nock(process.env.GATEWAY_URL)
+                .post('/v1/graph/find-by-ids', { ids: [fakeDatasetOne.id], app: 'gfw' })
+                .query({
+                    application: 'gfw',
+                    env: 'production,staging,preproduction-staging',
+                    page: { size: 9999 },
+                })
+                .reply(200, graphFindById(fakeDatasetOne));
+
+
+            const response = await requester
+                .get(`/api/v1/dataset`)
+                .query({
+                    application: 'gfw',
+                    env: 'production,staging,preproduction-staging',
+                    page: { size: 9999 },
+                    includes: ['layer', 'metadata', 'vocabulary', 'widget', 'graph', 'user'].join(','),
+                    filterIncludesByEnv: true
+                });
+
+            response.status.should.equal(200);
+            response.body.should.have.property('data').with.lengthOf(1);
+            response.body.should.have.property('links').and.be.an('object');
+
+            const expectedData = datasetGetIncludeAllAnonymous(fakeDatasetOne);
+            expectedData.attributes.env = 'staging';
+            expectedData.attributes.application = ['gfw'];
+            response.body.data[0].should.deep.equal(expectedData);
+        });
+
     });
 
     afterEach(async () => {
