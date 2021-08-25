@@ -1,3 +1,7 @@
+## 25/08/2021
+
+- Add `env` filter to `/find-by-ids` endpoint
+
 ## 17/06/2021
 
 - Update `rw-api-microservice-node` to remove CT support.

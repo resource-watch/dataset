@@ -273,6 +273,9 @@ class DatasetRouter {
         logger.info(`[DatasetRouter] Getting all datasets with ids`, ctx.request.body);
         if (ctx.request && ctx.request.body && ctx.request.body && ctx.request.body.ids.length > 0) {
             ctx.query.ids = ctx.request.body.ids.join(',');
+            if (ctx.request.body.env) {
+                ctx.request.query.env = ctx.request.body.env;
+            }
             await DatasetRouter.getAll(ctx);
         } else {
             ctx.body = {
