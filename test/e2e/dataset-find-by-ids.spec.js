@@ -1,5 +1,8 @@
 const nock = require('nock');
+const chai = require('chai');
 const Dataset = require('models/dataset.model');
+
+chai.should();
 
 const {
     createDataset, deserializeDataset, expectedDataset, ensureCorrectError
@@ -73,11 +76,12 @@ describe('Find by ids datasets', () => {
             .post(`/api/v1/dataset/find-by-ids`).send({ ids });
 
         response.status.should.equal(200);
-        response.body.should.have.property('data').with.lengthOf(1);
+        response.body.should.have.property('data').with.lengthOf(2);
 
         const datasetsIds = deserializeDataset(response).map((_) => _.id);
 
         datasetsIds.should.contain(cartoFakeDataset.id);
+        datasetsIds.should.contain(jsonFakeDataset.id);
     });
 
     it('Filters datasets by custom envs - single env value', async () => {

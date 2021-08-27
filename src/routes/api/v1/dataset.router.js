@@ -276,7 +276,8 @@ class DatasetRouter {
             if (ctx.request.body.env) {
                 ctx.request.query.env = ctx.request.body.env;
             }
-            await DatasetRouter.getAll(ctx);
+            const datasets = await DatasetService.getAll(ctx.request.query);
+            ctx.body = DatasetSerializer.serialize(datasets);
         } else {
             ctx.body = {
                 data: []
@@ -399,15 +400,20 @@ class DatasetRouter {
                 const uniqueIds = new Set([...finalIds]); // Intersect and unique
                 ctx.query.ids = [...uniqueIds].join(); // it has to be string
             }
-            // Links creation
-            const clonedQuery = { ...query };
-            delete clonedQuery['page[size]'];
-            delete clonedQuery['page[number]'];
-            delete clonedQuery.ids;
-            delete clonedQuery.usersRole;
-            const serializedQuery = serializeObjToQuery(clonedQuery) ? `?${serializeObjToQuery(clonedQuery)}&` : '?';
+
+            const originalQuery = { ...query };
+            delete originalQuery['page[size]'];
+            delete originalQuery['page[number]'];
+            delete originalQuery.ids;
+            delete originalQuery.usersRole;
+            const serializedQuery = serializeObjToQuery(originalQuery) ? `?${serializeObjToQuery(originalQuery)}&` : '?';
             const apiVersion = ctx.mountPath.split('/')[ctx.mountPath.split('/').length - 1];
             const link = `${ctx.request.protocol}://${getHostForPaginationLink(ctx)}/${apiVersion}${ctx.request.path}${serializedQuery}`;
+
+            if (!query.env) {
+                query.env = 'production';
+            }
+
             const datasets = await DatasetService.getAll(query, user && user.role === 'ADMIN');
             ctx.set('cache', `dataset ${query.includes ? query.includes.split(',').map((elem) => elem.trim()).join(' ') : ''}`);
             ctx.body = DatasetSerializer.serialize(datasets, link);

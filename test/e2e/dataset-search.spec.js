@@ -133,15 +133,22 @@ describe('Search datasets tests', () => {
             });
 
         nock(process.env.GATEWAY_URL)
-            .get(`/v1/graph/query/search-by-label-synonyms?search=keyword&sort=-most-viewed`)
+            .get(`/v1/graph/query/search-by-label-synonyms`)
+            .query({
+                search: 'keyword',
+                sort: '-most-viewed'
+            })
             .twice()
             .reply(200, {
                 data: []
             });
 
         nock(process.env.GATEWAY_URL)
-            .get(`/v1/graph/query/search-datasets-ids?search=keyword&sort=-most-viewed`)
-            .once()
+            .get(`/v1/graph/query/search-datasets-ids`)
+            .query({
+                search: 'keyword',
+                sort: '-most-viewed'
+            })
             .reply(200, {
                 data: [
                     jsonFakeDataset._id,
@@ -161,7 +168,6 @@ describe('Search datasets tests', () => {
 
         datasetIdsOne[0].should.equal(jsonFakeDataset._id);
         datasetIdsOne[1].should.equal(cartoFakeDataset._id);
-
 
         nock(process.env.GATEWAY_URL)
             .get(`/v1/graph/query/search-datasets-ids?search=keyword&sort=-most-viewed`)
