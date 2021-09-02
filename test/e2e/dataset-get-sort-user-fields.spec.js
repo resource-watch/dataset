@@ -166,7 +166,7 @@ describe('Get datasets sorted by user fields', () => {
             .reply(200, { data: fullUsers });
 
         nock(process.env.GATEWAY_URL)
-            .post('/auth/user/find-by-ids?sort=user.role', (body) => body.ids.length === userIds.length)
+            .post('/auth/user/find-by-ids', (body) => body.ids.length === userIds.length)
             .reply(200, { data: fullUsers });
 
         const response = await requester
@@ -209,7 +209,7 @@ describe('Get datasets sorted by user fields', () => {
             .reply(200, { data: fullUsers });
 
         nock(process.env.GATEWAY_URL)
-            .post('/auth/user/find-by-ids?sort=-user.role', (body) => body.ids.length === userIds.length)
+            .post('/auth/user/find-by-ids', (body) => body.ids.length === userIds.length)
             .reply(200, { data: fullUsers });
 
         const response = await requester

@@ -1,7 +1,7 @@
 const { default: logger } = require('logger');
 const { RWAPIMicroservice } = require('rw-api-microservice-node');
 const { INCLUDES } = require('app.constants');
-const { compact, uniq } = require('lodash');
+const { compact, uniq, pick } = require('lodash');
 const InvalidRequest = require('errors/invalidRequest.error');
 
 const serializeObjToQuery = (obj) => Object.keys(obj).reduce((a, k) => {
@@ -27,6 +27,7 @@ class RelationshipsService {
             query.application = query.app;
         }
         delete query.env
+        delete query.sort
         delete query.filterIncludesByEnv;
         delete query.includes;
         delete query['user.role'];
@@ -301,7 +302,8 @@ class RelationshipsService {
         }
     }
 
-    static async filterByConcepts(query) {
+    static async filterByConcepts(rawQuery) {
+        const query = pick(rawQuery, ['app', 'application', 'sort', 'concept']);
         try {
             const result = await RWAPIMicroservice.requestToMicroservice({
                 uri: `/v1/graph/query/search-datasets-ids?${serializeObjToQuery(query)}`,

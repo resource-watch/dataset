@@ -136,7 +136,6 @@ describe('Search datasets tests', () => {
             .get(`/v1/graph/query/search-by-label-synonyms`)
             .query({
                 search: 'keyword',
-                sort: '-most-viewed'
             })
             .twice()
             .reply(200, {
@@ -146,7 +145,6 @@ describe('Search datasets tests', () => {
         nock(process.env.GATEWAY_URL)
             .get(`/v1/graph/query/search-datasets-ids`)
             .query({
-                search: 'keyword',
                 sort: '-most-viewed'
             })
             .reply(200, {
@@ -170,7 +168,10 @@ describe('Search datasets tests', () => {
         datasetIdsOne[1].should.equal(cartoFakeDataset._id);
 
         nock(process.env.GATEWAY_URL)
-            .get(`/v1/graph/query/search-datasets-ids?search=keyword&sort=-most-viewed`)
+            .get(`/v1/graph/query/search-datasets-ids`)
+            .query({
+                sort: '-most-viewed'
+            })
             .once()
             .reply(200, {
                 data: [
@@ -180,7 +181,11 @@ describe('Search datasets tests', () => {
             });
 
         const responseTwo = await requester
-            .get(`/api/v1/dataset?search=keyword&sort=-most-viewed`);
+            .get(`/api/v1/dataset`)
+            .query({
+                search: 'keyword',
+                sort: '-most-viewed'
+            });
         const datasetsTwo = deserializeDataset(responseTwo);
 
         responseTwo.status.should.equal(200);
@@ -205,14 +210,20 @@ describe('Search datasets tests', () => {
             });
 
         nock(process.env.GATEWAY_URL)
-            .get(`/v1/graph/query/search-by-label-synonyms?search=keyword&sort=-most-favorited`)
+            .get(`/v1/graph/query/search-by-label-synonyms`)
+            .query({
+                search: 'keyword',
+            })
             .twice()
             .reply(200, {
                 data: []
             });
 
         nock(process.env.GATEWAY_URL)
-            .get(`/v1/graph/query/search-datasets-ids?search=keyword&sort=-most-favorited`)
+            .get(`/v1/graph/query/search-datasets-ids`)
+            .query({
+                sort: '-most-favorited'
+            })
             .once()
             .reply(200, {
                 data: [
@@ -222,7 +233,11 @@ describe('Search datasets tests', () => {
             });
 
         const responseOne = await requester
-            .get(`/api/v1/dataset?search=keyword&sort=-most-favorited`);
+            .get(`/api/v1/dataset`)
+            .query({
+                search: 'keyword',
+                sort: '-most-favorited'
+            });
         const datasetsOne = deserializeDataset(responseOne);
 
         responseOne.status.should.equal(200);
@@ -236,7 +251,10 @@ describe('Search datasets tests', () => {
 
 
         nock(process.env.GATEWAY_URL)
-            .get(`/v1/graph/query/search-datasets-ids?search=keyword&sort=-most-favorited`)
+            .get(`/v1/graph/query/search-datasets-ids`)
+            .query({
+                sort: '-most-favorited'
+            })
             .once()
             .reply(200, {
                 data: [
@@ -246,7 +264,11 @@ describe('Search datasets tests', () => {
             });
 
         const responseTwo = await requester
-            .get(`/api/v1/dataset?search=keyword&sort=-most-favorited`);
+            .get(`/api/v1/dataset`)
+            .query({
+                search: 'keyword',
+                sort: '-most-favorited'
+            });;
         const datasetsTwo = deserializeDataset(responseTwo);
 
         responseTwo.status.should.equal(200);
@@ -261,7 +283,11 @@ describe('Search datasets tests', () => {
 
     it('Search with keyword and sort by relevance non-specified is sorted using metadata', async () => {
         nock(process.env.GATEWAY_URL)
-            .get(`/v1/metadata?search=keyword&sort=relevance`)
+            .get(`/v1/metadata`)
+            .query({
+                search: 'keyword',
+                sort: 'relevance'
+            })
             .once()
             .reply(200, {
                 data: [
@@ -271,7 +297,10 @@ describe('Search datasets tests', () => {
             });
 
         nock(process.env.GATEWAY_URL)
-            .get(`/v1/graph/query/search-by-label-synonyms?search=keyword&sort=relevance`)
+            .get(`/v1/graph/query/search-by-label-synonyms`)
+            .query({
+                search: 'keyword',
+            })
             .once()
             .reply(200, {
                 data: []
@@ -279,7 +308,11 @@ describe('Search datasets tests', () => {
 
 
         const response = await requester
-            .get(`/api/v1/dataset?search=keyword&sort=relevance`);
+            .get(`/api/v1/dataset`)
+            .query({
+                search: 'keyword',
+                sort: 'relevance'
+            });
         const datasets = deserializeDataset(response);
 
         response.status.should.equal(200);
@@ -304,7 +337,10 @@ describe('Search datasets tests', () => {
             });
 
         nock(process.env.GATEWAY_URL)
-            .get(`/v1/graph/query/search-by-label-synonyms?search=keyword&sort=-relevance`)
+            .get(`/v1/graph/query/search-by-label-synonyms`)
+            .query({
+                search: 'keyword',
+            })
             .once()
             .reply(200, {
                 data: []
@@ -312,7 +348,11 @@ describe('Search datasets tests', () => {
 
 
         const response = await requester
-            .get(`/api/v1/dataset?search=keyword&sort=${encodeURIComponent('-')}relevance`);
+            .get(`/api/v1/dataset`)
+            .query({
+                search: 'keyword',
+                sort: '-relevance'
+            });
         const datasets = deserializeDataset(response);
 
         response.status.should.equal(200);
@@ -359,14 +399,21 @@ describe('Search datasets tests', () => {
             });
 
         nock(process.env.GATEWAY_URL)
-            .get(`/v1/graph/query/search-by-label-synonyms?search=keyword&sort=metadata`)
+            .get(`/v1/graph/query/search-by-label-synonyms`)
+            .query({
+                search: 'keyword',
+            })
             .twice()
             .reply(200, {
                 data: []
             });
 
         const responseOne = await requester
-            .get(`/api/v1/dataset?search=keyword&sort=metadata`);
+            .get(`/api/v1/dataset`)
+            .query({
+                search: 'keyword',
+                sort: 'metadata'
+            });
         const datasetsOne = deserializeDataset(responseOne);
 
         responseOne.status.should.equal(200);
@@ -379,7 +426,11 @@ describe('Search datasets tests', () => {
         datasetIdsOne[1].should.equal(jsonFakeDataset._id);
 
         nock(process.env.GATEWAY_URL)
-            .get(`/v1/metadata?search=keyword&sort=metadata`)
+            .get(`/v1/metadata`)
+            .query({
+                search: 'keyword',
+                sort: 'metadata'
+            })
             .once()
             .reply(200, {
                 data: [
@@ -389,7 +440,11 @@ describe('Search datasets tests', () => {
             });
 
         const responseTwo = await requester
-            .get(`/api/v1/dataset?search=keyword&sort=metadata`);
+            .get(`/api/v1/dataset`)
+            .query({
+                search: 'keyword',
+                sort: 'metadata'
+            });
         const datasetsTwo = deserializeDataset(responseTwo);
 
         responseTwo.status.should.equal(200);
