@@ -366,6 +366,30 @@ describe('Get datasets', () => {
             datasetIds2.should.not.contain(ds4._id);
         });
 
+        it('Getting datasets filtering by concepts (graph) returns 200 OK response including only datasets that match the filter', async () => {
+            const ds1 = await new Dataset(createDataset('gee')).save();
+            const ds2 = await new Dataset(createDataset('gee', { applicationConfig: { rw: { highlighted: 'false' } } })).save();
+            const ds3 = await new Dataset(createDataset('cartodb', { applicationConfig: { rw: { highlighted: 'true' } } })).save();
+            const ds4 = await new Dataset(createDataset('cartodb', { applicationConfig: { rw: { highlighted: true } } })).save();
+
+            nock(process.env.GATEWAY_URL)
+                .get('/v1/graph/query/search-datasets-ids')
+                .query({ 'concepts[0][0]': 'forest' })
+                .reply(200, { data: [ds1.id, ds2.id] });
+
+
+            const response = await requester
+                .get(`/api/v1/dataset?concepts[0][0]=forest`);
+            response.status.should.equal(200);
+            response.body.should.have.property('data').with.lengthOf(2);
+
+            const datasetIds = response.body.data.map((dataset) => dataset.id);
+            datasetIds.should.contain(ds1._id);
+            datasetIds.should.contain(ds2._id);
+            datasetIds.should.not.contain(ds3._id);
+            datasetIds.should.not.contain(ds4._id);
+        });
+
     });
 
     describe('Environments', () => {
@@ -418,7 +442,7 @@ describe('Get datasets', () => {
             const response = await requester
                 .get(`/api/v1/dataset`)
                 .query({
-                    env: ['custom','potato'].join(',')
+                    env: ['custom', 'potato'].join(',')
                 });
             response.status.should.equal(200);
             response.body.should.have.property('data').with.lengthOf(2);

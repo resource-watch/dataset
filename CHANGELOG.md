@@ -1,3 +1,7 @@
+## 20/09/2021
+
+- Fix regression in graph concept filter
+ 
 ## 25/08/2021
 
 - Add `env` filter to `/find-by-ids` endpoint
