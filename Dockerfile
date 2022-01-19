@@ -1,13 +1,14 @@
-FROM node:12-alpine
+FROM node:12-bullseye
 MAINTAINER info@vizzuality.com
 
 ENV NAME dataset
 ENV USER dataset
 
-RUN apk update && apk upgrade && \
-    apk add --no-cache --update bash git openssh python alpine-sdk
+RUN apt-get update -y && apt-get upgrade -y && \
+    apt-get install -y bash git ssh python3 make
 
-RUN addgroup $USER && adduser -s /bin/bash -D -G $USER $USER
+RUN addgroup $USER && useradd -ms /bin/bash $USER -g $USER
+RUN yarn global add bunyan
 
 RUN mkdir -p /opt/$NAME
 COPY package.json /opt/$NAME/package.json
