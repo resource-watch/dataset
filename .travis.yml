@@ -18,6 +18,10 @@ env:
     - S3_SECRET_ACCESS_KEY=bar
     - FASTLY_ENABLED=false
 
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install python3
+
 before_script:
   - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
   - chmod +x ./cc-test-reporter
