@@ -2,10 +2,10 @@ language: node_js
 services:
   - mongodb
 node_js:
-  - "12"
+  - "16"
 cache:
   directories:
-  - "node_modules"
+    - "node_modules"
 env:
   global:
     - CC_TEST_REPORTER_ID=dabdd92208e41ebbec13b01f5e943a0dcf7ec40f4a98d6d0a8f811e8cca9b443
