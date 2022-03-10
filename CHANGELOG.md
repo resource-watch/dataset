@@ -1,3 +1,6 @@
+## 10/03/2022
+
+- Upgrade node 12 -> 16.
 ## 20/09/2021
 
 - Fix regression in graph concept filter
