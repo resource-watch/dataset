@@ -33,7 +33,7 @@
     "url": "http://vizzuality.com/"
   },
   "engines": {
-    "node": "~12"
+    "node": "~16"
   },
   "license": "MIT",
   "devDependencies": {
