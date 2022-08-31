@@ -409,7 +409,33 @@ describe('Get datasets', () => {
             const datasetIds = datasets.map((dataset) => dataset.id);
             datasetIds.should.contain(ds1._id);
             datasetIds.should.contain(ds2._id);
+            datasetIds.should.not.contain(ds3._id);
+            datasetIds.should.not.contain(ds4._id);
         });
+
+        it('Getting datasets with env filter set to all returns all datasets from every env', async () => {
+            const ds1 = await new Dataset(createDataset('cartodb')).save();
+            const ds2 = await new Dataset(createDataset('cartodb', { env: 'production' })).save();
+            const ds3 = await new Dataset(createDataset('cartodb', { env: 'custom' })).save();
+            const ds4 = await new Dataset(createDataset('cartodb', { env: 'potato' })).save();
+
+
+            const response = await requester
+                .get(`/api/v1/dataset`)
+                .query({
+                    env: 'all'
+                });;
+            response.status.should.equal(200);
+            response.body.should.have.property('data').with.lengthOf(4);
+
+            const datasets = deserializeDataset(response);
+            const datasetIds = datasets.map((dataset) => dataset.id);
+            datasetIds.should.contain(ds1._id);
+            datasetIds.should.contain(ds2._id);
+            datasetIds.should.contain(ds3._id);
+            datasetIds.should.contain(ds4._id);
+        });
+
 
         it('Getting datasets with the env filter set to a custom value should returns all datasets with that env', async () => {
             const ds1 = await new Dataset(createDataset('cartodb')).save();

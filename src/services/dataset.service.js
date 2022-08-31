@@ -145,9 +145,13 @@ class DatasetService {
 
                 }
             } else if (param === 'env') {
-                query.env = {
-                    $in: query[param].split(',')
-                };
+                if (query[param] === 'all') {
+                    delete query.env;
+                } else {
+                    query.env = {
+                        $in: query[param].split(',')
+                    };
+                }
             } else if (param === 'usersRole') {
                 logger.debug('Params users roles');
                 query.userId = { ...query.userId || {}, $in: query[param] };
