@@ -269,6 +269,21 @@ class DatasetRouter {
         }
     }
 
+    static async deleteByUserId(ctx) {
+        const userIdToDelete = ctx.params.userId;
+        const loggedUser = DatasetRouter.getUser(ctx);
+
+        const user = userIdToDelete === loggedUser.id ? loggedUser : await UserService.getUserById(userIdToDelete);
+
+        logger.info(`[DatasetRouter] Deleting all dataset for user with id: ${userIdToDelete}`);
+        try {
+            const deletedDatasets = await DatasetService.deleteByUserId(userIdToDelete, user);
+            ctx.body = DatasetSerializer.serialize(deletedDatasets);
+        } catch (err) {
+            throw err
+        }
+    }
+
     static async findByIds(ctx) {
         logger.info(`[DatasetRouter] Getting all datasets with ids`, ctx.request.body);
         if (ctx.request && ctx.request.body && ctx.request.body && ctx.request.body.ids.length > 0) {
@@ -558,6 +573,24 @@ const authorizationMiddleware = async (ctx, next) => {
     await next(); // SUPERADMIN is included here
 };
 
+const deleteResourceAuthorizationMiddleware = async (ctx, next) => {
+    logger.info(`[DatasetRouter] Checking authorization`);
+    const user = DatasetRouter.getUser(ctx);
+    const userFromParam = ctx.params.userId;
+
+    if (user.id === 'microservice' || user.role === 'ADMIN') {
+        await next();
+        return;
+    }
+
+    if (userFromParam !== user.id) {
+        ctx.throw(403, 'Forbidden');
+        return;
+    }
+
+    await next();
+};
+
 const authorizationBigQuery = async (ctx, next) => {
     logger.info(`[DatasetRouter] Checking if bigquery dataset`);
     // Get user from query (delete) or body (post-patch)
@@ -619,5 +652,7 @@ router.get('/:dataset', DatasetRouter.get);
 router.patch('/:dataset', isAuthenticated, validationMiddleware, authorizationMiddleware, DatasetRouter.update);
 router.delete('/:dataset', isAuthenticated, authorizationMiddleware, DatasetRouter.delete);
 router.post('/:dataset/clone', isAuthenticated, validationMiddleware, authorizationMiddleware, DatasetRouter.clone);
+
+router.delete('/by-user/:userId', isAuthenticated, deleteResourceAuthorizationMiddleware, DatasetRouter.deleteByUserId)
 
 module.exports = router;
