@@ -106,6 +106,7 @@ class DatasetService {
                 delete query.application;
             }
         }
+
         if (query.userId) {
             query.userId = {
                 $eq: query.userId
@@ -610,6 +611,19 @@ class DatasetService {
         // remove the dataset at the end
         deletedDataset = await currentDataset.remove();
         return deletedDataset;
+    }
+
+    static async deleteByUserId(userId, user) {
+        logger.debug(`[DatasetService]: Getting datasets for user with id:  ${userId}`);
+
+        const userDatasets = await DatasetService.getAll({ userId });
+
+        userDatasets.docs = await Promise.all(userDatasets.docs.map(async (dataset) => {
+            const deletedDataset = await DatasetService.delete(dataset._id, user)
+            return deletedDataset;
+        }))
+
+        return userDatasets;
     }
 
     static async getAll(query = {}, isAdmin = false) {

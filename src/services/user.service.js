@@ -14,6 +14,17 @@ class UserService {
         return body.data;
     }
 
+    static async getUserById(userId) {
+        const body = await RWAPIMicroservice.requestToMicroservice({
+            uri: `/auth/user/${userId}`,
+            method: 'GET',
+            json: true,
+            version: false
+        });
+        logger.debug('User by id', body.data);
+        return body.data;
+    }
+
 }
 
 module.exports = UserService;
