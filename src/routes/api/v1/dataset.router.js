@@ -280,7 +280,8 @@ class DatasetRouter {
             const deletedDatasets = await DatasetService.deleteByUserId(userIdToDelete, user);
             ctx.body = DatasetSerializer.serialize(deletedDatasets);
         } catch (err) {
-            throw err
+            logger.error(`Error deleting datasets from user ${userIdToDelete}`, err);
+            ctx.throw(500, `Error deleting datasets from user ${userIdToDelete}`);
         }
     }
 
