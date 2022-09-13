@@ -619,8 +619,7 @@ class DatasetService {
         const userDatasets = await DatasetService.getAll({ userId });
 
         userDatasets.docs = await Promise.all(userDatasets.docs.map(async (dataset) => {
-            const deletedDataset = await DatasetService.delete(dataset._id, user)
-            return deletedDataset;
+            return DatasetService.delete(dataset._id, user)
         }))
 
         return userDatasets;
