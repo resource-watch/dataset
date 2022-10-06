@@ -584,12 +584,12 @@ const deleteResourceAuthorizationMiddleware = async (ctx, next) => {
         return;
     }
 
-    if (userFromParam !== user.id) {
-        ctx.throw(403, 'Forbidden');
+    if (userFromParam === user.id) {
+        await next();
         return;
     }
-
-    await next();
+    
+    ctx.throw(403, 'Forbidden');
 };
 
 const authorizationBigQuery = async (ctx, next) => {
@@ -651,9 +651,9 @@ router.post('/:dataset/recover', isAuthenticated, authorizationRecover, DatasetR
 
 router.get('/:dataset', DatasetRouter.get);
 router.patch('/:dataset', isAuthenticated, validationMiddleware, authorizationMiddleware, DatasetRouter.update);
+router.delete('/by-user/:userId', isAuthenticated, deleteResourceAuthorizationMiddleware, DatasetRouter.deleteByUserId)
 router.delete('/:dataset', isAuthenticated, authorizationMiddleware, DatasetRouter.delete);
 router.post('/:dataset/clone', isAuthenticated, validationMiddleware, authorizationMiddleware, DatasetRouter.clone);
 
-router.delete('/by-user/:userId', isAuthenticated, deleteResourceAuthorizationMiddleware, DatasetRouter.deleteByUserId)
 
 module.exports = router;
