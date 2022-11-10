@@ -3,7 +3,7 @@ const chai = require('chai');
 const Dataset = require('models/dataset.model');
 const { USERS } = require('./utils/test.constants');
 const {
-    createDataset, getUUID, deserializeDataset, mockGetUserFromToken
+    createDataset, mockGetUserFromToken
 } = require('./utils/helpers');
 
 chai.should();
@@ -137,9 +137,9 @@ describe('Dataset delete tests', () => {
                 .send();
 
             deleteResponse.status.should.equal(200);
-            deleteResponse.body.should.have.property('data').with.lengthOf(3);
+            deleteResponse.body.deletedDatasets.should.have.property('data').with.lengthOf(3);
 
-            const datasets = deserializeDataset(deleteResponse);
+            const datasets = deleteResponse.body.deletedDatasets.data;
             let datasetIds = datasets.map((dataset) => dataset.id);
             datasetIds.should.contain(fakeDatasetOne._id);
             datasetIds.should.contain(fakeDatasetTwo._id);
@@ -176,9 +176,9 @@ describe('Dataset delete tests', () => {
                 .send();
 
             deleteResponse.status.should.equal(200);
-            deleteResponse.body.should.have.property('data').with.lengthOf(3);
+            deleteResponse.body.deletedDatasets.should.have.property('data').with.lengthOf(3);
 
-            const datasets = deserializeDataset(deleteResponse);
+            const datasets = deleteResponse.body.deletedDatasets.data;
             let datasetIds = datasets.map((dataset) => dataset.id);
             datasetIds.should.contain(fakeDatasetOne._id);
             datasetIds.should.contain(fakeDatasetTwo._id);
@@ -193,6 +193,56 @@ describe('Dataset delete tests', () => {
             datasetIds = findAllDatasets.map((dataset) => dataset._id);
             datasetIds.should.contain(fakeDatasetFromManager._id);
             datasetIds.should.contain(fakeDatasetFromAdmin._id);
+        });
+
+        it('Deleting datasets while some of them are protected should only delete unprotected ones', async () => {
+            mockGetUserFromToken(USERS.USER);
+
+            const fakeDatasetFromManager = await new Dataset(createDataset('cartodb', { userId: USERS.MANAGER.id })).save();
+            const fakeDatasetFromAdmin = await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
+
+            const fakeDatasetOne = await new Dataset(createDataset('cartodb', { userId: USERS.USER.id, protected: true })).save();
+            const fakeDatasetTwo = await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
+            const fakeDatasetThree = await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
+            const fakeDatasetFour = await new Dataset(createDataset('cartodb', { userId: USERS.USER.id, protected: true })).save();
+
+            prepareNockForDelete(fakeDatasetTwo)
+            prepareNockForDelete(fakeDatasetThree)
+
+
+            const deleteResponse = await requester
+                .delete(`/api/v1/dataset/by-user/${USERS.USER.id}`)
+                .set('Authorization', `Bearer abcd`)
+                .send();
+
+            deleteResponse.status.should.equal(200);
+            deleteResponse.body.deletedDatasets.should.have.property('data').with.lengthOf(2);
+            deleteResponse.body.protectedDatasets.should.have.property('data').with.lengthOf(2);
+
+            const deletedDatasets = deleteResponse.body.deletedDatasets.data;
+            let datasetIds = deletedDatasets.map((dataset) => dataset.id);
+            datasetIds.should.contain(fakeDatasetTwo._id);
+            datasetIds.should.contain(fakeDatasetThree._id);
+
+            const protectedDatasets = deleteResponse.body.protectedDatasets.data;
+            datasetIds = protectedDatasets.map((dataset) => dataset.id);
+            datasetIds.should.contain(fakeDatasetOne._id);
+            datasetIds.should.contain(fakeDatasetFour._id);
+
+            const findDatasetByUser = await Dataset.find({ userId: { $eq: USERS.USER.id } }).exec();
+            findDatasetByUser.should.be.an('array').with.lengthOf(2);
+            datasetIds = findDatasetByUser.map((dataset) => dataset._id);
+            datasetIds.should.contain(fakeDatasetOne._id);
+            datasetIds.should.contain(fakeDatasetFour._id);
+
+            const findAllDatasets = await Dataset.find({}).exec();
+            findAllDatasets.should.be.an('array').with.lengthOf(4);
+
+            datasetIds = findAllDatasets.map((dataset) => dataset._id);
+            datasetIds.should.contain(fakeDatasetFromManager._id);
+            datasetIds.should.contain(fakeDatasetFromAdmin._id);
+            datasetIds.should.contain(fakeDatasetOne._id);
+            datasetIds.should.contain(fakeDatasetFour._id);
         });
     })
 

@@ -617,12 +617,16 @@ class DatasetService {
         logger.debug(`[DatasetService]: Getting datasets for user with id:  ${userId}`);
 
         const userDatasets = await DatasetService.getAll({ userId });
+        const protectedDatasets = { docs: userDatasets.docs.filter((dataset) => dataset.protected) }
 
-        userDatasets.docs = await Promise.all(userDatasets.docs.map(async (dataset) => {
+        userDatasets.docs = await Promise.all(userDatasets.docs.filter((dataset) => !dataset.protected).map(async (dataset) => {
             return DatasetService.delete(dataset._id, user)
-        }))
-
-        return userDatasets;
+        }));
+        
+        return {
+            deletedDatasets: userDatasets,
+            protectedDatasets: protectedDatasets.docs.length > 0 ? protectedDatasets : null
+        };
     }
 
     static async getAll(query = {}, isAdmin = false) {
