@@ -277,8 +277,14 @@ class DatasetRouter {
 
         logger.info(`[DatasetRouter] Deleting all dataset for user with id: ${userIdToDelete}`);
         try {
-            const deletedDatasets = await DatasetService.deleteByUserId(userIdToDelete, user);
-            ctx.body = DatasetSerializer.serialize(deletedDatasets);
+            const datasets = await DatasetService.deleteByUserId(userIdToDelete, user);
+            ctx.body = {
+                deletedDatasets: DatasetSerializer.serialize(datasets.deletedDatasets)
+            }
+            
+            if (datasets.protectedDatasets) {
+                ctx.body.protectedDatasets = DatasetSerializer.serialize(datasets.protectedDatasets);
+            }
         } catch (err) {
             logger.error(`Error deleting datasets from user ${userIdToDelete}`, err);
             ctx.throw(500, `Error deleting datasets from user ${userIdToDelete}`);
