@@ -17,7 +17,10 @@ nock.enableNetConnect(process.env.HOST_IP);
 
 const prepareNockForDelete = (fakeDataset) => {
     nock(process.env.GATEWAY_URL)
-        .get(`/v1/dataset/${fakeDataset._id}/layer?protected=true`)
+        .get(`/v1/dataset/${fakeDataset._id}/layer`)
+        .query({
+            protected: true
+        })
         .reply(200, {
             status: 200,
             data: []
@@ -35,16 +38,6 @@ const prepareNockForDelete = (fakeDataset) => {
 
     nock(process.env.GATEWAY_URL)
         .delete(`/v1/dataset/${fakeDataset._id}/vocabulary/knowledge_graph?application=rw`)
-        .reply(200, {
-            status: 200,
-            data: []
-        });
-
-    nock(process.env.GATEWAY_URL)
-        .delete(`/v1/dataset/${fakeDataset._id}/layer`)
-        .query({
-            protected: true
-        })
         .reply(200, {
             status: 200,
             data: []
@@ -87,6 +80,8 @@ describe('Dataset delete tests', () => {
         }
 
         requester = await getTestServer();
+
+        await Dataset.deleteMany({}).exec();
     });
 
     describe('Delete by user', () => {
@@ -150,9 +145,10 @@ describe('Dataset delete tests', () => {
                 .send();
 
             deleteResponse.status.should.equal(200);
-            deleteResponse.body.deletedDatasets.should.have.property('data').with.lengthOf(3);
+            deleteResponse.body.deletedDatasets.should.be.an('array').and.with.lengthOf(3);
+            deleteResponse.body.protectedDatasets.should.be.an('array').and.with.lengthOf(0);
 
-            const datasets = deleteResponse.body.deletedDatasets.data;
+            const datasets = deleteResponse.body.deletedDatasets;
             let datasetIds = datasets.map((dataset) => dataset.id);
             datasetIds.should.contain(fakeDatasetOne._id);
             datasetIds.should.contain(fakeDatasetTwo._id);
@@ -189,9 +185,10 @@ describe('Dataset delete tests', () => {
                 .send();
 
             deleteResponse.status.should.equal(200);
-            deleteResponse.body.deletedDatasets.should.have.property('data').with.lengthOf(3);
+            deleteResponse.body.deletedDatasets.should.be.an('array').and.with.lengthOf(3);
+            deleteResponse.body.protectedDatasets.should.be.an('array').and.with.lengthOf(0);
 
-            const datasets = deleteResponse.body.deletedDatasets.data;
+            const datasets = deleteResponse.body.deletedDatasets;
             let datasetIds = datasets.map((dataset) => dataset.id);
             datasetIds.should.contain(fakeDatasetOne._id);
             datasetIds.should.contain(fakeDatasetTwo._id);
@@ -217,7 +214,6 @@ describe('Dataset delete tests', () => {
                 await new Dataset(createDataset('cartodb', { userId: USERS.MANAGER.id, protected: false })).save();
                 await new Dataset(createDataset('cartodb', { userId: USERS.MANAGER.id, protected: true })).save();
 
-                console.log(datasetToDelete.id)
                 prepareNockForDelete(datasetToDelete)
             }));
 
@@ -227,17 +223,17 @@ describe('Dataset delete tests', () => {
                 .send();
 
             deleteResponse.status.should.equal(200);
-            deleteResponse.body.deletedDatasets.should.have.property('data').with.lengthOf(100);
-            deleteResponse.body.protectedDatasets.should.have.property('data').with.lengthOf(100);
+            deleteResponse.body.deletedDatasets.should.be.an('array').and.with.lengthOf(100);
+            deleteResponse.body.protectedDatasets.should.be.an('array').and.with.lengthOf(100);
 
-            const deletedDatasets = deleteResponse.body.deletedDatasets.data;
+            const deletedDatasets = deleteResponse.body.deletedDatasets;
             deletedDatasets.should.have.lengthOf(100)
             deletedDatasets.forEach((dataset) => {
                 dataset.attributes.protected.should.equal(false)
                 dataset.attributes.userId.should.equal(USERS.USER.id)
             });
 
-            const protectedDatasets = deleteResponse.body.protectedDatasets.data;
+            const protectedDatasets = deleteResponse.body.protectedDatasets;
             protectedDatasets.should.have.lengthOf(100)
             protectedDatasets.forEach((dataset) => {
                 dataset.attributes.protected.should.equal(true)
@@ -247,8 +243,8 @@ describe('Dataset delete tests', () => {
             const findDatasetByUser = await Dataset.find({ userId: { $eq: USERS.USER.id } }).exec();
             findDatasetByUser.should.be.an('array').with.lengthOf(100);
             findDatasetByUser.forEach((dataset) => {
-                dataset.attributes.protected.should.equal(true)
-                dataset.attributes.userId.should.equal(USERS.USER.id)
+                dataset.protected.should.equal(true)
+                dataset.userId.should.equal(USERS.USER.id)
             });
 
             const findAllDatasets = await Dataset.find({}).exec();
