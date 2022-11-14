@@ -24,7 +24,10 @@ const prepareNockForDelete = (fakeDataset) => {
         });
 
     nock(process.env.GATEWAY_URL)
-        .get(`/v1/dataset/${fakeDataset._id}/widget?protected=true`)
+        .get(`/v1/dataset/${fakeDataset._id}/widget`)
+        .query({
+            protected: true
+        })
         .reply(200, {
             status: 200,
             data: []
@@ -32,6 +35,16 @@ const prepareNockForDelete = (fakeDataset) => {
 
     nock(process.env.GATEWAY_URL)
         .delete(`/v1/dataset/${fakeDataset._id}/vocabulary/knowledge_graph?application=rw`)
+        .reply(200, {
+            status: 200,
+            data: []
+        });
+
+    nock(process.env.GATEWAY_URL)
+        .delete(`/v1/dataset/${fakeDataset._id}/layer`)
+        .query({
+            protected: true
+        })
         .reply(200, {
             status: 200,
             data: []
@@ -198,17 +211,15 @@ describe('Dataset delete tests', () => {
         it('Deleting datasets while some of them are protected should only delete unprotected ones', async () => {
             mockGetUserFromToken(USERS.USER);
 
-            const fakeDatasetFromManager = await new Dataset(createDataset('cartodb', { userId: USERS.MANAGER.id })).save();
-            const fakeDatasetFromAdmin = await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
+            await Promise.all([...Array(100)].map(async () => {
+                const datasetToDelete = await new Dataset(createDataset('cartodb', { userId: USERS.USER.id, protected: false })).save();
+                await new Dataset(createDataset('cartodb', { userId: USERS.USER.id, protected: true })).save();
+                await new Dataset(createDataset('cartodb', { userId: USERS.MANAGER.id, protected: false })).save();
+                await new Dataset(createDataset('cartodb', { userId: USERS.MANAGER.id, protected: true })).save();
 
-            const fakeDatasetOne = await new Dataset(createDataset('cartodb', { userId: USERS.USER.id, protected: true })).save();
-            const fakeDatasetTwo = await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
-            const fakeDatasetThree = await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
-            const fakeDatasetFour = await new Dataset(createDataset('cartodb', { userId: USERS.USER.id, protected: true })).save();
-
-            prepareNockForDelete(fakeDatasetTwo)
-            prepareNockForDelete(fakeDatasetThree)
-
+                console.log(datasetToDelete.id)
+                prepareNockForDelete(datasetToDelete)
+            }));
 
             const deleteResponse = await requester
                 .delete(`/api/v1/dataset/by-user/${USERS.USER.id}`)
@@ -216,33 +227,32 @@ describe('Dataset delete tests', () => {
                 .send();
 
             deleteResponse.status.should.equal(200);
-            deleteResponse.body.deletedDatasets.should.have.property('data').with.lengthOf(2);
-            deleteResponse.body.protectedDatasets.should.have.property('data').with.lengthOf(2);
+            deleteResponse.body.deletedDatasets.should.have.property('data').with.lengthOf(100);
+            deleteResponse.body.protectedDatasets.should.have.property('data').with.lengthOf(100);
 
             const deletedDatasets = deleteResponse.body.deletedDatasets.data;
-            let datasetIds = deletedDatasets.map((dataset) => dataset.id);
-            datasetIds.should.contain(fakeDatasetTwo._id);
-            datasetIds.should.contain(fakeDatasetThree._id);
+            deletedDatasets.should.have.lengthOf(100)
+            deletedDatasets.forEach((dataset) => {
+                dataset.attributes.protected.should.equal(false)
+                dataset.attributes.userId.should.equal(USERS.USER.id)
+            });
 
             const protectedDatasets = deleteResponse.body.protectedDatasets.data;
-            datasetIds = protectedDatasets.map((dataset) => dataset.id);
-            datasetIds.should.contain(fakeDatasetOne._id);
-            datasetIds.should.contain(fakeDatasetFour._id);
+            protectedDatasets.should.have.lengthOf(100)
+            protectedDatasets.forEach((dataset) => {
+                dataset.attributes.protected.should.equal(true)
+                dataset.attributes.userId.should.equal(USERS.USER.id)
+            });
 
             const findDatasetByUser = await Dataset.find({ userId: { $eq: USERS.USER.id } }).exec();
-            findDatasetByUser.should.be.an('array').with.lengthOf(2);
-            datasetIds = findDatasetByUser.map((dataset) => dataset._id);
-            datasetIds.should.contain(fakeDatasetOne._id);
-            datasetIds.should.contain(fakeDatasetFour._id);
+            findDatasetByUser.should.be.an('array').with.lengthOf(100);
+            findDatasetByUser.forEach((dataset) => {
+                dataset.attributes.protected.should.equal(true)
+                dataset.attributes.userId.should.equal(USERS.USER.id)
+            });
 
             const findAllDatasets = await Dataset.find({}).exec();
-            findAllDatasets.should.be.an('array').with.lengthOf(4);
-
-            datasetIds = findAllDatasets.map((dataset) => dataset._id);
-            datasetIds.should.contain(fakeDatasetFromManager._id);
-            datasetIds.should.contain(fakeDatasetFromAdmin._id);
-            datasetIds.should.contain(fakeDatasetOne._id);
-            datasetIds.should.contain(fakeDatasetFour._id);
+            findAllDatasets.should.be.an('array').with.lengthOf(300);
         });
     })
 
