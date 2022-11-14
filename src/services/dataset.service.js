@@ -17,6 +17,7 @@ const slug = require('slug');
 const { STATUS } = require('app.constants');
 const isUndefined = require('lodash/isUndefined');
 const lodashSet = require('lodash/set');
+const c = require('config');
 
 const stage = process.env.NODE_ENV;
 
@@ -545,17 +546,22 @@ class DatasetService {
         }
     }
 
-    static async delete(id, user) {
-        logger.debug(`[DatasetService]: Getting dataset with id:  ${id}`);
-        logger.info(`[DBACCESS-FIND]: dataset.id: ${id}`);
+    static async deleteById(id, user) {
         const currentDataset = await Dataset.findById(id).exec() || await Dataset.findOne({
             slug: id
         }).exec();
-        if (!currentDataset) {
+        return DatasetService.delete(currentDataset, user);
+    }
+
+    static async delete(dataset, user) {
+        logger.debug(`[DatasetService]: Getting dataset with id: ${dataset.id}`);
+        logger.info(`[DBACCESS-FIND]: dataset.id: ${dataset.id}`);
+        const id = dataset.id;
+        if (!dataset) {
             logger.error(`[DatasetService]: Dataset with id ${id} doesn't exist`);
             throw new DatasetNotFound(`Dataset with id '${id}' doesn't exist`);
         }
-        if (currentDataset.protected) {
+        if (dataset.protected) {
             logger.error(`[DatasetService]: Dataset with id ${id} is protected`);
             throw new DatasetProtected(`Dataset is protected`);
         }
@@ -563,9 +569,9 @@ class DatasetService {
 
         logger.info('Checking user apps');
         user.extraUserData.apps.forEach(async (app) => {
-            const idx = currentDataset.application.indexOf(app);
+            const idx = dataset.application.indexOf(app);
             if (idx > -1) {
-                currentDataset.application.splice(idx, 1);
+                dataset.application.splice(idx, 1);
                 try {
                     await DatasetService.deleteKnowledgeGraphVocabulary(id, app);
                 } catch (err) {
@@ -574,9 +580,9 @@ class DatasetService {
             }
         });
         let deletedDataset;
-        if (currentDataset.application.length > 0) {
+        if (dataset.application.length > 0) {
             logger.info(`[DBACCESS-SAVE]: dataset.id: ${id}`);
-            deletedDataset = await currentDataset.save();
+            deletedDataset = await dataset.save();
             return deletedDataset;
         }
 
@@ -609,23 +615,25 @@ class DatasetService {
             logger.error('Error removing vocabularies', err);
         }
         // remove the dataset at the end
-        deletedDataset = await currentDataset.remove();
+        deletedDataset = await dataset.remove();
         return deletedDataset;
     }
 
     static async deleteByUserId(userId, user) {
         logger.debug(`[DatasetService]: Getting datasets for user with id:  ${userId}`);
 
-        const userDatasets = await DatasetService.getAll({ userId });
-        const protectedDatasets = { docs: userDatasets.docs.filter((dataset) => dataset.protected) }
+        const filteredQuery = DatasetService.getFilteredQuery({ userId });
 
-        userDatasets.docs = await Promise.all(userDatasets.docs.filter((dataset) => !dataset.protected).map(async (dataset) => {
-            return DatasetService.delete(dataset._id, user)
+        const uprotectedDatasets = await Dataset.find({ ...filteredQuery, protected: false }).exec()
+        const protectedDatasets = await Dataset.find({ ...filteredQuery, protected: true }).exec()
+
+        await Promise.all(uprotectedDatasets.map(async (dataset) => {
+            return DatasetService.delete(dataset, user)
         }));
-        
+
         return {
-            deletedDatasets: userDatasets,
-            protectedDatasets: protectedDatasets.docs.length > 0 ? protectedDatasets : null
+            deletedDatasets: uprotectedDatasets,
+            protectedDatasets
         };
     }
 

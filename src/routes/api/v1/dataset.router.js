@@ -252,7 +252,7 @@ class DatasetRouter {
             await DatasetRouter.notifyAdapter(ctx, dataset);
 
             const user = DatasetRouter.getUser(ctx);
-            await DatasetService.delete(id, user);
+            await DatasetService.delete(dataset, user);
 
             ctx.set('uncache', `dataset ${dataset.id} ${dataset.slug}`);
             ctx.body = DatasetSerializer.serialize(dataset);
@@ -279,11 +279,11 @@ class DatasetRouter {
         try {
             const datasets = await DatasetService.deleteByUserId(userIdToDelete, user);
             ctx.body = {
-                deletedDatasets: DatasetSerializer.serialize(datasets.deletedDatasets)
+                deletedDatasets: DatasetSerializer.serialize(datasets.deletedDatasets).data
             }
-            
+
             if (datasets.protectedDatasets) {
-                ctx.body.protectedDatasets = DatasetSerializer.serialize(datasets.protectedDatasets);
+                ctx.body.protectedDatasets = DatasetSerializer.serialize(datasets.protectedDatasets).data;
             }
         } catch (err) {
             logger.error(`Error deleting datasets from user ${userIdToDelete}`, err);

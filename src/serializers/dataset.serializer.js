@@ -58,8 +58,10 @@ class DatasetSerializer {
                     data.docs.splice(data.docs.indexOf(undefined), 1);
                 }
                 result.data = data.docs.map((el) => DatasetSerializer.serializeElement(el));
-            } else if (Array.isArray(data)) {
+            } else if (Array.isArray(data) && data.length === 1) {
                 result.data = DatasetSerializer.serializeElement(data[0]);
+            } else if (Array.isArray(data)) {
+                result.data = data.map(DatasetSerializer.serializeElement)
             } else {
                 result.data = DatasetSerializer.serializeElement(data);
             }
