@@ -305,7 +305,6 @@ class DatasetRouter {
                 data: []
             };
         }
-
     }
 
     static async getAll(ctx) {

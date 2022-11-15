@@ -553,7 +553,7 @@ class DatasetService {
         return DatasetService.delete(currentDataset, user);
     }
 
-    static async delete(dataset, user) {
+    static async delete(dataset, user, applicationBasedDelete = true) {
         logger.debug(`[DatasetService]: Getting dataset with id: ${dataset.id}`);
         logger.info(`[DBACCESS-FIND]: dataset.id: ${dataset.id}`);
         const id = dataset.id;
@@ -580,7 +580,7 @@ class DatasetService {
             }
         });
         let deletedDataset;
-        if (dataset.application.length > 0) {
+        if (dataset.application.length > 0 && applicationBasedDelete === true) {
             logger.info(`[DBACCESS-SAVE]: dataset.id: ${id}`);
             deletedDataset = await dataset.save();
             return deletedDataset;
@@ -628,7 +628,7 @@ class DatasetService {
         const protectedDatasets = await Dataset.find({ ...filteredQuery, protected: true }).exec()
 
         await Promise.all(uprotectedDatasets.map(async (dataset) => {
-            return DatasetService.delete(dataset, user)
+            return DatasetService.delete(dataset, user, false)
         }));
 
         return {
