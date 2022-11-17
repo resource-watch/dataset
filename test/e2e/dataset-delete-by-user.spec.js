@@ -168,7 +168,7 @@ describe('Dataset delete tests', () => {
             datasetIds.should.contain(fakeDatasetFromAdmin._id);
         });
 
-        it.only('Deleting a dataset owned by the user as a MICROSERVICE should return all deleted datasets', async () => {
+        it('Deleting a dataset owned by the user as a MICROSERVICE should return all deleted datasets', async () => {
             mockGetUserFromToken(USERS.MICROSERVICE);
 
             nock(process.env.GATEWAY_URL)
@@ -355,7 +355,7 @@ describe('Dataset delete tests', () => {
         });
     })
 
-    it.only('Deleting all datasets of an user while being authenticated as USER should return a 200 and all datasets deleted - no datasets in the db', async () => {
+    it('Deleting all datasets of an user while being authenticated as USER should return a 200 and all datasets deleted - no datasets in the db', async () => {
         mockGetUserFromToken(USERS.MICROSERVICE);
 
         const response = await requester
