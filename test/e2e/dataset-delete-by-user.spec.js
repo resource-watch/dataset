@@ -168,6 +168,30 @@ describe('Dataset delete tests', () => {
             datasetIds.should.contain(fakeDatasetFromAdmin._id);
         });
 
+        it('Deleting a dataset owned by a user that does not exist as a MICROSERVICE should return a 404', async () => {
+            mockGetUserFromToken(USERS.MICROSERVICE);
+
+            nock(process.env.GATEWAY_URL)
+                .get(`/auth/user/potato`)
+                .reply(403, {
+                    errors: [
+                        {
+                            status: 403,
+                            detail: "Not authorized"
+                        }
+                    ]
+                });
+
+            const deleteResponse = await requester
+                .delete(`/api/v1/dataset/by-user/potato`)
+                .set('Authorization', `Bearer abcd`)
+                .send();
+
+            deleteResponse.status.should.equal(404);
+            deleteResponse.body.should.have.property('errors').and.be.an('array');
+            deleteResponse.body.errors[0].should.have.property('detail').and.equal(`User potato does not exist`);
+        });
+
         it('Deleting a dataset owned by the user as a MICROSERVICE should return all deleted datasets', async () => {
             mockGetUserFromToken(USERS.MICROSERVICE);
 

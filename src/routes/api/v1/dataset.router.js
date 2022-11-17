@@ -273,7 +273,12 @@ class DatasetRouter {
         const userIdToDelete = ctx.params.userId;
         const loggedUser = DatasetRouter.getUser(ctx);
 
-        const user = userIdToDelete === loggedUser.id ? loggedUser : await UserService.getUserById(userIdToDelete);
+
+        try {
+            const user = userIdToDelete === loggedUser.id ? loggedUser : await UserService.getUserById(userIdToDelete);
+        } catch (error) {
+            ctx.throw(404, `User ${userIdToDelete} does not exist`);
+        }
 
         logger.info(`[DatasetRouter] Deleting all dataset for user with id: ${userIdToDelete}`);
         try {
@@ -593,7 +598,7 @@ const deleteResourceAuthorizationMiddleware = async (ctx, next) => {
         await next();
         return;
     }
-    
+
     ctx.throw(403, 'Forbidden');
 };
 
