@@ -273,9 +273,9 @@ class DatasetRouter {
         const userIdToDelete = ctx.params.userId;
         const loggedUser = DatasetRouter.getUser(ctx);
 
-
+        let user;
         try {
-            const user = userIdToDelete === loggedUser.id ? loggedUser : await UserService.getUserById(userIdToDelete);
+            user = userIdToDelete === loggedUser.id ? loggedUser : await UserService.getUserById(userIdToDelete);
         } catch (error) {
             ctx.throw(404, `User ${userIdToDelete} does not exist`);
         }

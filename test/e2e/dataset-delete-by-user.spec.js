@@ -382,11 +382,19 @@ describe('Dataset delete tests', () => {
     it('Deleting all datasets of an user while being authenticated as USER should return a 200 and all datasets deleted - no datasets in the db', async () => {
         mockGetUserFromToken(USERS.MICROSERVICE);
 
+        nock(process.env.GATEWAY_URL)
+            .get(`/auth/user/${USERS.USER.id}`)
+            .reply(200, {
+                data: {
+                    ...USERS.USER,
+                }
+            });
+
         const response = await requester
             .delete(`/api/v1/dataset/by-user/${USERS.USER.id}`)
             .set('Authorization', 'Bearer abcd')
             .send();
-        console.log(response.body);
+
         response.status.should.equal(200);
         response.body.deletedDatasets.should.be.an('array').with.lengthOf(0);
     });
