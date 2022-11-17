@@ -589,12 +589,12 @@ const deleteResourceAuthorizationMiddleware = async (ctx, next) => {
         return;
     }
 
-    if (userFromParam !== user.id) {
-        ctx.throw(403, 'Forbidden');
+    if (userFromParam === user.id) {
+        await next();
         return;
     }
-
-    await next();
+    
+    ctx.throw(403, 'Forbidden');
 };
 
 const authorizationBigQuery = async (ctx, next) => {
