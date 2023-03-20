@@ -568,22 +568,25 @@ class DatasetService {
         await DatasetService.checkSecureDeleteResources(id);
 
         logger.info('Checking user apps');
-        user.extraUserData.apps.forEach(async (app) => {
-            const idx = dataset.application.indexOf(app);
-            if (idx > -1) {
-                dataset.application.splice(idx, 1);
-                try {
-                    await DatasetService.deleteKnowledgeGraphVocabulary(id, app);
-                } catch (err) {
-                    logger.error(err);
-                }
-            }
-        });
+
         let deletedDataset;
-        if (dataset.application.length > 0 && applicationBasedDelete === true) {
-            logger.info(`[DBACCESS-SAVE]: dataset.id: ${id}`);
-            deletedDataset = await dataset.save();
-            return deletedDataset;
+        if (applicationBasedDelete === true) {
+            user.extraUserData.apps.forEach(async (app) => {
+                const idx = dataset.application.indexOf(app);
+                if (idx > -1) {
+                    dataset.application.splice(idx, 1);
+                    try {
+                        await DatasetService.deleteKnowledgeGraphVocabulary(id, app);
+                    } catch (err) {
+                        logger.error(err);
+                    }
+                }
+            });
+            if (dataset.application.length > 0) {
+                logger.info(`[DBACCESS-SAVE]: dataset.id: ${id}`);
+                deletedDataset = await dataset.save();
+                return deletedDataset;
+            }
         }
 
         logger.info(`[DBACCESS-DELETE]: dataset.id: ${id}`);

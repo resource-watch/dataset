@@ -36,15 +36,15 @@ const prepareNockForDelete = (fakeDataset) => {
             data: []
         });
 
-    nock(process.env.GATEWAY_URL)
-        .delete(`/v1/dataset/${fakeDataset._id}/vocabulary/knowledge_graph`)
-        .query({
-            application: "rw"
-        })
-        .reply(200, {
-            status: 200,
-            data: []
-        });
+    // nock(process.env.GATEWAY_URL)
+    //     .delete(`/v1/dataset/${fakeDataset._id}/vocabulary/knowledge_graph`)
+    //     .query({
+    //         application: "rw"
+    //     })
+    //     .reply(200, {
+    //         status: 200,
+    //         data: []
+    //     });
 
     nock(process.env.GATEWAY_URL)
         .delete(`/v1/dataset/${fakeDataset._id}/layer`)
@@ -119,6 +119,53 @@ describe('Dataset delete tests', () => {
             deleteResponse.status.should.equal(403);
             deleteResponse.body.should.have.property('errors').and.be.an('array');
             deleteResponse.body.errors[0].should.have.property('detail').and.equal(`Forbidden`);
+        });
+
+        it('Deleting a dataset owned by the user as an MICROSERVICE should return all deleted datasets', async () => {
+            mockGetUserFromToken(USERS.MICROSERVICE);
+
+            nock(process.env.GATEWAY_URL)
+                .get(`/auth/user/${USERS.USER.id}`)
+                .reply(200, {
+                    data: {
+                        ...USERS.USER,
+                    }
+                });
+
+            const fakeDatasetFromManager = await new Dataset(createDataset('cartodb', { userId: USERS.MANAGER.id })).save();
+            const fakeDatasetFromAdmin = await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
+
+            const fakeDatasetOne = await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
+            const fakeDatasetTwo = await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
+            const fakeDatasetThree = await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
+            prepareNockForDelete(fakeDatasetOne)
+            prepareNockForDelete(fakeDatasetTwo)
+            prepareNockForDelete(fakeDatasetThree)
+
+            const deleteResponse = await requester
+                .delete(`/api/v1/dataset/by-user/${USERS.USER.id}`)
+                .set('Authorization', `Bearer abcd`)
+                .send();
+
+            deleteResponse.status.should.equal(200);
+            deleteResponse.body.deletedDatasets.should.be.an('array').and.with.lengthOf(3);
+            deleteResponse.body.protectedDatasets.should.be.an('array').and.with.lengthOf(0);
+
+            const datasets = deleteResponse.body.deletedDatasets;
+            let datasetIds = datasets.map((dataset) => dataset.id);
+            datasetIds.should.contain(fakeDatasetOne._id);
+            datasetIds.should.contain(fakeDatasetTwo._id);
+            datasetIds.should.contain(fakeDatasetThree._id);
+
+            const findDatasetByUser = await Dataset.find({ userId: { $eq: USERS.USER.id } }).exec();
+            findDatasetByUser.should.be.an('array').with.lengthOf(0);
+
+            const findAllDatasets = await Dataset.find({}).exec();
+            findAllDatasets.should.be.an('array').with.lengthOf(2);
+
+            datasetIds = findAllDatasets.map((dataset) => dataset._id);
+            datasetIds.should.contain(fakeDatasetFromManager._id);
+            datasetIds.should.contain(fakeDatasetFromAdmin._id);
         });
 
         it('Deleting a dataset owned by the user as an ADMIN should return all deleted datasets', async () => {
