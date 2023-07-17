@@ -5,11 +5,10 @@ const { USERS } = require('./utils/test.constants');
 const {
     createDataset
 } = require('./utils/helpers');
-
-chai.should();
-
 const { getTestServer } = require('./utils/test-server');
 const { mockValidateRequestWithApiKeyAndUserToken, mockValidateRequestWithApiKey } = require('./utils/mocks');
+
+chai.should();
 
 let requester;
 

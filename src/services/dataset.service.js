@@ -289,6 +289,7 @@ class DatasetService {
             try {
                 await GraphService.createDataset(newDataset._id, apiKey);
             } catch (err) {
+                logger.error(err);
                 newDataset.errorMessage = err.message;
                 const result = await DatasetService.update(newDataset._id, newDataset, {
                     id: 'microservice'

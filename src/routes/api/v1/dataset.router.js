@@ -107,7 +107,7 @@ class DatasetRouter {
             json: true,
             body: { connector: clonedDataset },
             headers: {
-                'x-api-key': ctx.request.header['x-api-key'],
+                'x-api-key': ctx.request.headers['x-api-key'],
             }
         };
 
@@ -159,7 +159,7 @@ class DatasetRouter {
             json: true,
             body: { connector: clonedDataset },
             headers: {
-                'x-api-key': ctx.request.header['x-api-key'],
+                'x-api-key': ctx.request.headers['x-api-key'],
             }
         });
     }
@@ -190,7 +190,7 @@ class DatasetRouter {
         logger.info(`[DatasetRouter] Creating dataset with name: ${ctx.request.body.name}`);
         try {
             const user = DatasetRouter.getUser(ctx);
-            const dataset = await DatasetService.create(ctx.request.body, user, ctx.request.header['x-api-key']);
+            const dataset = await DatasetService.create(ctx.request.body, user, ctx.request.headers['x-api-key']);
             try {
                 DatasetRouter.notifyAdapterCreate(ctx, dataset);
             } catch (error) {

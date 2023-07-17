@@ -3411,10 +3411,10 @@ rimraf@~2.4.0:
   dependencies:
     glob "^6.0.1"
 
-rw-api-microservice-node@5.0.0-rc.3:
-  version "5.0.0-rc.3"
-  resolved "https://registry.yarnpkg.com/rw-api-microservice-node/-/rw-api-microservice-node-5.0.0-rc.3.tgz#0a723ee68ffe943c3db506edc626c5114289d8b3"
-  integrity sha512-+6QPlS054x5Ut8sSwNQRcqnfGG1WPUvGEzjlyVCsVcjPSviTswZcJPunRkPLKSwEcw9U8wTI5M6T0wF+WLRBtw==
+rw-api-microservice-node@5.0.0-rc.5:
+  version "5.0.0-rc.5"
+  resolved "https://registry.yarnpkg.com/rw-api-microservice-node/-/rw-api-microservice-node-5.0.0-rc.5.tgz#e1eb2eddab34472de9ab638fba9127b5d476631b"
+  integrity sha512-P9F+Q31CMynFTylkKam4y7YpdOCz2096z0M+PNCkCZ2l22wUNfVdaPhODmyHG7KhAGhChRNbywGDhJFRrbmVeg==
   dependencies:
     "@koa/cors" "^3.4.3"
     "@tiagojsag/fastly-promises" "^1.0.1"

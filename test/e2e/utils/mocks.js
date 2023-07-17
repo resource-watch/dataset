@@ -2,7 +2,7 @@ const nock = require('nock');
 const intersection = require('lodash/intersection');
 const config = require('config');
 const { USERS } = require('./test.constants');
-const { mockValidateRequest, mockCloudWatchLogRequestsSequence } = require('rw-api-microservice-node/dist/test-mocks');
+const { mockValidateRequest, mockCloudWatchLogRequestsSequence, mockCloudWatchLogRequest } = require('rw-api-microservice-node/dist/test-mocks');
 
 const createMockUser = (users) => {
     nock(process.env.GATEWAY_URL, {
@@ -45,7 +45,7 @@ const mockValidateRequestWithApiKey = ({
         application,
         apiKey
     });
-    mockCloudWatchLogRequestsSequence({
+    mockCloudWatchLogRequest({
         application,
         awsRegion: process.env.AWS_REGION,
         logGroupName: process.env.CLOUDWATCH_LOG_GROUP_NAME,
@@ -67,7 +67,7 @@ const mockValidateRequestWithApiKeyAndUserToken = ({
         token,
         apiKey
     });
-    mockCloudWatchLogRequestsSequence({
+    mockCloudWatchLogRequest({
         user,
         application,
         awsRegion: process.env.AWS_REGION,
