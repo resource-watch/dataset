@@ -3,7 +3,7 @@ const chai = require('chai');
 const config = require('config');
 const Dataset = require('models/dataset.model');
 const { USERS } = require('./utils/test.constants');
-const { createDataset, deserializeDataset, mockGetUserFromToken } = require('./utils/helpers');
+const { createDataset, deserializeDataset } = require('./utils/helpers');
 const datasetGetIncludeAllAnonymous = require('./dataset-get-includes-responses/dataset-get-include-all-anonymous');
 
 const { getTestServer } = require('./utils/test-server');
@@ -13,6 +13,7 @@ const vocabularyFindById = require('./dataset-get-includes-responses/vocabulary-
 const metadataFindById = require('./dataset-get-includes-responses/metadata-find-by-ids');
 const layersFindById = require('./dataset-get-includes-responses/layer-find-by-ids');
 const graphFindById = require('./dataset-get-includes-responses/graph-find-by-ids');
+const { mockValidateRequestWithApiKey } = require('./utils/mocks');
 
 chai.should();
 
@@ -30,36 +31,59 @@ describe('Get dataset by id with includes', () => {
 
     it('Get an existing dataset by ID with includes should be successful and return the dataset with the included data', async () => {
         const fakeDatasetOne = await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
+        mockValidateRequestWithApiKey({});
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/auth/user/find-by-ids', { ids: [fakeDatasetOne.userId] })
             .reply(200, { data: [] });
 
-
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/v1/widget/find-by-ids', { ids: [fakeDatasetOne.id] })
             .reply(200, widgetsFindById(fakeDatasetOne));
 
-
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/v1/dataset/vocabulary/find-by-ids', { ids: [fakeDatasetOne.id] })
             .reply(200, vocabularyFindById());
 
-
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/v1/dataset/metadata/find-by-ids', { ids: [fakeDatasetOne.id] })
             .reply(200, metadataFindById(fakeDatasetOne));
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/v1/layer/find-by-ids', { ids: [fakeDatasetOne.id] })
             .reply(200, layersFindById(fakeDatasetOne));
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/v1/graph/find-by-ids', { ids: [fakeDatasetOne.id] })
             .reply(200, graphFindById(fakeDatasetOne));
 
         const response = await requester
             .get(`/api/v1/dataset/${fakeDatasetOne._id}`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 includes: ['layer', 'metadata', 'vocabulary', 'widget', 'graph', 'user'].join(','),
             });
@@ -73,36 +97,65 @@ describe('Get dataset by id with includes', () => {
     });
 
     it('Get an existing dataset by ID with includes and env but no filterIncludesByEnv should be successful and include related data not filtered by env', async () => {
-        const fakeDatasetOne = await new Dataset(createDataset('cartodb', { env: 'potato', userId: USERS.ADMIN.id })).save();
+        mockValidateRequestWithApiKey({});
+        const fakeDatasetOne = await new Dataset(createDataset('cartodb', {
+            env: 'potato',
+            userId: USERS.ADMIN.id
+        })).save();
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/auth/user/find-by-ids', { ids: [fakeDatasetOne.userId] })
             .reply(200, { data: [] });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/v1/widget/find-by-ids', { ids: [fakeDatasetOne.id] })
             .reply(200, widgetsFindById(fakeDatasetOne));
 
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/v1/dataset/vocabulary/find-by-ids', { ids: [fakeDatasetOne.id] })
             .reply(200, vocabularyFindById());
 
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/v1/dataset/metadata/find-by-ids', { ids: [fakeDatasetOne.id] })
             .reply(200, metadataFindById(fakeDatasetOne));
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/v1/layer/find-by-ids', { ids: [fakeDatasetOne.id] })
             .reply(200, layersFindById(fakeDatasetOne));
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/v1/graph/find-by-ids', { ids: [fakeDatasetOne.id] })
             .reply(200, graphFindById(fakeDatasetOne));
 
         const response = await requester
             .get(`/api/v1/dataset/${fakeDatasetOne._id}`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 includes: ['layer', 'metadata', 'vocabulary', 'widget', 'graph', 'user'].join(','),
                 env: 'potato'
@@ -118,34 +171,63 @@ describe('Get dataset by id with includes', () => {
     });
 
     it('Get an existing dataset by ID with includes, env and filterIncludesByEnv=true should be successful and include related data filtered by env', async () => {
-        const fakeDatasetOne = await new Dataset(createDataset('cartodb', { env:'potato', userId: USERS.ADMIN.id })).save();
+        mockValidateRequestWithApiKey({});
+        const fakeDatasetOne = await new Dataset(createDataset('cartodb', {
+            env: 'potato',
+            userId: USERS.ADMIN.id
+        })).save();
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/auth/user/find-by-ids', { ids: [fakeDatasetOne.userId] })
             .reply(200, { data: [] });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/v1/widget/find-by-ids', { ids: [fakeDatasetOne.id], env: 'potato' })
             .reply(200, widgetsFindById(fakeDatasetOne));
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/v1/dataset/vocabulary/find-by-ids', { ids: [fakeDatasetOne.id], env: 'potato' })
             .reply(200, vocabularyFindById());
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/v1/dataset/metadata/find-by-ids', { ids: [fakeDatasetOne.id], env: 'potato' })
             .reply(200, metadataFindById(fakeDatasetOne));
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/v1/layer/find-by-ids', { ids: [fakeDatasetOne.id], env: 'potato' })
             .reply(200, layersFindById(fakeDatasetOne));
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/v1/graph/find-by-ids', { ids: [fakeDatasetOne.id], env: 'potato' })
             .reply(200, graphFindById(fakeDatasetOne));
 
         const response = await requester
             .get(`/api/v1/dataset/${fakeDatasetOne._id}`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 includes: ['layer', 'metadata', 'vocabulary', 'widget', 'graph', 'user'].join(','),
                 env: 'potato',

@@ -2,8 +2,9 @@ const nock = require('nock');
 const chai = require('chai');
 const Dataset = require('models/dataset.model');
 const { USERS } = require('./utils/test.constants');
-const { createDataset, deserializeDataset, mockGetUserFromToken } = require('./utils/helpers');
+const { createDataset, deserializeDataset } = require('./utils/helpers');
 const { getTestServer, closeTestServer } = require('./utils/test-server');
+const { mockValidateRequestWithApiKeyAndUserToken, mockValidateRequestWithApiKey } = require('./utils/mocks');
 
 chai.should();
 
@@ -26,11 +27,12 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset that does not exist should return a 404 error', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
         const response = await requester
             .post(`/api/v1/dataset/1234/clone`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 datasetUrl: '/query/123456?sql=select * from data',
                 application: ['gfw', 'rw']
@@ -43,9 +45,11 @@ describe('Dataset clone tests', () => {
 
     it('Clone a dataset without being logged in should return a 401 error', async () => {
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
+        mockValidateRequestWithApiKey({});
 
         const response = await requester
             .post(`/api/v1/dataset/${cartoFakeDataset._id}/clone`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 datasetUrl: '/query/123456?sql=select * from data',
                 application: ['gfw', 'rw']
@@ -56,13 +60,14 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset while being logged in as a USER should return a 403 error', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         const response = await requester
             .post(`/api/v1/dataset/${cartoFakeDataset._id}/clone`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 datasetUrl: '/query/123456?sql=select * from data',
                 application: ['gfw', 'rw']
@@ -74,13 +79,14 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset while being logged in as a MANAGER and not being the dataset owner should return a 403 error', async () => {
-        mockGetUserFromToken(USERS.MANAGER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
 
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         const response = await requester
             .post(`/api/v1/dataset/${cartoFakeDataset._id}/clone`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 datasetUrl: '/query/123456?sql=select * from data',
                 application: ['gfw', 'rw']
@@ -92,13 +98,14 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset while not having access to the target application should return a 403 error', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         const response = await requester
             .post(`/api/v1/dataset/${cartoFakeDataset._id}/clone`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 datasetUrl: '/query/123456?sql=select * from data',
                 application: ['potato']
@@ -110,11 +117,15 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset while being logged in as a MANAGER and being the dataset owner should be successful (happy case)', async () => {
-        mockGetUserFromToken(USERS.MANAGER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
 
         const cartoFakeDataset = await new Dataset(createDataset('cartodb', { userId: USERS.MANAGER.id })).save();
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .post(/v1\/graph\/dataset\/(\w|-)*$/)
             .once()
             .reply(200, {
@@ -122,7 +133,11 @@ describe('Dataset clone tests', () => {
                 detail: 'Ok'
             });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .post('/v1/doc-datasets/json', (request) => {
                 const expected = {
                     connectorType: 'document',
@@ -188,6 +203,7 @@ describe('Dataset clone tests', () => {
         const response = await requester
             .post(`/api/v1/dataset/${cartoFakeDataset._id}/clone`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 datasetUrl: '/query/123456?sql=select * from data',
                 application: ['gfw', 'rw']
@@ -214,13 +230,14 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset without application should return a 400 error', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         const response = await requester
             .post(`/api/v1/dataset/${cartoFakeDataset._id}/clone`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 datasetUrl: '/query/123456?sql=select * from data'
             });
@@ -231,13 +248,14 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset with an invalid application value should return a 400 error', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         const response = await requester
             .post(`/api/v1/dataset/${cartoFakeDataset._id}/clone`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 datasetUrl: '/query/123456?sql=select * from data',
                 application: 'rw',
@@ -249,13 +267,14 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset without datasetUrl should return a 400 error', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         const response = await requester
             .post(`/api/v1/dataset/${cartoFakeDataset._id}/clone`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 application: ['gfw', 'rw'],
             });
@@ -266,11 +285,15 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset as an ADMIN should be successful (happy case)', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .post(/v1\/graph\/dataset\/(\w|-)*$/)
             .once()
             .reply(200, {
@@ -278,7 +301,11 @@ describe('Dataset clone tests', () => {
                 detail: 'Ok'
             });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .post('/v1/doc-datasets/json', (request) => {
                 const expected = {
                     connectorType: 'document',
@@ -344,6 +371,7 @@ describe('Dataset clone tests', () => {
         const response = await requester
             .post(`/api/v1/dataset/${cartoFakeDataset._id}/clone`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 datasetUrl: '/query/123456?sql=select * from data',
                 application: ['gfw', 'rw'],
@@ -370,18 +398,26 @@ describe('Dataset clone tests', () => {
     });
 
     it('Clone a dataset as an ADMIN with full cloning set to true should be successful (happy case)', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .post(/v1\/graph\/dataset\/(\w|-)*$/)
             .reply(200, {
                 status: 200,
                 detail: 'Ok'
             });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .post(`/v1/dataset/${cartoFakeDataset._id}/vocabulary/clone/dataset`, (request) => {
                 // eslint-disable-next-line no-unused-expressions
                 request.should.have.property('newDataset').and.not.be.empty;
@@ -393,7 +429,11 @@ describe('Dataset clone tests', () => {
             });
 
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .post(`/v1/dataset/${cartoFakeDataset._id}/metadata/clone`, (request) => {
                 // eslint-disable-next-line no-unused-expressions
                 request.should.have.property('newDataset').and.not.be.empty;
@@ -404,7 +444,11 @@ describe('Dataset clone tests', () => {
                 detail: 'Ok'
             });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .post('/v1/doc-datasets/json', (request) => {
                 const expected = {
                     connectorType: 'document',
@@ -470,6 +514,7 @@ describe('Dataset clone tests', () => {
         const response = await requester
             .post(`/api/v1/dataset/${cartoFakeDataset._id}/clone`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 full: true
             })

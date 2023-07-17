@@ -1,7 +1,7 @@
 import chai from 'chai';
 import ChaiHttp from 'chai-http';
 
-let requester:ChaiHttp.Agent;
+let requester: ChaiHttp.Agent;
 
 chai.use(ChaiHttp);
 

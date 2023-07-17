@@ -3,12 +3,13 @@ const chai = require('chai');
 const Dataset = require('models/dataset.model');
 const { USERS } = require('./utils/test.constants');
 const {
-    createDataset, mockGetUserFromToken
+    createDataset
 } = require('./utils/helpers');
 
 chai.should();
 
 const { getTestServer } = require('./utils/test-server');
+const { mockValidateRequestWithApiKeyAndUserToken, mockValidateRequestWithApiKey } = require('./utils/mocks');
 
 let requester;
 
@@ -16,7 +17,11 @@ nock.disableNetConnect();
 nock.enableNetConnect(process.env.HOST_IP);
 
 const prepareNockForDelete = (fakeDataset) => {
-    nock(process.env.GATEWAY_URL)
+    nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
         .get(`/v1/dataset/${fakeDataset._id}/layer`)
         .query({
             protected: true
@@ -26,7 +31,11 @@ const prepareNockForDelete = (fakeDataset) => {
             data: []
         });
 
-    nock(process.env.GATEWAY_URL)
+    nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
         .get(`/v1/dataset/${fakeDataset._id}/widget`)
         .query({
             protected: true
@@ -36,7 +45,11 @@ const prepareNockForDelete = (fakeDataset) => {
             data: []
         });
 
-    // nock(process.env.GATEWAY_URL)
+    // nock(process.env.GATEWAY_URL, {
+    //     reqheaders: {
+    //         'x-api-key': 'api-key-test',
+    //     }
+    // })
     //     .delete(`/v1/dataset/${fakeDataset._id}/vocabulary/knowledge_graph`)
     //     .query({
     //         application: "rw"
@@ -46,28 +59,44 @@ const prepareNockForDelete = (fakeDataset) => {
     //         data: []
     //     });
 
-    nock(process.env.GATEWAY_URL)
+    nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
         .delete(`/v1/dataset/${fakeDataset._id}/layer`)
         .reply(200, {
             status: 200,
             data: []
         });
 
-    nock(process.env.GATEWAY_URL)
+    nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
         .delete(`/v1/dataset/${fakeDataset._id}/widget`)
         .reply(200, {
             status: 200,
             data: []
         });
 
-    nock(process.env.GATEWAY_URL)
+    nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
         .delete(`/v1/dataset/${fakeDataset._id}/metadata`)
         .reply(200, {
             status: 200,
             data: []
         });
 
-    nock(process.env.GATEWAY_URL)
+    nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
         .delete(`/v1/dataset/${fakeDataset._id}/vocabulary`)
         .reply(200, {
             status: 200,
@@ -92,10 +121,11 @@ describe('Dataset delete tests', () => {
             await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
             await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
             await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
-
+            mockValidateRequestWithApiKey({});
 
             const deleteResponse = await requester
                 .delete(`/api/v1/dataset/by-user/${USERS.USER.id}`)
+                .set('x-api-key', 'api-key-test')
                 .send();
 
             deleteResponse.status.should.equal(401);
@@ -104,7 +134,7 @@ describe('Dataset delete tests', () => {
         });
 
         it('Deleting all dataset of an user as not that same user or an admin should return a 403 error', async () => {
-            mockGetUserFromToken(USERS.MANAGER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
 
             await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
             await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
@@ -114,6 +144,7 @@ describe('Dataset delete tests', () => {
             const deleteResponse = await requester
                 .delete(`/api/v1/dataset/by-user/${USERS.USER.id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send();
 
             deleteResponse.status.should.equal(403);
@@ -122,9 +153,13 @@ describe('Dataset delete tests', () => {
         });
 
         it('Deleting a dataset owned by the user as an MICROSERVICE should return all deleted datasets', async () => {
-            mockGetUserFromToken(USERS.MICROSERVICE);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MICROSERVICE });
 
-            nock(process.env.GATEWAY_URL)
+            nock(process.env.GATEWAY_URL, {
+                reqheaders: {
+                    'x-api-key': 'api-key-test',
+                }
+            })
                 .get(`/auth/user/${USERS.USER.id}`)
                 .reply(200, {
                     data: {
@@ -145,6 +180,7 @@ describe('Dataset delete tests', () => {
             const deleteResponse = await requester
                 .delete(`/api/v1/dataset/by-user/${USERS.USER.id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send();
 
             deleteResponse.status.should.equal(200);
@@ -169,9 +205,13 @@ describe('Dataset delete tests', () => {
         });
 
         it('Deleting a dataset owned by the user as an ADMIN should return all deleted datasets', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
-            nock(process.env.GATEWAY_URL)
+            nock(process.env.GATEWAY_URL, {
+                reqheaders: {
+                    'x-api-key': 'api-key-test',
+                }
+            })
                 .get(`/auth/user/${USERS.USER.id}`)
                 .reply(200, {
                     data: {
@@ -192,6 +232,7 @@ describe('Dataset delete tests', () => {
             const deleteResponse = await requester
                 .delete(`/api/v1/dataset/by-user/${USERS.USER.id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send();
 
             deleteResponse.status.should.equal(200);
@@ -216,9 +257,13 @@ describe('Dataset delete tests', () => {
         });
 
         it('Deleting a dataset owned by a user that does not exist as a MICROSERVICE should return a 404', async () => {
-            mockGetUserFromToken(USERS.MICROSERVICE);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MICROSERVICE });
 
-            nock(process.env.GATEWAY_URL)
+            nock(process.env.GATEWAY_URL, {
+                reqheaders: {
+                    'x-api-key': 'api-key-test',
+                }
+            })
                 .get(`/auth/user/potato`)
                 .reply(403, {
                     errors: [
@@ -232,6 +277,7 @@ describe('Dataset delete tests', () => {
             const deleteResponse = await requester
                 .delete(`/api/v1/dataset/by-user/potato`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send();
 
             deleteResponse.status.should.equal(404);
@@ -240,9 +286,13 @@ describe('Dataset delete tests', () => {
         });
 
         it('Deleting a dataset owned by the user as a MICROSERVICE should return all deleted datasets', async () => {
-            mockGetUserFromToken(USERS.MICROSERVICE);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MICROSERVICE });
 
-            nock(process.env.GATEWAY_URL)
+            nock(process.env.GATEWAY_URL, {
+                reqheaders: {
+                    'x-api-key': 'api-key-test',
+                }
+            })
                 .get(`/auth/user/${USERS.USER.id}`)
                 .reply(200, {
                     data: {
@@ -263,6 +313,7 @@ describe('Dataset delete tests', () => {
             const deleteResponse = await requester
                 .delete(`/api/v1/dataset/by-user/${USERS.USER.id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send();
 
             deleteResponse.status.should.equal(200);
@@ -287,7 +338,7 @@ describe('Dataset delete tests', () => {
         });
 
         it('Deleting a dataset owned by the same logged user should return all deleted datasets', async () => {
-            mockGetUserFromToken(USERS.USER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
             const fakeDatasetFromManager = await new Dataset(createDataset('cartodb', { userId: USERS.MANAGER.id })).save();
             const fakeDatasetFromAdmin = await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
@@ -303,6 +354,7 @@ describe('Dataset delete tests', () => {
             const deleteResponse = await requester
                 .delete(`/api/v1/dataset/by-user/${USERS.USER.id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send();
 
             deleteResponse.status.should.equal(200);
@@ -327,7 +379,7 @@ describe('Dataset delete tests', () => {
         });
 
         it('Deleting datasets while some of them are protected should only delete unprotected ones', async () => {
-            mockGetUserFromToken(USERS.USER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
             await Promise.all([...Array(100)].map(async () => {
                 const datasetToDelete = await new Dataset(createDataset('cartodb', {
@@ -344,6 +396,7 @@ describe('Dataset delete tests', () => {
             const deleteResponse = await requester
                 .delete(`/api/v1/dataset/by-user/${USERS.USER.id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send();
 
             deleteResponse.status.should.equal(200);
@@ -376,7 +429,7 @@ describe('Dataset delete tests', () => {
         });
 
         it('Deleting datasets for a user should delete datasets even if the user is not associated with all of the dataset\'s applications', async () => {
-            mockGetUserFromToken(USERS.USER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
             await Promise.all([...Array(2)].map(async () => {
                 const datasetToDelete = await new Dataset(createDataset('cartodb', {
@@ -394,6 +447,7 @@ describe('Dataset delete tests', () => {
             const deleteResponse = await requester
                 .delete(`/api/v1/dataset/by-user/${USERS.USER.id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send();
 
             deleteResponse.status.should.equal(200);
@@ -427,9 +481,13 @@ describe('Dataset delete tests', () => {
     })
 
     it('Deleting all datasets of an user while being authenticated as USER should return a 200 and all datasets deleted - no datasets in the db', async () => {
-        mockGetUserFromToken(USERS.MICROSERVICE);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MICROSERVICE });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .get(`/auth/user/${USERS.USER.id}`)
             .reply(200, {
                 data: {
@@ -440,6 +498,7 @@ describe('Dataset delete tests', () => {
         const response = await requester
             .delete(`/api/v1/dataset/by-user/${USERS.USER.id}`)
             .set('Authorization', 'Bearer abcd')
+            .set('x-api-key', 'api-key-test')
             .send();
 
         response.status.should.equal(200);

@@ -6,7 +6,7 @@
     "dirLogFile": null
   },
   "service": {
-    "name": "Dataset",
+    "name": "dataset",
     "port": 3000
   },
   "mongodb": {

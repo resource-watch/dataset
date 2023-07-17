@@ -114,7 +114,10 @@ const init: () => Promise<IInit> = async (): Promise<IInit> => {
                 microserviceToken: process.env.MICROSERVICE_TOKEN,
                 fastlyEnabled: process.env.FASTLY_ENABLED as boolean|"true"|"false",
                 fastlyServiceId: process.env.FASTLY_SERVICEID,
-                fastlyAPIKey: process.env.FASTLY_APIKEY
+                fastlyAPIKey: process.env.FASTLY_APIKEY,
+                requireAPIKey: process.env.REQUIRE_API_KEY as boolean | 'true' | 'false' || true,
+                awsRegion: process.env.AWS_REGION,
+                awsCloudWatchLogStreamName: config.get('service.name'),
             }));
 
             koaValidate(app);

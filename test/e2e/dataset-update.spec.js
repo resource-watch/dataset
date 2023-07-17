@@ -3,12 +3,13 @@ const chai = require('chai');
 const Dataset = require('models/dataset.model');
 const { USERS } = require('./utils/test.constants');
 const {
-    createDataset, deserializeDataset, ensureCorrectError, mockGetUserFromToken
+    createDataset, deserializeDataset, ensureCorrectError
 } = require('./utils/helpers');
 
 chai.should();
 
 const { getTestServer } = require('./utils/test-server');
+const { mockValidateRequestWithApiKey, mockValidateRequestWithApiKeyAndUserToken } = require('./utils/mocks');
 
 let requester;
 
@@ -25,10 +26,12 @@ describe('Dataset update', () => {
     describe('Permissions', () => {
 
         it('Update a dataset without being logged in should return a 401 error', async () => {
+            mockValidateRequestWithApiKey({});
             const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     name: 'other name',
                     application: ['gfw', 'rw']
@@ -39,13 +42,14 @@ describe('Dataset update', () => {
         });
 
         it('Update a dataset while being logged in with role USER should return a 403 error', async () => {
-            mockGetUserFromToken(USERS.USER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
             const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     name: 'other name',
                     application: ['gfw', 'rw'],
@@ -56,13 +60,14 @@ describe('Dataset update', () => {
         });
 
         it('Update a dataset while being logged in with role MANAGER should return a 403 error', async () => {
-            mockGetUserFromToken(USERS.MANAGER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
 
             const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     name: 'other name',
                     application: ['gfw', 'rw'],
@@ -73,13 +78,14 @@ describe('Dataset update', () => {
         });
 
         it('Update a dataset as an ADMIN should be successful (happy case)', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     name: 'other name',
                     application: ['gfw', 'rw'],
@@ -102,13 +108,14 @@ describe('Dataset update', () => {
         });
 
         it('Update a dataset as a MICROSERVICE should be successful (happy case)', async () => {
-            mockGetUserFromToken(USERS.MICROSERVICE);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MICROSERVICE });
 
             const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     name: 'other name',
                     application: ['gfw', 'rw'],
@@ -134,11 +141,12 @@ describe('Dataset update', () => {
     describe('Basics and misc', () => {
 
         it('Update a dataset that doesn\'t exist should return a 404', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const response = await requester
                 .patch(`/api/v1/dataset/12345`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     name: 'other name',
                     application: ['gfw', 'rw'],
@@ -149,13 +157,14 @@ describe('Dataset update', () => {
         });
 
         it('Update a dataset by slug should be successful (happy case)', async () => {
-            mockGetUserFromToken(USERS.MICROSERVICE);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MICROSERVICE });
 
             const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset.slug}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     name: 'other name',
                     application: ['gfw', 'rw'],
@@ -178,7 +187,7 @@ describe('Dataset update', () => {
         });
 
         it('Update a dataset with a valid dataLastUpdated value should work correctly', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
@@ -187,6 +196,7 @@ describe('Dataset update', () => {
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     dataLastUpdated: timestamp,
                 });
@@ -199,13 +209,14 @@ describe('Dataset update', () => {
         });
 
         it('Update a dataset with an invalid dataLastUpdated should fail', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     dataLastUpdated: 'potato',
                 });
@@ -216,7 +227,7 @@ describe('Dataset update', () => {
         });
 
         it('Update a dataset with a null dataLastUpdated should work correctly', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const fakeDataset = await new Dataset(createDataset('cartodb')).save();
             fakeDataset.dataLastUpdated.should.not.equal(null);
@@ -224,6 +235,7 @@ describe('Dataset update', () => {
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     dataLastUpdated: null,
                 });
@@ -235,13 +247,14 @@ describe('Dataset update', () => {
         });
 
         it('Update a dataset as ADMIN with empty connectorUrl and list of sources should succeed', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     connectorUrl: null,
                     sources: ['http://url.com/file1.json', 'http://url.com/file2.json'],
@@ -260,12 +273,13 @@ describe('Dataset update', () => {
         });
 
         it('Updating a dataset with null sources and connectorUrl should return a 400', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const fakeDataset = await new Dataset(createDataset('json', { application: ['rw'] })).save();
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({ sources: [], connectorUrl: null });
 
             response.status.should.equal(400);
@@ -275,13 +289,14 @@ describe('Dataset update', () => {
 
     describe('Status', () => {
         it('Update status for a dataset as USER that owns the dataset should fail', async () => {
-            mockGetUserFromToken(USERS.USER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
             const fakeDataset = await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
 
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     status: 'pending',
                     application: ['gfw', 'rw'],
@@ -293,13 +308,14 @@ describe('Dataset update', () => {
         });
 
         it('Update status for a dataset as MANAGER that does not own the dataset should fail', async () => {
-            mockGetUserFromToken(USERS.MANAGER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
 
             const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     status: 'pending',
                     application: ['gfw', 'rw'],
@@ -311,13 +327,14 @@ describe('Dataset update', () => {
         });
 
         it('Update status for a dataset as MANAGER that owns the dataset should fail', async () => {
-            mockGetUserFromToken(USERS.MANAGER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
 
             const fakeDataset = await new Dataset(createDataset('cartodb', { userId: USERS.MANAGER.id })).save();
 
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     status: 'pending',
                     application: ['gfw', 'rw'],
@@ -329,13 +346,14 @@ describe('Dataset update', () => {
         });
 
         it('Update status for a dataset as non-admin with invalid status (string) should fail', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     status: 'fail',
                     application: ['gfw', 'rw'],
@@ -347,13 +365,14 @@ describe('Dataset update', () => {
         });
 
         it('Update status for a dataset as non-admin with invalid status (int) should fail', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     status: 78,
                     application: ['gfw', 'rw'],
@@ -365,13 +384,14 @@ describe('Dataset update', () => {
         });
 
         it('Update status for a dataset as admin with valid status (string) should succeed', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     status: 'pending',
                     application: ['gfw', 'rw'],
@@ -386,13 +406,14 @@ describe('Dataset update', () => {
         });
 
         it('Update status for a dataset as admin with valid status (int) should succeed', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     status: 2,
                     application: ['gfw', 'rw'],
@@ -410,7 +431,7 @@ describe('Dataset update', () => {
 
     describe('Error message', () => {
         it('Update the error message of a dataset as an ADMIN should succeed but not change the message', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const fakeDataset = await new Dataset(createDataset('cartodb', {
                 errorMessage: 'Old error message'
@@ -419,6 +440,7 @@ describe('Dataset update', () => {
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     name: 'Updated dataset name',
                     errorMessage: 'Updated error message',
@@ -433,7 +455,7 @@ describe('Dataset update', () => {
         });
 
         it('Update the error message of a dataset as a MICROSERVICE should succeed and change the message', async () => {
-            mockGetUserFromToken(USERS.MICROSERVICE);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MICROSERVICE });
 
             const fakeDataset = await new Dataset(createDataset('cartodb', {
                 errorMessage: 'Old error message'
@@ -442,6 +464,7 @@ describe('Dataset update', () => {
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     name: 'Updated dataset name',
                     errorMessage: 'Updated error message',
@@ -456,7 +479,7 @@ describe('Dataset update', () => {
         });
 
         it('Clear the error message of a dataset as a MICROSERVICE should succeed and clear the message', async () => {
-            mockGetUserFromToken(USERS.MICROSERVICE);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MICROSERVICE });
 
             const fakeDataset = await new Dataset(createDataset('cartodb', {
                 errorMessage: 'Old error message'
@@ -465,6 +488,7 @@ describe('Dataset update', () => {
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     name: 'Updated dataset name',
                     errorMessage: '',
@@ -482,13 +506,14 @@ describe('Dataset update', () => {
     describe('Apps', () => {
         // TODO: this should probably fail, as a user should not be able to assign a dataset to an app it does not belong to.
         it('Update a dataset while being logged in with role ADMIN and a fake app should be sucessful (happy case)', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     name: 'other name',
                     application: ['fake'],
@@ -498,7 +523,7 @@ describe('Dataset update', () => {
         });
 
         it('As an USER with a single app, removing my app from the array of apps of the dataset should return 403 Forbidden', async () => {
-            mockGetUserFromToken(USERS.RW_USER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.RW_USER });
 
             const fakeDataset = await new Dataset(createDataset('cartodb', {
                 userId: USERS.RW_USER.id, application: ['rw', 'gfw']
@@ -507,6 +532,7 @@ describe('Dataset update', () => {
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({ application: ['gfw'] });
 
             response.status.should.equal(403);
@@ -515,7 +541,7 @@ describe('Dataset update', () => {
         });
 
         it('As a MANAGER with a single app, removing my app from the array of apps of the dataset (that I own) should return 200 OK with the updated dataset', async () => {
-            mockGetUserFromToken(USERS.RW_MANAGER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.RW_MANAGER });
 
             const fakeDataset = await new Dataset(createDataset('cartodb', {
                 userId: USERS.RW_MANAGER.id, application: ['rw', 'gfw']
@@ -524,6 +550,7 @@ describe('Dataset update', () => {
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({ application: ['gfw'] });
 
             response.status.should.equal(200);
@@ -534,7 +561,7 @@ describe('Dataset update', () => {
         });
 
         it('As an ADMIN with a single app, removing apps not managed by me from the array of apps of the dataset should return 403 Forbidden', async () => {
-            mockGetUserFromToken(USERS.RW_ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.RW_ADMIN });
 
             const fakeDataset = await new Dataset(createDataset('cartodb', {
                 application: ['rw', 'prep', 'sdg4data', 'ng', 'aqueduct', 'gfw']
@@ -543,6 +570,7 @@ describe('Dataset update', () => {
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     application: ['rw', 'sdg4data', 'ng', 'aqueduct', 'gfw'],
                 });
@@ -553,12 +581,13 @@ describe('Dataset update', () => {
         });
 
         it('As an ADMIN with a single app, removing my app from the array of apps of the dataset should return 200 OK with the updated dataset', async () => {
-            mockGetUserFromToken(USERS.RW_ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.RW_ADMIN });
 
             const fakeDataset = await new Dataset(createDataset('cartodb', { application: ['rw', 'gfw'] })).save();
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({ application: ['gfw'] });
 
             response.status.should.equal(200);
@@ -568,12 +597,13 @@ describe('Dataset update', () => {
         });
 
         it('As an ADMIN with a single app, adding my app to the array of apps of the dataset should return 200 OK with the updated dataset', async () => {
-            mockGetUserFromToken(USERS.RW_ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.RW_ADMIN });
 
             const fakeDataset = await new Dataset(createDataset('cartodb', { application: null })).save();
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({ application: ['rw'] });
 
             response.status.should.equal(200);
@@ -584,12 +614,13 @@ describe('Dataset update', () => {
         });
 
         it('As an ADMIN, editing the dataset without changing the dataset apps should return 200 OK with the updated dataset', async () => {
-            mockGetUserFromToken(USERS.RW_ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.RW_ADMIN });
 
             const fakeDataset = await new Dataset(createDataset('cartodb', { application: ['rw'] })).save();
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({ application: ['rw'] });
 
             response.status.should.equal(200);
@@ -600,7 +631,7 @@ describe('Dataset update', () => {
         });
 
         it('Update the applications of a dataset as an app ADMIN with associated app should succeed', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const fakeDataset = await new Dataset(createDataset('cartodb', {
                 application: ['rw', 'gfw']
@@ -609,6 +640,7 @@ describe('Dataset update', () => {
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({ application: ['gfw'] });
 
             response.status.should.equal(200);
@@ -621,13 +653,14 @@ describe('Dataset update', () => {
 
     describe('Environments', () => {
         it('Update env for a dataset as USER that owns the dataset should fail', async () => {
-            mockGetUserFromToken(USERS.USER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
             const fakeDataset = await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
 
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     env: 'custom',
                     application: ['gfw', 'rw'],
@@ -639,13 +672,14 @@ describe('Dataset update', () => {
         });
 
         it('Update env for a dataset as MANAGER that does not own the dataset should fail', async () => {
-            mockGetUserFromToken(USERS.MANAGER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
 
             const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     env: 'custom',
                     application: ['gfw', 'rw'],
@@ -657,21 +691,30 @@ describe('Dataset update', () => {
         });
 
         it('Update env for a dataset as MANAGER that owns the dataset should update the dataset and propagate env change to layers and widgets', async () => {
-            mockGetUserFromToken(USERS.MANAGER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
 
             const fakeDataset = await new Dataset(createDataset('cartodb', { userId: USERS.MANAGER.id })).save();
 
-            nock(process.env.GATEWAY_URL)
+            nock(process.env.GATEWAY_URL, {
+                reqheaders: {
+                    'x-api-key': 'api-key-test',
+                }
+            })
                 .patch(`/v1/widget/change-environment/${fakeDataset.id}/custom`)
                 .reply(200, '');
 
-            nock(process.env.GATEWAY_URL)
+            nock(process.env.GATEWAY_URL, {
+                reqheaders: {
+                    'x-api-key': 'api-key-test',
+                }
+            })
                 .patch(`/v1/layer/change-environment/${fakeDataset.id}/custom`)
                 .reply(200, '');
 
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     env: 'custom',
                     application: ['gfw', 'rw'],
@@ -686,21 +729,30 @@ describe('Dataset update', () => {
         });
 
         it('Update env for a dataset as ADMIN should update the dataset and propagate env change to layers and widgets', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
-            nock(process.env.GATEWAY_URL)
+            nock(process.env.GATEWAY_URL, {
+                reqheaders: {
+                    'x-api-key': 'api-key-test',
+                }
+            })
                 .patch(`/v1/widget/change-environment/${fakeDataset.id}/custom`)
                 .reply(200, '');
 
-            nock(process.env.GATEWAY_URL)
+            nock(process.env.GATEWAY_URL, {
+                reqheaders: {
+                    'x-api-key': 'api-key-test',
+                }
+            })
                 .patch(`/v1/layer/change-environment/${fakeDataset.id}/custom`)
                 .reply(200, '');
 
             const response = await requester
                 .patch(`/api/v1/dataset/${fakeDataset._id}`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     env: 'custom',
                     application: ['gfw', 'rw'],

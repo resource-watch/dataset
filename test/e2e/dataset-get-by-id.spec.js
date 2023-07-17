@@ -3,10 +3,11 @@ const chai = require('chai');
 const config = require('config');
 const Dataset = require('models/dataset.model');
 const { USERS } = require('./utils/test.constants');
-const { createDataset, deserializeDataset, mockGetUserFromToken } = require('./utils/helpers');
+const { createDataset, deserializeDataset } = require('./utils/helpers');
 
 const { getTestServer } = require('./utils/test-server');
 const { getUUID, expectedDataset } = require('./utils/helpers');
+const { mockValidateRequestWithApiKey } = require('./utils/mocks');
 
 chai.should();
 
@@ -24,9 +25,11 @@ describe('Get dataset by id', () => {
 
     it('Get an existing dataset by ID should be successful', async () => {
         const cartoFakeDataset = await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
+        mockValidateRequestWithApiKey({});
 
         const response = await requester
-            .get(`/api/v1/dataset/${cartoFakeDataset._id}`);
+            .get(`/api/v1/dataset/${cartoFakeDataset._id}`)
+            .set('x-api-key', 'api-key-test');
         const dataset = deserializeDataset(response);
 
         response.status.should.equal(200);
@@ -37,8 +40,11 @@ describe('Get dataset by id', () => {
 
     it('Get an non-existing dataset by ID should fail', async () => {
         const uuid = getUUID();
+        mockValidateRequestWithApiKey({});
+
         const response = await requester
-            .get(`/api/v1/dataset/${uuid}`);
+            .get(`/api/v1/dataset/${uuid}`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(404);
         response.body.should.have.property('errors').and.be.an('array');
@@ -49,9 +55,11 @@ describe('Get dataset by id', () => {
         await new Dataset(createDataset('cartodb')).save();
         await new Dataset(createDataset('json')).save();
         const csvFakeDataset = await new Dataset(createDataset('csv')).save();
+        mockValidateRequestWithApiKey({});
 
         const response = await requester
-            .get(`/api/v1/dataset/${csvFakeDataset._id}`);
+            .get(`/api/v1/dataset/${csvFakeDataset._id}`)
+            .set('x-api-key', 'api-key-test');
         const dataset = deserializeDataset(response);
 
         response.status.should.equal(200);

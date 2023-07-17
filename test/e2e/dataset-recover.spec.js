@@ -2,8 +2,9 @@ const nock = require('nock');
 const Dataset = require('models/dataset.model');
 
 const { USERS } = require('./utils/test.constants');
-const { createDataset, ensureCorrectError, mockGetUserFromToken } = require('./utils/helpers');
+const { createDataset, ensureCorrectError } = require('./utils/helpers');
 const { getTestServer } = require('./utils/test-server');
+const { mockValidateRequestWithApiKey, mockValidateRequestWithApiKeyAndUserToken } = require('./utils/mocks');
 
 let requester;
 
@@ -24,52 +25,63 @@ describe('Upload raw data', () => {
     });
 
     it('Return 401 error if no user provided', async () => {
+        mockValidateRequestWithApiKey({});
+
         const response = await requester
-            .post(`/api/v1/dataset/${jsonFakeDataset.id}/recover`);
+            .post(`/api/v1/dataset/${jsonFakeDataset.id}/recover`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(401);
         ensureCorrectError(response.body, 'Unauthorized');
     });
 
     it('Return 401 error if role is USER', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         const response = await requester
             .post(`/api/v1/dataset/${jsonFakeDataset.id}/recover`)
-            .set('Authorization', `Bearer abcd`);
+            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
+        ;
 
         response.status.should.equal(401);
         ensureCorrectError(response.body, 'Unauthorized');
     });
 
     it('Return 401 error if role is MANAGER', async () => {
-        mockGetUserFromToken(USERS.MANAGER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
 
         const response = await requester
             .post(`/api/v1/dataset/${jsonFakeDataset.id}/recover`)
-            .set('Authorization', `Bearer abcd`);
+            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
+        ;
 
         response.status.should.equal(401);
         ensureCorrectError(response.body, 'Unauthorized');
     });
 
     it('Return 404 error if the dataset doesn\'t exist', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
         const response = await requester
             .post(`/api/v1/dataset/fake-id/recover`)
-            .set('Authorization', `Bearer abcd`);
+            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
+        ;
 
         response.status.should.equal(404);
         ensureCorrectError(response.body, 'Dataset with id \'fake-id\' doesn\'t exist');
     });
 
     it('Successfully recover a dataset', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
         const response = await requester
             .post(`/api/v1/dataset/${jsonFakeDataset.id}/recover`)
-            .set('Authorization', `Bearer abcd`);
+            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
+        ;
 
         response.status.should.equal(200);
     });

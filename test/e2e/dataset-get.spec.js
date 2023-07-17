@@ -3,10 +3,11 @@ const chai = require('chai');
 const config = require('config');
 const Dataset = require('models/dataset.model');
 const { USERS } = require('./utils/test.constants');
-const { createDataset, deserializeDataset, mockGetUserFromToken } = require('./utils/helpers');
+const { createDataset, deserializeDataset } = require('./utils/helpers');
 
 const { getTestServer } = require('./utils/test-server');
 const { getUUID, expectedDataset } = require('./utils/helpers');
+const { mockValidateRequestWithApiKey, mockValidateRequestWithApiKeyAndUserToken } = require('./utils/mocks');
 
 chai.should();
 
@@ -26,9 +27,11 @@ describe('Get datasets', () => {
 
         it('Get all datasets without referer header should be successful and use the request host', async () => {
             const cartoFakeDataset = await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
+            mockValidateRequestWithApiKey({});
 
             const response = await requester
-                .get(`/api/v1/dataset`);
+                .get(`/api/v1/dataset`)
+                .set('x-api-key', 'api-key-test');
 
             response.status.should.equal(200);
             response.body.should.have.property('data').and.be.an('array');
@@ -42,9 +45,11 @@ describe('Get datasets', () => {
 
         it('Get all datasets with referer header should be successful and use that header on the links on the response', async () => {
             const cartoFakeDataset = await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
+            mockValidateRequestWithApiKey({});
 
             const response = await requester
                 .get(`/api/v1/dataset`)
+                .set('x-api-key', 'api-key-test')
                 .set('referer', `https://potato.com/get-me-all-the-data`);
 
             response.status.should.equal(200);
@@ -59,9 +64,11 @@ describe('Get datasets', () => {
 
         it('Get all datasets with x-rw-domain header should be successful and use that header on the links on the response', async () => {
             const cartoFakeDataset = await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
+            mockValidateRequestWithApiKey({});
 
             const response = await requester
                 .get(`/api/v1/dataset`)
+                .set('x-api-key', 'api-key-test')
                 .set('x-rw-domain', `potato.com`);
 
             response.status.should.equal(200);
@@ -76,9 +83,11 @@ describe('Get datasets', () => {
 
         it('Get all datasets with x-rw-domain and referer headers should be successful and use the x-rw-domain header on the links on the response', async () => {
             const cartoFakeDataset = await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
+            mockValidateRequestWithApiKey({});
 
             const response = await requester
                 .get(`/api/v1/dataset`)
+                .set('x-api-key', 'api-key-test')
                 .set('x-rw-domain', `potato.com`)
                 .set('referer', `https://tomato.com/get-me-all-the-data`);
 
@@ -96,39 +105,49 @@ describe('Get datasets', () => {
     describe('Filter by owner\'s role', () => {
 
         it('Get datasets filtered by owner\'s role = ADMIN as an ADMIN should be successful and filter by the given role', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
             await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
             await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
-            nock(process.env.GATEWAY_URL).get('/auth/user/ids/ADMIN').reply(200, { data: [USERS.ADMIN.id] });
+            nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    }).get('/auth/user/ids/ADMIN').reply(200, { data: [USERS.ADMIN.id] });
 
             const response = await requester
                 .get(`/api/v1/dataset`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .query({ 'user.role': 'ADMIN' });
             response.body.data.length.should.equal(2);
             response.body.data.map((dataset) => dataset.attributes.userId.should.equal(USERS.ADMIN.id));
         });
 
         it('Get datasets filtered by owner\'s role = USER as an ADMIN should be successful and filter by the given role', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
             await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
             await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
-            nock(process.env.GATEWAY_URL).get('/auth/user/ids/USER').reply(200, { data: [USERS.USER.id] });
+            nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    }).get('/auth/user/ids/USER').reply(200, { data: [USERS.USER.id] });
 
             const response = await requester
                 .get(`/api/v1/dataset`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .query({ 'user.role': 'USER' });
             response.body.data.length.should.equal(1);
             response.body.data.map((dataset) => dataset.attributes.userId.should.equal(USERS.USER.id));
         });
 
         it('Get datasets filtered by owner\'s role as a MANAGER should be successful but not filter by the given role', async () => {
-            mockGetUserFromToken(USERS.MANAGER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
 
             await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
             await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
@@ -137,12 +156,13 @@ describe('Get datasets', () => {
             const response = await requester
                 .get(`/api/v1/dataset`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .query({ 'user.role': 'USER' });
             response.body.data.length.should.equal(3);
         });
 
         it('Get datasets filtered by owner\'s role as a USER should be successful but not filter by the given role', async () => {
-            mockGetUserFromToken(USERS.USER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
             await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
             await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
@@ -151,6 +171,7 @@ describe('Get datasets', () => {
             const response = await requester
                 .get(`/api/v1/dataset`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .query({ 'user.role': 'USER' });
             response.body.data.length.should.equal(3);
         });
@@ -159,9 +180,11 @@ describe('Get datasets', () => {
             await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
             await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
             await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
+            mockValidateRequestWithApiKey({});
 
             const response = await requester
                 .get(`/api/v1/dataset`)
+                .set('x-api-key', 'api-key-test')
                 .query({ 'user.role': 'USER' });
             response.body.data.length.should.equal(3);
         });
@@ -170,9 +193,11 @@ describe('Get datasets', () => {
 
     it('Get all datasets with no arguments should be successful', async () => {
         const cartoFakeDataset = await new Dataset(createDataset('cartodb', { userId: USERS.ADMIN.id })).save();
+        mockValidateRequestWithApiKey({});
 
         const response = await requester
-            .get(`/api/v1/dataset`);
+            .get(`/api/v1/dataset`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(200);
         response.body.should.have.property('data').and.be.an('array');
@@ -190,9 +215,11 @@ describe('Get datasets', () => {
             const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
             const jsonFakeDataset = await new Dataset(createDataset('json')).save();
             const csvFakeDataset = await new Dataset(createDataset('csv')).save();
+            mockValidateRequestWithApiKey({});
 
             const response = await requester
-                .get(`/api/v1/dataset?page[number]=1&page[size]=3`);
+                .get(`/api/v1/dataset?page[number]=1&page[size]=3`)
+                .set('x-api-key', 'api-key-test');
             const datasets = deserializeDataset(response);
 
             response.status.should.equal(200);
@@ -215,9 +242,11 @@ describe('Get datasets', () => {
             const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
             await new Dataset(createDataset('json')).save();
             await new Dataset(createDataset('csv')).save();
+            mockValidateRequestWithApiKey({});
 
             const response = await requester
-                .get(`/api/v1/dataset?page[number]=1&page[size]=1`);
+                .get(`/api/v1/dataset?page[number]=1&page[size]=1`)
+                .set('x-api-key', 'api-key-test');
             const datasets = deserializeDataset(response);
 
             response.status.should.equal(200);
@@ -233,9 +262,11 @@ describe('Get datasets', () => {
             await new Dataset(createDataset('cartodb')).save();
             const jsonFakeDataset = await new Dataset(createDataset('json')).save();
             await new Dataset(createDataset('csv')).save();
+            mockValidateRequestWithApiKey({});
 
             const response = await requester
-                .get(`/api/v1/dataset?page[number]=2&page[size]=1`);
+                .get(`/api/v1/dataset?page[number]=2&page[size]=1`)
+                .set('x-api-key', 'api-key-test');
             const datasets = deserializeDataset(response);
 
             response.status.should.equal(200);
@@ -266,9 +297,11 @@ describe('Get datasets', () => {
             const ds2 = await new Dataset(createDataset('cartodb', { subscribable: false })).save();
             const ds3 = await new Dataset(createDataset('cartodb', { subscribable: {} })).save();
             const ds4 = await new Dataset(createDataset('cartodb', { subscribable: { hello: 1 } })).save();
+            mockValidateRequestWithApiKey({});
 
             const response = await requester
-                .get(`/api/v1/dataset`);
+                .get(`/api/v1/dataset`)
+                .set('x-api-key', 'api-key-test');
             response.status.should.equal(200);
             response.body.should.have.property('data').with.lengthOf(4);
 
@@ -285,9 +318,11 @@ describe('Get datasets', () => {
             const ds2 = await new Dataset(createDataset('cartodb', { subscribable: false })).save();
             const ds3 = await new Dataset(createDataset('cartodb', { subscribable: {} })).save();
             const ds4 = await new Dataset(createDataset('cartodb', { subscribable: { hello: 1 } })).save();
+            mockValidateRequestWithApiKey({});
 
             const response = await requester
-                .get(`/api/v1/dataset?subscribable=true`);
+                .get(`/api/v1/dataset?subscribable=true`)
+                .set('x-api-key', 'api-key-test');
             response.status.should.equal(200);
             response.body.should.have.property('data').with.lengthOf(1);
 
@@ -304,9 +339,11 @@ describe('Get datasets', () => {
             const ds2 = await new Dataset(createDataset('cartodb', { subscribable: false })).save();
             const ds3 = await new Dataset(createDataset('cartodb', { subscribable: {} })).save();
             const ds4 = await new Dataset(createDataset('cartodb', { subscribable: { hello: 1 } })).save();
+            mockValidateRequestWithApiKey({});
 
             const response = await requester
-                .get(`/api/v1/dataset?subscribable=false`);
+                .get(`/api/v1/dataset?subscribable=false`)
+                .set('x-api-key', 'api-key-test');
             response.status.should.equal(200);
             response.body.should.have.property('data').with.lengthOf(3);
 
@@ -323,9 +360,11 @@ describe('Get datasets', () => {
             const ds2 = await new Dataset(createDataset('cartodb', { applicationConfig: { rw: { highlighted: 'false' } } })).save();
             const ds3 = await new Dataset(createDataset('cartodb', { applicationConfig: { rw: { highlighted: 'true' } } })).save();
             const ds4 = await new Dataset(createDataset('cartodb', { applicationConfig: { rw: { highlighted: true } } })).save();
+            mockValidateRequestWithApiKey({});
 
             const response = await requester
-                .get(`/api/v1/dataset?applicationConfig.rw.highlighted=true`);
+                .get(`/api/v1/dataset?applicationConfig.rw.highlighted=true`)
+                .set('x-api-key', 'api-key-test');
             response.status.should.equal(200);
             response.body.should.have.property('data').with.lengthOf(1);
 
@@ -342,9 +381,12 @@ describe('Get datasets', () => {
             const ds2 = await new Dataset(createDataset('gee', { applicationConfig: { rw: { highlighted: 'false' } } })).save();
             const ds3 = await new Dataset(createDataset('cartodb', { applicationConfig: { rw: { highlighted: 'true' } } })).save();
             const ds4 = await new Dataset(createDataset('cartodb', { applicationConfig: { rw: { highlighted: true } } })).save();
+            mockValidateRequestWithApiKey({});
+            mockValidateRequestWithApiKey({});
 
             const response1 = await requester
-                .get(`/api/v1/dataset?provider=cartodb&applicationConfig.rw.highlighted=true`);
+                .get(`/api/v1/dataset?provider=cartodb&applicationConfig.rw.highlighted=true`)
+                .set('x-api-key', 'api-key-test');
             response1.status.should.equal(200);
             response1.body.should.have.property('data').with.lengthOf(1);
 
@@ -355,7 +397,8 @@ describe('Get datasets', () => {
             datasetIds1.should.not.contain(ds4._id);
 
             const response2 = await requester
-                .get(`/api/v1/dataset?provider=gee&applicationConfig.rw.highlighted=false`);
+                .get(`/api/v1/dataset?provider=gee&applicationConfig.rw.highlighted=false`)
+                .set('x-api-key', 'api-key-test');
             response2.status.should.equal(200);
             response2.body.should.have.property('data').with.lengthOf(1);
 
@@ -371,15 +414,21 @@ describe('Get datasets', () => {
             const ds2 = await new Dataset(createDataset('gee', { applicationConfig: { rw: { highlighted: 'false' } } })).save();
             const ds3 = await new Dataset(createDataset('cartodb', { applicationConfig: { rw: { highlighted: 'true' } } })).save();
             const ds4 = await new Dataset(createDataset('cartodb', { applicationConfig: { rw: { highlighted: true } } })).save();
+            mockValidateRequestWithApiKey({});
 
-            nock(process.env.GATEWAY_URL)
+            nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
                 .get('/v1/graph/query/search-datasets-ids')
                 .query({ 'concepts[0][0]': 'forest' })
                 .reply(200, { data: [ds1.id, ds2.id] });
 
 
             const response = await requester
-                .get(`/api/v1/dataset?concepts[0][0]=forest`);
+                .get(`/api/v1/dataset?concepts[0][0]=forest`)
+                .set('x-api-key', 'api-key-test');
             response.status.should.equal(200);
             response.body.should.have.property('data').with.lengthOf(2);
 
@@ -399,9 +448,11 @@ describe('Get datasets', () => {
             const ds2 = await new Dataset(createDataset('cartodb', { env: 'production' })).save();
             const ds3 = await new Dataset(createDataset('cartodb', { env: 'custom' })).save();
             const ds4 = await new Dataset(createDataset('cartodb', { env: 'potato' })).save();
+            mockValidateRequestWithApiKey({});
 
             const response = await requester
-                .get(`/api/v1/dataset`);
+                .get(`/api/v1/dataset`)
+                .set('x-api-key', 'api-key-test');
             response.status.should.equal(200);
             response.body.should.have.property('data').with.lengthOf(2);
 
@@ -418,13 +469,15 @@ describe('Get datasets', () => {
             const ds2 = await new Dataset(createDataset('cartodb', { env: 'production' })).save();
             const ds3 = await new Dataset(createDataset('cartodb', { env: 'custom' })).save();
             const ds4 = await new Dataset(createDataset('cartodb', { env: 'potato' })).save();
-
+            mockValidateRequestWithApiKey({});
 
             const response = await requester
                 .get(`/api/v1/dataset`)
+                .set('x-api-key', 'api-key-test')
                 .query({
                     env: 'all'
-                });;
+                });
+            ;
             response.status.should.equal(200);
             response.body.should.have.property('data').with.lengthOf(4);
 
@@ -442,9 +495,11 @@ describe('Get datasets', () => {
             const ds2 = await new Dataset(createDataset('cartodb', { env: 'production' })).save();
             const ds3 = await new Dataset(createDataset('cartodb', { env: 'custom' })).save();
             const ds4 = await new Dataset(createDataset('cartodb', { env: 'potato' })).save();
+            mockValidateRequestWithApiKey({});
 
             const response = await requester
                 .get(`/api/v1/dataset`)
+                .set('x-api-key', 'api-key-test')
                 .query({
                     env: 'custom'
                 });
@@ -464,9 +519,11 @@ describe('Get datasets', () => {
             const ds2 = await new Dataset(createDataset('cartodb', { env: 'production' })).save();
             const ds3 = await new Dataset(createDataset('cartodb', { env: 'custom' })).save();
             const ds4 = await new Dataset(createDataset('cartodb', { env: 'potato' })).save();
+            mockValidateRequestWithApiKey({});
 
             const response = await requester
                 .get(`/api/v1/dataset`)
+                .set('x-api-key', 'api-key-test')
                 .query({
                     env: ['custom', 'potato'].join(',')
                 });

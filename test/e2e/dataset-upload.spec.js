@@ -5,7 +5,8 @@ const Dataset = require('models/dataset.model');
 
 const { USERS } = require('./utils/test.constants');
 const { getTestServer } = require('./utils/test-server');
-const { ensureCorrectError, mockGetUserFromToken } = require('./utils/helpers');
+const { ensureCorrectError } = require('./utils/helpers');
+const { mockValidateRequestWithApiKey, mockValidateRequestWithApiKeyAndUserToken } = require('./utils/mocks');
 
 let requester;
 
@@ -22,30 +23,35 @@ describe('Upload raw data', () => {
     });
 
     it('Upload a dataset without being logged in should return a 401 error', async () => {
+        mockValidateRequestWithApiKey({});
         const response = await requester
-            .post(`/api/v1/dataset/upload`);
+            .post(`/api/v1/dataset/upload`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(401);
         response.body.errors[0].should.have.property('detail').and.equal(`Unauthorized`);
     });
 
     it('Upload a dataset without a provider should return a 400 error', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         const response = await requester
             .post(`/api/v1/dataset/upload`)
-            .set('Authorization', `Bearer abcd`);
+            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
+        ;
 
         response.status.should.equal(400);
         ensureCorrectError(response.body, '- no file to check - provider: provider must be in [csv,json,tsv,xml,tif,tiff,geo.tiff]. - ');
     });
 
     it('Upload a dataset without a valid file should return a 400 error', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         const response = await requester
             .post(`/api/v1/dataset/upload`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .field('provider', 'csv');
 
         response.status.should.equal(400);
@@ -53,7 +59,7 @@ describe('Upload raw data', () => {
     });
 
     it('Return 400 when uploading a large file', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         const filename = 'large_dataset.csv';
 
@@ -62,6 +68,7 @@ describe('Upload raw data', () => {
         const response = await requester
             .post(`/api/v1/dataset/upload`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .field('provider', 'csv')
             .attach('dataset', fileData, filename);
 
@@ -70,11 +77,12 @@ describe('Upload raw data', () => {
     });
 
     it('Return error if no data provided at all', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         const response = await requester
             .post(`/api/v1/dataset/upload`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             // Needed to force request type
             .field('', '');
 
@@ -83,7 +91,7 @@ describe('Upload raw data', () => {
     });
 
     it('Return error if provider and file are different', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         const filename = 'dataset_1.json';
 
@@ -92,6 +100,7 @@ describe('Upload raw data', () => {
         const response = await requester
             .post(`/api/v1/dataset/upload`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .field('provider', 'csv')
             .attach('dataset', fileData, filename);
 
@@ -101,7 +110,7 @@ describe('Upload raw data', () => {
     });
 
     it('Uploading a dataset with a binary file should return a 200 (happy case)', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         const filename = 'dataset_1.csv';
 
@@ -119,6 +128,7 @@ describe('Upload raw data', () => {
         const response = await requester
             .post(`/api/v1/dataset/upload`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .field('provider', 'csv')
             .attach('dataset', fileData, filename);
 

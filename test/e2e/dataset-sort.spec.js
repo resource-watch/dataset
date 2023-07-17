@@ -4,6 +4,7 @@ const Dataset = require('models/dataset.model');
 const { createDataset, deserializeDataset } = require('./utils/helpers');
 
 const { getTestServer } = require('./utils/test-server');
+const { mockValidateRequestWithApiKey } = require('./utils/mocks');
 
 chai.should();
 
@@ -31,8 +32,10 @@ describe('Sort datasets tests', () => {
     });
 
     it('Sort datasets by non-existent field (implicit order)', async () => {
+        mockValidateRequestWithApiKey({});
         const responseOne = await requester
             .get(`/api/v1/dataset`)
+            .set('x-api-key', 'api-key-test')
             .query({ sort: 'potato' });
 
         const datasetsOne = deserializeDataset(responseOne);
@@ -48,8 +51,10 @@ describe('Sort datasets tests', () => {
     });
 
     it('Sort datasets by provider (implicit order)', async () => {
+        mockValidateRequestWithApiKey({});
         const responseOne = await requester
             .get(`/api/v1/dataset`)
+            .set('x-api-key', 'api-key-test')
             .query({ sort: 'provider' });
         const datasetsOne = deserializeDataset(responseOne);
 
@@ -65,8 +70,10 @@ describe('Sort datasets tests', () => {
     });
 
     it('Sort datasets by provider (explicit asc order)', async () => {
+        mockValidateRequestWithApiKey({});
         const responseOne = await requester
             .get(`/api/v1/dataset`)
+            .set('x-api-key', 'api-key-test')
             .query({ sort: '+provider' });
 
         const datasetsOne = deserializeDataset(responseOne);
@@ -83,8 +90,10 @@ describe('Sort datasets tests', () => {
     });
 
     it('Sort datasets by provider (explicit desc order)', async () => {
+        mockValidateRequestWithApiKey({});
         const responseOne = await requester
             .get(`/api/v1/dataset`)
+            .set('x-api-key', 'api-key-test')
             .query({ sort: '-provider' });
 
         const datasetsOne = deserializeDataset(responseOne);
@@ -101,8 +110,10 @@ describe('Sort datasets tests', () => {
     });
 
     it('Sort datasets by relevance with no search criteria should return invalid query error', async () => {
+        mockValidateRequestWithApiKey({});
         const responseOne = await requester
             .get(`/api/v1/dataset`)
+            .set('x-api-key', 'api-key-test')
             .query({ sort: '-relevance' });
 
         deserializeDataset(responseOne);

@@ -60,7 +60,7 @@ class DatasetRouter {
     static async getDatasetApplications(ctx) {
         const requestApps = ctx.request.query.application ? ctx.request.query.application : ctx.request.body.application;
         if (requestApps && ctx.request.method === 'PATCH') {
-            const dataset = await DatasetService.get(ctx.params.dataset);
+            const dataset = await DatasetService.get(ctx.params.dataset, ctx.request.headers['x-api-key']);
             return xor(dataset.application || [], requestApps);
         }
 
@@ -105,7 +105,10 @@ class DatasetRouter {
             uri,
             method: 'POST',
             json: true,
-            body: { connector: clonedDataset }
+            body: { connector: clonedDataset },
+            headers: {
+                'x-api-key': ctx.request.header['x-api-key'],
+            }
         };
 
         if (ctx.request.method === 'DELETE') {
@@ -154,7 +157,10 @@ class DatasetRouter {
             uri,
             method: 'POST',
             json: true,
-            body: { connector: clonedDataset }
+            body: { connector: clonedDataset },
+            headers: {
+                'x-api-key': ctx.request.header['x-api-key'],
+            }
         });
     }
 
@@ -165,7 +171,7 @@ class DatasetRouter {
         const { query } = ctx;
         delete query.loggedUser;
         try {
-            const dataset = await DatasetService.get(id, query, user && user.role === 'ADMIN');
+            const dataset = await DatasetService.get(id, ctx.request.headers['x-api-key'], query, user && user.role === 'ADMIN');
             const includes = ctx.query.includes ? ctx.query.includes.split(',').map((elem) => elem.trim()) : [];
             const datasetId = dataset.id || dataset[0].id;
             const datasetSlug = dataset.slug || dataset[0].slug;
@@ -184,7 +190,7 @@ class DatasetRouter {
         logger.info(`[DatasetRouter] Creating dataset with name: ${ctx.request.body.name}`);
         try {
             const user = DatasetRouter.getUser(ctx);
-            const dataset = await DatasetService.create(ctx.request.body, user);
+            const dataset = await DatasetService.create(ctx.request.body, user, ctx.request.header['x-api-key']);
             try {
                 DatasetRouter.notifyAdapterCreate(ctx, dataset);
             } catch (error) {
@@ -210,7 +216,7 @@ class DatasetRouter {
         logger.info(`[DatasetRouter] Updating dataset with id: ${id}`);
         try {
             const user = DatasetRouter.getUser(ctx);
-            const result = await DatasetService.update(id, ctx.request.body, user);
+            const result = await DatasetService.update(id, ctx.request.body, user, ctx.request.headers['x-api-key']);
             const dataset = result[0];
             const uncache = [`dataset`, `${dataset.id} ${dataset.slug}`];
             if (result[1]) {
@@ -246,13 +252,13 @@ class DatasetRouter {
         const id = ctx.params.dataset;
         logger.info(`[DatasetRouter] Deleting dataset with id: ${id}`);
         try {
-            const dataset = await DatasetService.get(id);
+            const dataset = await DatasetService.get(id, ctx.request.headers['x-api-key']);
 
             // Delete adapter-specific things before deleting the actual dataset. If adapter fails, bail
             await DatasetRouter.notifyAdapter(ctx, dataset);
 
             const user = DatasetRouter.getUser(ctx);
-            await DatasetService.delete(dataset, user);
+            await DatasetService.delete(dataset, user, ctx.request.headers['x-api-key']);
 
             ctx.set('uncache', `dataset ${dataset.id} ${dataset.slug}`);
             ctx.body = DatasetSerializer.serialize(dataset);
@@ -275,14 +281,14 @@ class DatasetRouter {
 
         let user;
         try {
-            user = userIdToDelete === loggedUser.id ? loggedUser : await UserService.getUserById(userIdToDelete);
+            user = userIdToDelete === loggedUser.id ? loggedUser : await UserService.getUserById(userIdToDelete, ctx.request.headers['x-api-key']);
         } catch (error) {
             ctx.throw(404, `User ${userIdToDelete} does not exist`);
         }
 
         logger.info(`[DatasetRouter] Deleting all dataset for user with id: ${userIdToDelete}`);
         try {
-            const datasets = await DatasetService.deleteByUserId(userIdToDelete, user);
+            const datasets = await DatasetService.deleteByUserId(userIdToDelete, user, ctx.request.headers['x-api-key']);
             ctx.body = {
                 deletedDatasets: DatasetSerializer.serialize(datasets.deletedDatasets).data
             }
@@ -303,7 +309,7 @@ class DatasetRouter {
             if (ctx.request.body.env) {
                 ctx.request.query.env = ctx.request.body.env;
             }
-            const datasets = await DatasetService.getAll(ctx.request.query);
+            const datasets = await DatasetService.getAll(ctx.request.headers['x-api-key'], ctx.request.query);
             ctx.body = DatasetSerializer.serialize(datasets);
         } else {
             ctx.body = {
@@ -340,7 +346,7 @@ class DatasetRouter {
 
                 // Fetch info to sort again
                 const ids = await DatasetService.getAllDatasetUserIds();
-                const users = await RelationshipsService.getUsersInfoByIds(ids);
+                const users = await RelationshipsService.getUsersInfoByIds(ids, ctx.request.headers['x-api-key']);
                 await Promise.all(users.map((u) => DatasetModel.updateMany(
                     { userId: u._id },
                     {
@@ -359,12 +365,12 @@ class DatasetRouter {
             // }
 
             if (Object.keys(query).find((el) => el.indexOf('vocabulary[') >= 0)) {
-                ctx.query.ids = await RelationshipsService.filterByVocabularyTag(query);
+                ctx.query.ids = await RelationshipsService.filterByVocabularyTag(query, ctx.request.headers['x-api-key']);
                 logger.debug('Ids from vocabulary-tag', ctx.query.ids);
             }
             if (Object.keys(query).find((el) => el.indexOf('user.role') >= 0) && user && user.role === 'ADMIN') {
                 logger.debug('Obtaining users with role');
-                ctx.query.usersRole = await UserService.getUsersWithRole(ctx.query['user.role']);
+                ctx.query.usersRole = await UserService.getUsersWithRole(ctx.query['user.role'], ctx.request.headers['x-api-key']);
                 logger.debug('Ids from users with role', ctx.query.usersRole);
             }
             if (Object.keys(query).find((el) => el.indexOf('collection') >= 0)) {
@@ -372,7 +378,7 @@ class DatasetRouter {
                     ctx.throw(403, 'Collection filter not authorized');
                     return;
                 }
-                ctx.query.ids = await RelationshipsService.getCollections(ctx.query.collection, userId);
+                ctx.query.ids = await RelationshipsService.getCollections(ctx.query.collection, userId, ctx.request.headers['x-api-key']);
                 ctx.query.ids = ctx.query.ids.length > 0 ? ctx.query.ids.join(',') : '';
                 logger.debug('Ids from collections', ctx.query.ids);
             }
@@ -382,7 +388,7 @@ class DatasetRouter {
                     return;
                 }
                 const app = ctx.query.app || ctx.query.application || 'rw';
-                ctx.query.ids = await RelationshipsService.getFavorites(app, userId);
+                ctx.query.ids = await RelationshipsService.getFavorites(app, userId, ctx.request.headers['x-api-key']);
                 ctx.query.ids = ctx.query.ids.length > 0 ? ctx.query.ids.join(',') : '';
                 logger.debug('Ids from collections', ctx.query.ids);
             }
@@ -406,8 +412,8 @@ class DatasetRouter {
                         metadataSort = sort;
                     }
 
-                    const metadataIds = await RelationshipsService.filterByMetadata(search, metadataSort);
-                    const searchBySynonymsIds = await RelationshipsService.searchBySynonyms(query);
+                    const metadataIds = await RelationshipsService.filterByMetadata(search, metadataSort, ctx.request.headers['x-api-key']);
+                    const searchBySynonymsIds = await RelationshipsService.searchBySynonyms(query, ctx.request.headers['x-api-key']);
                     const datasetBySearchIds = await DatasetService.getDatasetIdsBySearch(search.split(' '));
                     searchIds = metadataIds.concat(searchBySynonymsIds).concat(datasetBySearchIds);
                 }
@@ -416,7 +422,7 @@ class DatasetRouter {
                     || sort.indexOf('most-favorited') >= 0
                     || sort.indexOf('most-viewed') >= 0
                 ) {
-                    conceptIds = await RelationshipsService.filterByConcepts(query);
+                    conceptIds = await RelationshipsService.filterByConcepts(query, ctx.request.headers['x-api-key']);
                 }
                 if ((searchIds && searchIds.length === 0) || (conceptIds && conceptIds.length === 0)) {
                     ctx.body = DatasetSerializer.serialize([], null);
@@ -432,6 +438,7 @@ class DatasetRouter {
             delete originalQuery['page[number]'];
             delete originalQuery.ids;
             delete originalQuery.usersRole;
+            delete originalQuery.requestApplication;
             const serializedQuery = serializeObjToQuery(originalQuery) ? `?${serializeObjToQuery(originalQuery)}&` : '?';
             const apiVersion = ctx.mountPath.split('/')[ctx.mountPath.split('/').length - 1];
             const link = `${ctx.request.protocol}://${getHostForPaginationLink(ctx)}/${apiVersion}${ctx.request.path}${serializedQuery}`;
@@ -440,7 +447,7 @@ class DatasetRouter {
                 query.env = 'production';
             }
 
-            const datasets = await DatasetService.getAll(query, user && user.role === 'ADMIN');
+            const datasets = await DatasetService.getAll(ctx.request.headers['x-api-key'], query, user && user.role === 'ADMIN');
             ctx.set('cache', `dataset ${query.includes ? query.includes.split(',').map((elem) => elem.trim()).join(' ') : ''}`);
             ctx.body = DatasetSerializer.serialize(datasets, link);
         } catch (err) {
@@ -457,7 +464,7 @@ class DatasetRouter {
         try {
             const user = DatasetRouter.getUser(ctx);
             const fullCloning = ctx.query.full === 'true';
-            const dataset = await DatasetService.clone(id, ctx.request.body, user, fullCloning);
+            const dataset = await DatasetService.clone(id, ctx.request.body, user, ctx.request.headers['x-api-key'], fullCloning);
             try {
                 DatasetRouter.notifyAdapter(ctx, dataset);
             } catch (error) {
@@ -506,7 +513,7 @@ class DatasetRouter {
 
     static async flushDataset(ctx) {
         const datasetId = ctx.params.dataset;
-        const dataset = await DatasetService.get(datasetId);
+        const dataset = await DatasetService.get(datasetId, ctx.request.headers['x-api-key']);
         ctx.set('uncache', `${dataset._id} ${dataset.slug} query-${dataset._id} query-${dataset.slug} fields-${dataset._id} fields-${dataset.slug}`);
         ctx.body = 'OK';
     }
@@ -575,7 +582,7 @@ const authorizationMiddleware = async (ctx, next) => {
 
     const allowedOperations = newDatasetCreation || uploadDataset;
     if ((user.role === 'MANAGER' || user.role === 'ADMIN') && !allowedOperations) {
-        const permission = await DatasetService.hasPermission(ctx.params.dataset, user, datasetApps);
+        const permission = await DatasetService.hasPermission(ctx.params.dataset, user, datasetApps, ctx.request.headers['x-api-key']);
         if (!permission) {
             ctx.throw(403, 'Forbidden');
             return;

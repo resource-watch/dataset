@@ -2,8 +2,9 @@ const nock = require('nock');
 const chai = require('chai');
 const Dataset = require('models/dataset.model');
 const { USERS } = require('./utils/test.constants');
-const { deserializeDataset, mockGetUserFromToken } = require('./utils/helpers');
+const { deserializeDataset } = require('./utils/helpers');
 const { getTestServer } = require('./utils/test-server');
+const { mockValidateRequestWithApiKey, mockValidateRequestWithApiKeyAndUserToken } = require('./utils/mocks');
 
 chai.should();
 chai.use(require('chai-datetime'));
@@ -26,8 +27,11 @@ describe('Dataset create tests', () => {
     describe('Permissions', () => {
 
         it('Create a ataset without being logged in should return a 401 error', async () => {
+            mockValidateRequestWithApiKey({});
+
             const response = await requester
                 .post(`/api/v1/dataset`)
+                .set('x-api-key', 'api-key-test')
                 .send({});
 
             response.status.should.equal(401);
@@ -39,7 +43,7 @@ describe('Dataset create tests', () => {
     describe('Create REST datasets', () => {
 
         it('Create a CARTO DB dataset should be successful', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const timestamp = new Date().getTime();
             const dataset = {
@@ -57,7 +61,11 @@ describe('Dataset create tests', () => {
                 overwrite: true
             };
 
-            nock(process.env.GATEWAY_URL)
+            nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
                 .post(/v1\/graph\/dataset\/(\w|-)*$/)
                 .once()
                 .reply(200, {
@@ -65,7 +73,11 @@ describe('Dataset create tests', () => {
                     detail: 'Ok'
                 });
 
-            nock(process.env.GATEWAY_URL)
+            nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
                 .post('/v1/rest-datasets/cartodb', (request) => {
                     request.should.have.property('connector').and.be.an('object');
                     const requestDataset = request.connector;
@@ -87,6 +99,7 @@ describe('Dataset create tests', () => {
             const response = await requester
                 .post(`/api/v1/dataset`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     dataset
                 });
@@ -114,7 +127,7 @@ describe('Dataset create tests', () => {
         });
 
         it('Create a FeatureServer dataset should be successful', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const timestamp = new Date().getTime();
             const dataset = {
@@ -135,7 +148,11 @@ describe('Dataset create tests', () => {
                 overwrite: true
             };
 
-            nock(process.env.GATEWAY_URL)
+            nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
                 .post('/v1/rest-datasets/featureservice', (request) => {
                     request.should.have.property('connector').and.be.an('object');
                     const requestDataset = request.connector;
@@ -157,6 +174,7 @@ describe('Dataset create tests', () => {
             const response = await requester
                 .post(`/api/v1/dataset`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     dataset
                 });
@@ -182,7 +200,7 @@ describe('Dataset create tests', () => {
     describe('Create document datasets', () => {
 
         it('Create a JSON dataset with data in the body should be successful', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const timestamp = new Date();
             const dataset = {
@@ -215,7 +233,11 @@ describe('Dataset create tests', () => {
                 }
             };
 
-            nock(process.env.GATEWAY_URL)
+            nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
                 .post('/v1/doc-datasets/json', (request) => {
                     request.should.have.property('connector').and.be.an('object');
                     const requestDataset = request.connector;
@@ -237,6 +259,7 @@ describe('Dataset create tests', () => {
             const response = await requester
                 .post(`/api/v1/dataset`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     dataset
                 });
@@ -259,7 +282,7 @@ describe('Dataset create tests', () => {
         });
 
         it('Create a JSON dataset with data from a file should be successful', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const timestamp = new Date();
             const dataset = {
@@ -281,7 +304,11 @@ describe('Dataset create tests', () => {
                 dataLastUpdated: timestamp.toISOString()
             };
 
-            nock(process.env.GATEWAY_URL)
+            nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
                 .post('/v1/doc-datasets/json', (request) => {
                     request.should.have.property('connector').and.be.an('object');
                     const requestDataset = request.connector;
@@ -302,6 +329,7 @@ describe('Dataset create tests', () => {
             const response = await requester
                 .post(`/api/v1/dataset`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     dataset
                 });
@@ -324,7 +352,7 @@ describe('Dataset create tests', () => {
         });
 
         it('Create a JSON dataset with data from multiple files should be successful', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const timestamp = new Date();
             const dataset = {
@@ -351,7 +379,11 @@ describe('Dataset create tests', () => {
             };
 
 
-            nock(process.env.GATEWAY_URL)
+            nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
                 .post('/v1/doc-datasets/json', (request) => {
                     request.should.have.property('connector').and.be.an('object');
                     const requestDataset = request.connector;
@@ -372,6 +404,7 @@ describe('Dataset create tests', () => {
             const response = await requester
                 .post(`/api/v1/dataset`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     dataset
                 });
@@ -395,7 +428,7 @@ describe('Dataset create tests', () => {
         });
 
         it('Create a CSV dataset with data from multiple files should be successful', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const timestamp = new Date();
             const dataset = {
@@ -422,7 +455,11 @@ describe('Dataset create tests', () => {
             };
 
 
-            nock(process.env.GATEWAY_URL)
+            nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
                 .post('/v1/doc-datasets/csv', (request) => {
                     request.should.have.property('connector').and.be.an('object');
                     const requestDataset = request.connector;
@@ -443,6 +480,7 @@ describe('Dataset create tests', () => {
             const response = await requester
                 .post(`/api/v1/dataset`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     dataset
                 });
@@ -466,7 +504,7 @@ describe('Dataset create tests', () => {
         });
 
         it('Create a JSON dataset with data from files in `sources` and `connectorUrl` should fail', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const timestamp = new Date();
             const dataset = {
@@ -488,6 +526,7 @@ describe('Dataset create tests', () => {
             const response = await requester
                 .post(`/api/v1/dataset`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     dataset
                 });
@@ -498,7 +537,7 @@ describe('Dataset create tests', () => {
         });
 
         it('Create a JSON dataset with data from files in `connectorUrl` and data in the body should fail', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const timestamp = new Date();
             const dataset = {
@@ -527,6 +566,7 @@ describe('Dataset create tests', () => {
             const response = await requester
                 .post(`/api/v1/dataset`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     dataset
                 });
@@ -537,7 +577,7 @@ describe('Dataset create tests', () => {
         });
 
         it('Create a JSON dataset with data from files in `sources` and data in the body should fail', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const timestamp = new Date();
             const dataset = {
@@ -570,6 +610,7 @@ describe('Dataset create tests', () => {
             const response = await requester
                 .post(`/api/v1/dataset`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     dataset
                 });
@@ -580,7 +621,7 @@ describe('Dataset create tests', () => {
         });
 
         it('Create a CSV dataset with data in the body should be successful', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const timestamp = new Date();
             const dataset = {
@@ -594,7 +635,11 @@ describe('Dataset create tests', () => {
                 dataLastUpdated: timestamp.toISOString()
             };
 
-            nock(process.env.GATEWAY_URL)
+            nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
                 .post('/v1/doc-datasets/csv', (request) => {
                     request.should.have.property('connector').and.be.an('object');
                     const requestDataset = request.connector;
@@ -615,6 +660,7 @@ describe('Dataset create tests', () => {
             const response = await requester
                 .post(`/api/v1/dataset`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     dataset
                 });
@@ -640,7 +686,7 @@ describe('Dataset create tests', () => {
     describe('Apps', () => {
 
         it('Create a CSV dataset with an app that\'s not part of the user account should fail', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const timestamp = new Date();
             const dataset = {
@@ -657,6 +703,7 @@ describe('Dataset create tests', () => {
             const response = await requester
                 .post(`/api/v1/dataset`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     dataset
                 });
@@ -671,7 +718,7 @@ describe('Dataset create tests', () => {
     describe('Environments', () => {
 
         it('Create a dataset with no custom env should be successful and have the production env', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const timestamp = new Date().getTime();
             const dataset = {
@@ -688,7 +735,11 @@ describe('Dataset create tests', () => {
                 overwrite: true
             };
 
-            nock(process.env.GATEWAY_URL)
+            nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
                 .post(/v1\/graph\/dataset\/(\w|-)*$/)
                 .once()
                 .reply(200, {
@@ -696,7 +747,11 @@ describe('Dataset create tests', () => {
                     detail: 'Ok'
                 });
 
-            nock(process.env.GATEWAY_URL)
+            nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
                 .post('/v1/rest-datasets/cartodb')
                 .once()
                 .reply(200, {
@@ -707,6 +762,7 @@ describe('Dataset create tests', () => {
             const response = await requester
                 .post(`/api/v1/dataset`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     dataset
                 });
@@ -735,7 +791,7 @@ describe('Dataset create tests', () => {
         });
 
         it('Create a dataset with a custom env should be successful', async () => {
-            mockGetUserFromToken(USERS.ADMIN);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
             const timestamp = new Date().getTime();
             const dataset = {
@@ -753,7 +809,11 @@ describe('Dataset create tests', () => {
                 overwrite: true
             };
 
-            nock(process.env.GATEWAY_URL)
+            nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
                 .post(/v1\/graph\/dataset\/(\w|-)*$/)
                 .once()
                 .reply(200, {
@@ -761,7 +821,11 @@ describe('Dataset create tests', () => {
                     detail: 'Ok'
                 });
 
-            nock(process.env.GATEWAY_URL)
+            nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
                 .post('/v1/rest-datasets/cartodb')
                 .once()
                 .reply(200, {
@@ -772,6 +836,7 @@ describe('Dataset create tests', () => {
             const response = await requester
                 .post(`/api/v1/dataset`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send({
                     dataset
                 });

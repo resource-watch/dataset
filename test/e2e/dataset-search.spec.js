@@ -4,6 +4,7 @@ const Dataset = require('models/dataset.model');
 const { createDataset, deserializeDataset, mapDatasetToMetadataSearchResult } = require('./utils/helpers');
 
 const { getTestServer } = require('./utils/test-server');
+const { mockValidateRequestWithApiKey } = require('./utils/mocks');
 
 chai.should();
 
@@ -29,7 +30,12 @@ describe('Search datasets tests', () => {
     });
 
     it('Search for common elements in name and description should return 2 results (no synonyms)', async () => {
-        nock(process.env.GATEWAY_URL)
+        mockValidateRequestWithApiKey({});
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/metadata?search=fake%20dataset`)
             .reply(200, {
                 data: [
@@ -38,14 +44,19 @@ describe('Search datasets tests', () => {
                 ]
             });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/graph/query/search-by-label-synonyms?search=fake%20dataset`)
             .reply(200, {
                 data: []
             });
 
         const response = await requester
-            .get(`/api/v1/dataset?search=fake%20dataset`);
+            .get(`/api/v1/dataset?search=fake%20dataset`)
+            .set('x-api-key', 'api-key-test');
         const datasets = deserializeDataset(response);
 
         response.status.should.equal(200);
@@ -59,7 +70,12 @@ describe('Search datasets tests', () => {
     });
 
     it('Search for name of one dataset should return a single result (no synonyms)', async () => {
-        nock(process.env.GATEWAY_URL)
+        mockValidateRequestWithApiKey({});
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/metadata?search=${encodeURIComponent(cartoFakeDataset.name)}`)
             .reply(200, {
                 data: [
@@ -67,14 +83,19 @@ describe('Search datasets tests', () => {
                 ]
             });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/graph/query/search-by-label-synonyms?search=${encodeURIComponent(cartoFakeDataset.name)}`)
             .reply(200, {
                 data: []
             });
 
         const response = await requester
-            .get(`/api/v1/dataset?search=${encodeURIComponent(cartoFakeDataset.name)}`);
+            .get(`/api/v1/dataset?search=${encodeURIComponent(cartoFakeDataset.name)}`)
+            .set('x-api-key', 'api-key-test');
         const datasets = deserializeDataset(response);
 
         response.status.should.equal(200);
@@ -90,7 +111,12 @@ describe('Search datasets tests', () => {
      * Sort tests
      */
     it('Search with keyword and no explicit sort', async () => {
-        nock(process.env.GATEWAY_URL)
+        mockValidateRequestWithApiKey({});
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/metadata?search=keyword`)
             .once()
             .reply(200, {
@@ -100,7 +126,11 @@ describe('Search datasets tests', () => {
                 ]
             });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/graph/query/search-by-label-synonyms?search=keyword`)
             .once()
             .reply(200, {
@@ -108,7 +138,8 @@ describe('Search datasets tests', () => {
             });
 
         const responseOne = await requester
-            .get(`/api/v1/dataset?search=keyword`);
+            .get(`/api/v1/dataset?search=keyword`)
+            .set('x-api-key', 'api-key-test');
         const datasetsOne = deserializeDataset(responseOne);
 
         responseOne.status.should.equal(200);
@@ -122,7 +153,13 @@ describe('Search datasets tests', () => {
     });
 
     it('Search with keyword and sort by most viewed is sorted using the graph', async () => {
-        nock(process.env.GATEWAY_URL)
+        mockValidateRequestWithApiKey({});
+        mockValidateRequestWithApiKey({});
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/metadata?search=keyword`)
             .twice()
             .reply(200, {
@@ -132,7 +169,11 @@ describe('Search datasets tests', () => {
                 ]
             });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/graph/query/search-by-label-synonyms`)
             .query({
                 search: 'keyword',
@@ -142,7 +183,11 @@ describe('Search datasets tests', () => {
                 data: []
             });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/graph/query/search-datasets-ids`)
             .query({
                 sort: '-most-viewed'
@@ -155,7 +200,8 @@ describe('Search datasets tests', () => {
             });
 
         const responseOne = await requester
-            .get(`/api/v1/dataset?search=keyword&sort=-most-viewed`);
+            .get(`/api/v1/dataset?search=keyword&sort=-most-viewed`)
+            .set('x-api-key', 'api-key-test');
         const datasetsOne = deserializeDataset(responseOne);
 
         responseOne.status.should.equal(200);
@@ -167,7 +213,11 @@ describe('Search datasets tests', () => {
         datasetIdsOne[0].should.equal(jsonFakeDataset._id);
         datasetIdsOne[1].should.equal(cartoFakeDataset._id);
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/graph/query/search-datasets-ids`)
             .query({
                 sort: '-most-viewed'
@@ -182,6 +232,7 @@ describe('Search datasets tests', () => {
 
         const responseTwo = await requester
             .get(`/api/v1/dataset`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 search: 'keyword',
                 sort: '-most-viewed'
@@ -199,7 +250,13 @@ describe('Search datasets tests', () => {
     });
 
     it('Search with keyword and sort by most favorited is sorted using the graph', async () => {
-        nock(process.env.GATEWAY_URL)
+        mockValidateRequestWithApiKey({});
+        mockValidateRequestWithApiKey({});
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/metadata?search=keyword`)
             .twice()
             .reply(200, {
@@ -209,7 +266,11 @@ describe('Search datasets tests', () => {
                 ]
             });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/graph/query/search-by-label-synonyms`)
             .query({
                 search: 'keyword',
@@ -219,7 +280,11 @@ describe('Search datasets tests', () => {
                 data: []
             });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/graph/query/search-datasets-ids`)
             .query({
                 sort: '-most-favorited'
@@ -234,6 +299,7 @@ describe('Search datasets tests', () => {
 
         const responseOne = await requester
             .get(`/api/v1/dataset`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 search: 'keyword',
                 sort: '-most-favorited'
@@ -250,7 +316,11 @@ describe('Search datasets tests', () => {
         datasetIdsOne[1].should.equal(cartoFakeDataset._id);
 
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/graph/query/search-datasets-ids`)
             .query({
                 sort: '-most-favorited'
@@ -265,10 +335,12 @@ describe('Search datasets tests', () => {
 
         const responseTwo = await requester
             .get(`/api/v1/dataset`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 search: 'keyword',
                 sort: '-most-favorited'
-            });;
+            });
+        ;
         const datasetsTwo = deserializeDataset(responseTwo);
 
         responseTwo.status.should.equal(200);
@@ -282,7 +354,12 @@ describe('Search datasets tests', () => {
     });
 
     it('Search with keyword and sort by relevance non-specified is sorted using metadata', async () => {
-        nock(process.env.GATEWAY_URL)
+        mockValidateRequestWithApiKey({});
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/metadata`)
             .query({
                 search: 'keyword',
@@ -296,7 +373,11 @@ describe('Search datasets tests', () => {
                 ]
             });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/graph/query/search-by-label-synonyms`)
             .query({
                 search: 'keyword',
@@ -309,6 +390,7 @@ describe('Search datasets tests', () => {
 
         const response = await requester
             .get(`/api/v1/dataset`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 search: 'keyword',
                 sort: 'relevance'
@@ -326,7 +408,12 @@ describe('Search datasets tests', () => {
     });
 
     it('Search with keyword and sort by relevance descending is sorted using metadata', async () => {
-        nock(process.env.GATEWAY_URL)
+        mockValidateRequestWithApiKey({});
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/metadata?search=keyword&sort=-relevance`)
             .once()
             .reply(200, {
@@ -336,7 +423,11 @@ describe('Search datasets tests', () => {
                 ]
             });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/graph/query/search-by-label-synonyms`)
             .query({
                 search: 'keyword',
@@ -349,6 +440,7 @@ describe('Search datasets tests', () => {
 
         const response = await requester
             .get(`/api/v1/dataset`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 search: 'keyword',
                 sort: '-relevance'
@@ -367,7 +459,12 @@ describe('Search datasets tests', () => {
 
 
     it('Search with keyword and sort by relevance ascending return an error for invalid request', async () => {
-        nock(process.env.GATEWAY_URL)
+        mockValidateRequestWithApiKey({});
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/metadata?search=keyword&sort=+relevance`)
             .once()
             .reply(400, {
@@ -380,7 +477,8 @@ describe('Search datasets tests', () => {
             });
 
         const response = await requester
-            .get(`/api/v1/dataset?search=keyword&sort=${encodeURIComponent('+')}relevance`);
+            .get(`/api/v1/dataset?search=keyword&sort=${encodeURIComponent('+')}relevance`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(400);
         response.body.should.have.property('errors').and.be.an('array');
@@ -388,7 +486,13 @@ describe('Search datasets tests', () => {
     });
 
     it('Search with keyword and sort by other keyword is sorted using the metadata', async () => {
-        nock(process.env.GATEWAY_URL)
+        mockValidateRequestWithApiKey({});
+        mockValidateRequestWithApiKey({});
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/metadata?search=keyword&sort=metadata`)
             .once()
             .reply(200, {
@@ -398,7 +502,11 @@ describe('Search datasets tests', () => {
                 ]
             });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/graph/query/search-by-label-synonyms`)
             .query({
                 search: 'keyword',
@@ -410,6 +518,7 @@ describe('Search datasets tests', () => {
 
         const responseOne = await requester
             .get(`/api/v1/dataset`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 search: 'keyword',
                 sort: 'metadata'
@@ -425,7 +534,11 @@ describe('Search datasets tests', () => {
         datasetIdsOne[0].should.equal(cartoFakeDataset._id);
         datasetIdsOne[1].should.equal(jsonFakeDataset._id);
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .get(`/v1/metadata`)
             .query({
                 search: 'keyword',
@@ -441,6 +554,7 @@ describe('Search datasets tests', () => {
 
         const responseTwo = await requester
             .get(`/api/v1/dataset`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 search: 'keyword',
                 sort: 'metadata'

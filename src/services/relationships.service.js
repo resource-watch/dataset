@@ -30,11 +30,12 @@ class RelationshipsService {
         delete query.sort
         delete query.filterIncludesByEnv;
         delete query.includes;
+        delete query.requestApplication;
         delete query['user.role'];
         return serializeObjToQuery(query);
     }
 
-    static async getResources(ids, includes, query = '', users = [], isAdmin = false) {
+    static async getResources(ids, includes, apiKey, query = '', users = [], isAdmin = false) {
         logger.info(`Getting resources of ids: ${ids}`);
         delete query.ids;
         delete query.usersRole;
@@ -83,7 +84,10 @@ class RelationshipsService {
                         method: 'POST',
                         json: true,
                         body: payload,
-                        version
+                        version,
+                        headers: {
+                            'x-api-key': apiKey,
+                        }
                     });
                 } catch (e) {
                     logger.error(`Error loading '${include}' resources for dataset: ${e}`);
@@ -128,7 +132,7 @@ class RelationshipsService {
         return resources;
     }
 
-    static async getRelationships(datasets, includes, query = '', isAdmin = false) {
+    static async getRelationships(datasets, includes, apiKey, query = '', isAdmin = false) {
         logger.info(`Getting relationships of datasets`, isAdmin);
         datasets.unshift({});
         const map = datasets.reduce((acc, val) => {
@@ -137,7 +141,7 @@ class RelationshipsService {
         });
         const users = datasets.map((el) => el.userId);
         const ids = Object.keys(map);
-        const resources = await RelationshipsService.getResources(ids, includes, query, users, isAdmin);
+        const resources = await RelationshipsService.getResources(ids, includes, apiKey, query, users, isAdmin);
         ids.forEach((id) => {
             includes.forEach((include) => {
                 if (include !== 'user') {
@@ -164,20 +168,23 @@ class RelationshipsService {
         return relationships;
     }
 
-    static async createVocabularies(id, vocabularies) {
+    static async createVocabularies(id, vocabularies, apiKey) {
         try {
             return await RWAPIMicroservice.requestToMicroservice({
                 uri: `/v1/dataset/${id}/vocabulary`,
                 method: 'POST',
                 json: true,
-                body: vocabularies
+                body: vocabularies,
+                headers: {
+                    'x-api-key': apiKey,
+                }
             });
         } catch (e) {
             throw new Error(e);
         }
     }
 
-    static async filterByVocabularyTag(query) {
+    static async filterByVocabularyTag(query, apiKey) {
         logger.info(`Getting resources for vocabulary-tag query`);
         let vocabularyQuery = '?';
         Object.keys(query).forEach(((key) => {
@@ -191,6 +198,9 @@ class RelationshipsService {
             uri: `/v1/dataset/vocabulary/find${vocabularyQuery}`,
             method: 'GET',
             json: true,
+            headers: {
+                'x-api-key': apiKey,
+            }
         });
         let ids = ' ';
         if (result.data.length > 0) {
@@ -200,7 +210,7 @@ class RelationshipsService {
         return ids;
     }
 
-    static async cloneVocabularies(oldId, newId) {
+    static async cloneVocabularies(oldId, newId, apiKey) {
         try {
             return await RWAPIMicroservice.requestToMicroservice({
                 uri: `/v1/dataset/${oldId}/vocabulary/clone/dataset`,
@@ -208,6 +218,9 @@ class RelationshipsService {
                 json: true,
                 body: {
                     newDataset: newId
+                },
+                headers: {
+                    'x-api-key': apiKey,
                 }
             });
         } catch (e) {
@@ -215,7 +228,7 @@ class RelationshipsService {
         }
     }
 
-    static async cloneMetadatas(oldId, newId) {
+    static async cloneMetadatas(oldId, newId, apiKey) {
         try {
             return await RWAPIMicroservice.requestToMicroservice({
                 uri: `/v1/dataset/${oldId}/metadata/clone`,
@@ -223,6 +236,9 @@ class RelationshipsService {
                 json: true,
                 body: {
                     newDataset: newId
+                },
+                headers: {
+                    'x-api-key': apiKey,
                 }
             });
         } catch (e) {
@@ -230,7 +246,7 @@ class RelationshipsService {
         }
     }
 
-    static async getCollections(ids, userId) {
+    static async getCollections(ids, userId, apiKey) {
         try {
             const result = await RWAPIMicroservice.requestToMicroservice({
                 uri: `/v1/collection/find-by-ids`,
@@ -239,6 +255,9 @@ class RelationshipsService {
                 body: {
                     ids,
                     userId
+                },
+                headers: {
+                    'x-api-key': apiKey,
                 }
             });
             return result.data.map((col) => col.attributes.resources.filter((res) => res.type === 'dataset')).reduce((pre, cur) => pre.concat(cur)).map((el) => el.id);
@@ -247,7 +266,7 @@ class RelationshipsService {
         }
     }
 
-    static async getFavorites(app, userId) {
+    static async getFavorites(app, userId, apiKey) {
         try {
             const result = await RWAPIMicroservice.requestToMicroservice({
                 uri: `/v1/favourite/find-by-user`,
@@ -256,6 +275,9 @@ class RelationshipsService {
                 body: {
                     app,
                     userId
+                },
+                headers: {
+                    'x-api-key': apiKey,
                 }
             });
             logger.debug(result);
@@ -265,7 +287,7 @@ class RelationshipsService {
         }
     }
 
-    static async filterByMetadata(search, sort) {
+    static async filterByMetadata(search, sort, apiKey) {
         let uri = `/v1/metadata?search=${search}`;
 
         if (sort !== null) {
@@ -276,7 +298,10 @@ class RelationshipsService {
             const result = await RWAPIMicroservice.requestToMicroservice({
                 uri,
                 method: 'GET',
-                json: true
+                json: true,
+                headers: {
+                    'x-api-key': apiKey,
+                }
             });
             logger.debug(result);
             return result.data.map((m) => m.attributes.dataset);
@@ -288,12 +313,15 @@ class RelationshipsService {
         }
     }
 
-    static async sortByMetadata(sign, query) {
+    static async sortByMetadata(sign, query, apiKey) {
         try {
             const result = await RWAPIMicroservice.requestToMicroservice({
                 uri: `/v1/metadata?sort=${sign}name&type=dataset&${query}`,
                 method: 'GET',
-                json: true
+                json: true,
+                headers: {
+                    'x-api-key': apiKey,
+                }
             });
             logger.debug(result);
             return result.data.map((m) => m.attributes.dataset);
@@ -302,7 +330,7 @@ class RelationshipsService {
         }
     }
 
-    static async filterByConcepts(rawQuery) {
+    static async filterByConcepts(rawQuery, apiKey) {
         const query = pickBy(rawQuery, (value, key) => {
             return (['app', 'application', 'sort'].includes(key) || startsWith(key, 'concepts['))
         });
@@ -310,7 +338,10 @@ class RelationshipsService {
             const result = await RWAPIMicroservice.requestToMicroservice({
                 uri: `/v1/graph/query/search-datasets-ids?${serializeObjToQuery(query)}`,
                 method: 'GET',
-                json: true
+                json: true,
+                headers: {
+                    'x-api-key': apiKey,
+                }
             });
             return result.data;
         } catch (e) {
@@ -318,12 +349,15 @@ class RelationshipsService {
         }
     }
 
-    static async searchBySynonyms(query) {
+    static async searchBySynonyms(query, apiKey) {
         try {
             const result = await RWAPIMicroservice.requestToMicroservice({
                 uri: `/v1/graph/query/search-by-label-synonyms?${RelationshipsService.prepareAndFormatQuery(query)}`,
                 method: 'GET',
-                json: true
+                json: true,
+                headers: {
+                    'x-api-key': apiKey,
+                }
             });
             return result.data;
         } catch (e) {
@@ -331,14 +365,17 @@ class RelationshipsService {
         }
     }
 
-    static async getUsersInfoByIds(ids) {
+    static async getUsersInfoByIds(ids, apiKey) {
         logger.debug('Fetching all users\' information');
         const body = await RWAPIMicroservice.requestToMicroservice({
             uri: `/auth/user/find-by-ids`,
             method: 'POST',
             json: true,
             version: false,
-            body: { ids }
+            body: { ids },
+            headers: {
+                'x-api-key': apiKey,
+            }
         });
 
         return body.data;

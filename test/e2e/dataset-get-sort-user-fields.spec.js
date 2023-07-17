@@ -3,8 +3,8 @@ const Dataset = require('models/dataset.model');
 const chai = require('chai');
 const mongoose = require('mongoose');
 const { getTestServer } = require('./utils/test-server');
-const { createDataset, mockGetUserFromToken } = require('./utils/helpers');
-const { createMockUser } = require('./utils/mocks');
+const { createDataset } = require('./utils/helpers');
+const { createMockUser, mockValidateRequestWithApiKey, mockValidateRequestWithApiKeyAndUserToken } = require('./utils/mocks');
 const { USERS } = require('./utils/test.constants');
 
 chai.should();
@@ -46,8 +46,10 @@ describe('Get datasets sorted by user fields', () => {
     });
 
     it('Getting datasets sorted by user.role ASC without authentication should return 403 Forbidden', async () => {
+        mockValidateRequestWithApiKey({});
         const response = await requester
             .get('/api/v1/dataset')
+            .set('x-api-key', 'api-key-test')
             .query({ sort: 'user.role' });
         response.status.should.equal(403);
         response.body.should.have.property('errors').and.be.an('array');
@@ -55,11 +57,12 @@ describe('Get datasets sorted by user fields', () => {
     });
 
     it('Getting datasets sorted by user.role ASC with user with role USER should return 403 Forbidden', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         const response = await requester
             .get('/api/v1/dataset')
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 sort: 'user.role',
             });
@@ -69,11 +72,12 @@ describe('Get datasets sorted by user fields', () => {
     });
 
     it('Getting datasets sorted by user.role ASC with user with role MANAGER should return 403 Forbidden', async () => {
-        mockGetUserFromToken(USERS.MANAGER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
 
         const response = await requester
             .get('/api/v1/dataset')
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 sort: 'user.role',
             });
@@ -83,12 +87,13 @@ describe('Get datasets sorted by user fields', () => {
     });
 
     it('Getting datasets sorted by user.role ASC should return a list of datasets ordered by the role of the user who created the dataset (happy case)', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
         await mockDatasetsForSorting();
         const response = await requester
             .get('/api/v1/dataset')
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 includes: 'user',
                 sort: 'user.role',
@@ -99,12 +104,13 @@ describe('Get datasets sorted by user fields', () => {
     });
 
     it('Getting datasets sorted by user.role DESC should return a list of datasets ordered by the role of the user who created the dataset (happy case)', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
         await mockDatasetsForSorting();
         const response = await requester
             .get('/api/v1/dataset')
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 includes: 'user',
                 sort: '-user.role',
@@ -115,12 +121,13 @@ describe('Get datasets sorted by user fields', () => {
     });
 
     it('Getting datasets sorted by user.name ASC should return a list of datasets ordered by the name of the user who created the dataset (happy case)', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
         await mockDatasetsForSorting();
         const response = await requester
             .get('/api/v1/dataset')
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 includes: 'user',
                 sort: 'user.name',
@@ -131,12 +138,13 @@ describe('Get datasets sorted by user fields', () => {
     });
 
     it('Getting datasets sorted by user.name DESC should return a list of datasets ordered by the name of the user who created the dataset (happy case)', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
         await mockDatasetsForSorting();
         const response = await requester
             .get('/api/v1/dataset')
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 includes: 'user',
                 sort: '-user.name',
@@ -147,7 +155,7 @@ describe('Get datasets sorted by user fields', () => {
     });
 
     it('Sorting datasets by user role ASC puts datasets without valid users in the end of the list', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
         await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
         await new Dataset(createDataset('cartodb', { userId: USERS.MANAGER.id })).save();
@@ -161,17 +169,26 @@ describe('Get datasets sorted by user fields', () => {
 
         // Custom mock find-by-ids call
         const userIds = [USERS.USER.id, USERS.MANAGER.id, USERS.ADMIN.id, USERS.SUPERADMIN.id, 'legacy', '5accc3660bb7c603ba473d0f'];
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/auth/user/find-by-ids', { ids: userIds })
             .reply(200, { data: fullUsers });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/auth/user/find-by-ids', (body) => body.ids.length === userIds.length)
             .reply(200, { data: fullUsers });
 
         const response = await requester
             .get('/api/v1/dataset')
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 includes: 'user',
                 sort: 'user.role',
@@ -190,7 +207,7 @@ describe('Get datasets sorted by user fields', () => {
     });
 
     it('Sorting datasets by user role DESC puts datasets without valid users in the beginning of the list', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
         await new Dataset(createDataset('cartodb', { userId: USERS.USER.id })).save();
         await new Dataset(createDataset('cartodb', { userId: USERS.MANAGER.id })).save();
@@ -204,17 +221,26 @@ describe('Get datasets sorted by user fields', () => {
 
         // Custom mock find-by-ids call
         const userIds = [USERS.USER.id, USERS.MANAGER.id, USERS.ADMIN.id, USERS.SUPERADMIN.id, 'legacy', '5accc3660bb7c603ba473d0f'];
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/auth/user/find-by-ids', { ids: userIds })
             .reply(200, { data: fullUsers });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
             .post('/auth/user/find-by-ids', (body) => body.ids.length === userIds.length)
             .reply(200, { data: fullUsers });
 
         const response = await requester
             .get('/api/v1/dataset')
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 includes: 'user',
                 sort: '-user.role',
@@ -232,7 +258,7 @@ describe('Get datasets sorted by user fields', () => {
     });
 
     it('Sorting datasets by user.name is case insensitive and returns a list of datasets ordered by the name of the user who created the dataset', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
         const firstUser = { ...USERS.USER, name: 'Anthony' };
         const secondUser = { ...USERS.MANAGER, name: 'bernard' };
@@ -245,6 +271,7 @@ describe('Get datasets sorted by user fields', () => {
         const response = await requester
             .get('/api/v1/dataset')
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 includes: 'user',
                 sort: 'user.name',
@@ -255,7 +282,7 @@ describe('Get datasets sorted by user fields', () => {
     });
 
     it('Sorting datasets by user.name is deterministic, applying an implicit sort by id after sorting by user.name', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
         const spoofedUser = { ...USERS.USER, name: 'AAA' };
         const spoofedManager = { ...USERS.MANAGER, name: 'AAA' };
@@ -268,6 +295,7 @@ describe('Get datasets sorted by user fields', () => {
         const response = await requester
             .get('/api/v1/dataset')
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 includes: 'user',
                 sort: 'user.name',

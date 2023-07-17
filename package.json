@@ -30,7 +30,7 @@
   "author": {
     "name": "Vizzuality",
     "email": "hello@vizzuality.com",
-    "url": "http://vizzuality.com/"
+    "url": "https://vizzuality.com/"
   },
   "engines": {
     "node": "~16"
@@ -63,7 +63,7 @@
     "bunyan": "^1.8.5",
     "config": "^1.21.0",
     "cron-parser": "^2.13.0",
-    "rw-api-microservice-node": "^4.0.0",
+    "rw-api-microservice-node": "5.0.0-rc.3",
     "firstline": "^1.2.1",
     "koa": "^2.0.0",
     "koa-body": "^2.0.0",

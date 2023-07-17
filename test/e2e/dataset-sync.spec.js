@@ -3,7 +3,8 @@ const chai = require('chai');
 const Dataset = require('models/dataset.model');
 const { USERS } = require('./utils/test.constants');
 const { getTestServer } = require('./utils/test-server');
-const { createDataset, deserializeDataset, mockGetUserFromToken } = require('./utils/helpers');
+const { createDataset, deserializeDataset } = require('./utils/helpers');
+const { mockValidateRequestWithApiKeyAndUserToken } = require('./utils/mocks');
 
 chai.should();
 chai.use(require('chai-datetime'));
@@ -25,7 +26,7 @@ describe('Dataset sync tests', () => {
     });
 
     it('Create a document dataset with empty sync data should return a 400 error', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
         const timestamp = new Date();
         const dataset = {
@@ -62,6 +63,7 @@ describe('Dataset sync tests', () => {
         const response = await requester
             .post(`/api/v1/dataset`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 dataset,
             });
@@ -72,7 +74,7 @@ describe('Dataset sync tests', () => {
     });
 
     it('Create a document dataset with valid sync data should return a 200 (happy case)', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
         const timestamp = new Date();
         const dataset = {
@@ -110,7 +112,11 @@ describe('Dataset sync tests', () => {
             }
         };
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .post('/v1/task/sync-dataset', (body) => {
                 body.should.have.property('datasetId');
                 body.should.have.property('provider').and.equal('json');
@@ -127,7 +133,22 @@ describe('Dataset sync tests', () => {
                 detail: 'Ok'
             });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
+            .post(new RegExp('/v1/graph/dataset/(.*)'))
+            .reply(200, {
+                status: 200,
+                detail: 'Ok'
+            });
+
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .post('/v1/doc-datasets/json')
             .reply(200, {
                 status: 200,
@@ -137,6 +158,7 @@ describe('Dataset sync tests', () => {
         const response = await requester
             .post(`/api/v1/dataset`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 dataset
             });
@@ -159,13 +181,14 @@ describe('Dataset sync tests', () => {
     });
 
     it('Update a document dataset with empty sync data should return a 400 error', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
         const fakeDataset = await new Dataset(createDataset('cartodb')).save();
 
         const response = await requester
             .patch(`/api/v1/dataset/${fakeDataset._id}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 name: 'other name',
                 application: ['gfw', 'rw'],
@@ -178,11 +201,15 @@ describe('Dataset sync tests', () => {
     });
 
     it('Update a document dataset with valid sync data should return a 200 (happy case)', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
 
         const fakeDataset = await new Dataset(createDataset('json')).save();
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .put('/v1/task/sync-dataset/by-dataset', (body) => {
                 body.should.have.property('datasetId');
                 body.should.have.property('provider').and.equal('json');
@@ -202,6 +229,7 @@ describe('Dataset sync tests', () => {
         const response = await requester
             .patch(`/api/v1/dataset/${fakeDataset._id}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 name: 'other name',
                 application: ['gfw', 'rw'],

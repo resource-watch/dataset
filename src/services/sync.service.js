@@ -4,7 +4,7 @@ const SyncError = require('errors/sync.error');
 
 class SyncService {
 
-    static async create(dataset) {
+    static async create(dataset, apiKey) {
         logger.debug('Sync creation');
         try {
             const response = await RWAPIMicroservice.requestToMicroservice({
@@ -19,6 +19,9 @@ class SyncService {
                     cronPattern: dataset.sync.cronPattern,
                     action: dataset.sync.action,
                     url: dataset.sync.url
+                },
+                headers: {
+                    'x-api-key': apiKey,
                 }
             });
             return response;
@@ -27,7 +30,7 @@ class SyncService {
         }
     }
 
-    static async update(dataset) {
+    static async update(dataset, apiKey) {
         logger.debug('Sync update');
         try {
             const response = await RWAPIMicroservice.requestToMicroservice({
@@ -42,6 +45,9 @@ class SyncService {
                     cronPattern: dataset.sync.cronPattern,
                     action: dataset.sync.action,
                     url: dataset.sync.url
+                },
+                headers: {
+                    'x-api-key': apiKey,
                 }
             });
             return response;
@@ -56,7 +62,10 @@ class SyncService {
             const response = await RWAPIMicroservice.requestToMicroservice({
                 uri: `/v1/task/sync-dataset/by-dataset/${id}`,
                 method: 'DELETE',
-                json: true
+                json: true,
+                headers: {
+                    'x-api-key': apiKey,
+                }
             });
             return response;
         } catch (err) {

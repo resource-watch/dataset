@@ -8,6 +8,7 @@ const {
     createDataset, deserializeDataset, expectedDataset, ensureCorrectError
 } = require('./utils/helpers');
 const { getTestServer } = require('./utils/test-server');
+const { mockValidateRequestWithApiKey } = require('./utils/mocks');
 
 let requester;
 
@@ -24,9 +25,11 @@ describe('Find by ids datasets', () => {
     it('Return no data if there\'s no such id', async () => {
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
         const jsonFakeDataset = await new Dataset(createDataset('json')).save();
+        mockValidateRequestWithApiKey({});
 
         const response = await requester
             .post(`/api/v1/dataset/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 ids: ['non-existing-id']
             });
@@ -38,10 +41,13 @@ describe('Find by ids datasets', () => {
     it('Return datasets when getting them by ids', async () => {
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
         const jsonFakeDataset = await new Dataset(createDataset('json')).save();
+        mockValidateRequestWithApiKey({});
 
         const ids = [cartoFakeDataset.id, jsonFakeDataset.id];
         const response = await requester
-            .post(`/api/v1/dataset/find-by-ids`).send({ ids });
+            .post(`/api/v1/dataset/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
+            .send({ ids });
 
         response.status.should.equal(200);
         response.body.should.have.property('data').with.lengthOf(2);
@@ -54,10 +60,13 @@ describe('Find by ids datasets', () => {
 
     it('Return only existing datasets', async () => {
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
+        mockValidateRequestWithApiKey({});
 
         const ids = [cartoFakeDataset.id, 'non-existing-id'];
         const response = await requester
-            .post(`/api/v1/dataset/find-by-ids`).send({ ids });
+            .post(`/api/v1/dataset/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
+            .send({ ids });
 
         response.status.should.equal(200);
         response.body.should.have.property('data').with.lengthOf(1);
@@ -70,10 +79,13 @@ describe('Find by ids datasets', () => {
     it('Filters datasets by env=production by default', async () => {
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
         const jsonFakeDataset = await new Dataset(createDataset('json', { env: 'staging' })).save();
+        mockValidateRequestWithApiKey({});
 
         const ids = [cartoFakeDataset.id, jsonFakeDataset.id];
         const response = await requester
-            .post(`/api/v1/dataset/find-by-ids`).send({ ids });
+            .post(`/api/v1/dataset/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
+            .send({ ids });
 
         response.status.should.equal(200);
         response.body.should.have.property('data').with.lengthOf(2);
@@ -87,10 +99,13 @@ describe('Find by ids datasets', () => {
     it('Filters datasets by custom envs - single env value', async () => {
         const cartoFakeDataset = await new Dataset(createDataset('cartodb')).save();
         const jsonFakeDataset = await new Dataset(createDataset('json', { env: 'staging' })).save();
+        mockValidateRequestWithApiKey({});
 
         const ids = [cartoFakeDataset.id, jsonFakeDataset.id];
         const response = await requester
-            .post(`/api/v1/dataset/find-by-ids`).send({ ids, env: 'staging' });
+            .post(`/api/v1/dataset/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
+            .send({ ids, env: 'staging' });
 
         response.status.should.equal(200);
         response.body.should.have.property('data').with.lengthOf(1);
@@ -104,10 +119,14 @@ describe('Find by ids datasets', () => {
         const datasetOne = await new Dataset(createDataset('cartodb', { env: 'staging' })).save();
         const datasetTwo = await new Dataset(createDataset('json', { env: 'staging' })).save();
         const datasetThree = await new Dataset(createDataset('json')).save();
+        mockValidateRequestWithApiKey({});
 
         const ids = [datasetOne.id, datasetTwo.id, datasetThree.id];
+
         const response = await requester
-            .post(`/api/v1/dataset/find-by-ids`).send({ ids, env: 'staging,potato' });
+            .post(`/api/v1/dataset/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
+            .send({ ids, env: 'staging,potato' });
 
         response.status.should.equal(200);
         response.body.should.have.property('data').with.lengthOf(2);
@@ -119,15 +138,24 @@ describe('Find by ids datasets', () => {
     });
 
     it('Return 400 error if no data provided at all', async () => {
+        mockValidateRequestWithApiKey({});
+
         const response = await requester
-            .post(`/api/v1/dataset/find-by-ids`);
+            .post(`/api/v1/dataset/find-by-ids`)
+            .set('x-api-key', 'api-key-test');
+
         response.status.should.equal(400);
         ensureCorrectError(response.body, '- ids: ids can not be empty. - ');
     });
 
     it('Return 400 error if data is wrong', async () => {
+        mockValidateRequestWithApiKey({});
+
         const response = await requester
-            .post(`/api/v1/dataset/find-by-ids`).send({ ids: [{}] });
+            .post(`/api/v1/dataset/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
+            .send({ ids: [{}] });
+
         response.status.should.equal(400);
         ensureCorrectError(response.body, '- ids: must be a string - ');
     });
