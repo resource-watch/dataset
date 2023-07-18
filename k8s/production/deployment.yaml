@@ -94,12 +94,12 @@ spec:
               valueFrom:
                 secretKeyRef:
                   key: AWS_REGION
-                  name: authorization
+                  name: mssecrets
             - name: AWS_API_KEY_USAGE_PLAN_ID
               valueFrom:
                 secretKeyRef:
                   key: AWS_API_KEY_USAGE_PLAN_ID
-                  name: authorization
+                  name: mssecrets
           image: gfwdockerhub/dataset
           imagePullPolicy: Always
           livenessProbe:
