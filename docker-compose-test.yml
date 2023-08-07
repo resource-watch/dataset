@@ -14,6 +14,7 @@ services:
       S3_SECRET_ACCESS_KEY: bar
       FASTLY_ENABLED: "false"
       AWS_REGION: "us-east-1"
+      REQUIRE_API_KEY: true
       AWS_ACCESS_KEY_ID: "test"
       AWS_SECRET_ACCESS_KEY: "test"
     command: test
