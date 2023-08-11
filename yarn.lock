@@ -4091,10 +4091,10 @@ rimraf@~2.4.0:
   dependencies:
     glob "^6.0.1"
 
-rw-api-microservice-node@5.1.1:
-  version "5.1.1"
-  resolved "https://registry.yarnpkg.com/rw-api-microservice-node/-/rw-api-microservice-node-5.1.1.tgz#4a8f1855132dc567bc8e4ef65dd97e0122e58260"
-  integrity sha512-fpqs2Ni83KdTqIGvWbeNNUFsVGMLiN5gR4VxS9lC1x03/4kZ+Arz679tNvCoWfu6T8rSYu4RQhpheNJTQIcVoA==
+rw-api-microservice-node@5.1.3:
+  version "5.1.3"
+  resolved "https://registry.yarnpkg.com/rw-api-microservice-node/-/rw-api-microservice-node-5.1.3.tgz#565af66e2ab0e149e28e1acdea7669dedaaaed23"
+  integrity sha512-f2BNfiUbJvzQfUN+B4PM7PyCtpJiIpEBFJ0rBU2xduTFdJzEpq3lLr1n3vGCCcTwM7BCy0KsWNItyZv0p8DRPg==
   dependencies:
     "@aws-sdk/client-cloudwatch-logs" "^3.385.0"
     "@koa/cors" "^4.0.0"
